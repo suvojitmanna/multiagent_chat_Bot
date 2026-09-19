@@ -20,13 +20,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.get("/health", (req, res) => {
+app.get("/", (req, res) => {
   res.json({ status: "ok", service: "auth" });
 });
-app.use("/", authRoutes);
+app.get("/auth", (req, res) => {
+  res.json({ status: "ok", service: "auth" });
+});
+
 app.use("/auth", authRoutes);
 
 app.listen(port, () => {
   console.log(`Auth service is running on port ${port}`);
   connectDb();
 });
+

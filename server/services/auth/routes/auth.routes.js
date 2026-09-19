@@ -5,6 +5,8 @@ import {
   verifyGoogleToken,
   getMe,
   logout,
+  login,
+  register,
 } from "../controllers/auth.controller.js";
 import { verifyAuth } from "../middlewares/auth.middleware.js";
 
@@ -17,6 +19,9 @@ router.get("/google/url", (req, res, next) => {
 });
 router.get("/google/callback", googleCallback);
 router.post("/google/verify", verifyGoogleToken);
+
+router.post("/register", register);
+router.post("/login", login);
 
 router.get("/me", verifyAuth, getMe);
 router.post("/logout", logout);

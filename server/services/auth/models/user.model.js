@@ -23,6 +23,10 @@ const userSchema = new mongoose.Schema(
       unique: true,
       sparse: true,
     },
+    password: {
+      type: String,
+      select: false,
+    },
   },
   {
     timestamps: true,
