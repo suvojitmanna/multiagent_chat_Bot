@@ -18,21 +18,16 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    googleId: {
+    firebaseUid: {
       type: String,
       unique: true,
       sparse: true,
     },
-    password: {
-      type: String,
-      select: false,
-    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const User = mongoose.model("User", userSchema);
 export default User;
-
