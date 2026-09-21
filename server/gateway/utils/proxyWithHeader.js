@@ -3,9 +3,11 @@ import proxy from "express-http-proxy";
 export const proxyWithHeader = (serviceUrl) => {
     return proxy(serviceUrl, {
         proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
-            if  (srcReq?.user?.id) {
-                proxyReqOpts.headers["x-user-id"] = srcReq.user.id;
+            const userId = srcReq?.user?.userId || srcReq?.user?._id || srcReq?.user?.id;
+            if (userId) {
+                proxyReqOpts.headers["x-user-id"] = userId.toString();
             }
+            return proxyReqOpts;
         }
     });
 };

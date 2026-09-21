@@ -3,10 +3,10 @@ import Message from "../models/message.models.js";
 
 export const createConverSation = async (req, res) => {
   try {
-    const userId = req.headers.get("x-user-id");
-    console.log(userId);
+    const userId = req.headers["x-user-id"] || req.header("x-user-id");
+    console.log("Creating conversation for userId:", userId);
     const conversation = await Conversation.create({
-      userId: [userId],
+      userId,
     });
     return res
       .status(201)
@@ -21,10 +21,10 @@ export const createConverSation = async (req, res) => {
 
 export const getConversations = async (req, res) => {
   try {
-    const userId = req.headers.get("x-user-id");
-    console.log(userId);
+    const userId = req.headers["x-user-id"] || req.header("x-user-id");
+    console.log("Fetching conversations for userId:", userId);
     const conversations = await Conversation.find({
-      userId: [userId],
+      userId,
     }).sort({ updatedAt: -1 });
     return res
       .status(200)
@@ -63,7 +63,7 @@ export const saveMessage = async (req, res) => {
 
 export const getMessages = async (req, res) => {
   try {
-    const { conversationId } = req.params.conversationId;
+    const { conversationId } = req.params;
     if (!conversationId) {
       return res.status(400).json({ message: "ConversationId is required" });
     }
