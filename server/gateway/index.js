@@ -4,6 +4,8 @@ import morgan from "morgan";
 import proxy from "express-http-proxy";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import protect from "./middleware/auth.middleware.js";
+import { getCurrentUser } from "./controllers/user.controller.js";
 
 dotenv.config();
 
@@ -20,8 +22,9 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 app.use(morgan("dev"));
+app.use("/api/auth", proxy(process.env.AUTH_SERVICE));
 
-app.use("/auth", proxy(process.env.AUTH_SERVICE));
+app.get("/api/me", protect, getCurrentUser);
 
 app.get("/", (req, res) => {
   res.json({ message: "hello from gateway" });
