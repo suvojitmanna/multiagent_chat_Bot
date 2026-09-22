@@ -1,6 +1,13 @@
 import { getModel } from "../config/model.js";
 
 export const router = async (state) => {
+  if (state.agent && state.agent !== "auto") {
+    console.log("--> Selected Agent (Direct Route):", state.agent);
+    return {
+      ...state,
+      agent: state.agent,
+    };
+  }
   const llm = await getModel("router");
   const prompt = `You are an agent router.
     
@@ -59,9 +66,14 @@ export const router = async (state) => {
     ${state.prompt}
     `;
   const response = await llm.invoke(prompt);
-  const rawText = (typeof response?.content === "string" ? response.content : "").trim().toLowerCase();
+  const rawText = (
+    typeof response?.content === "string" ? response.content : ""
+  )
+    .trim()
+    .toLowerCase();
   const validAgents = ["chat", "search", "image", "ppt", "pdf", "coding"];
   const matchedAgent = validAgents.find((a) => rawText.includes(a)) || "chat";
+  console.log("--> Selected Agent (Auto Router Decision):", matchedAgent);
 
   return {
     ...state,

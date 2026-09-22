@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Sparkles, Copy, Check, Brain, Loader2, Zap } from "lucide-react";
+import { Sparkles, Copy, Check, Brain, Loader2, Zap, Image as ImageIcon, ExternalLink } from "lucide-react";
 
 const THINKING_PHASES = [
   {
@@ -93,13 +93,12 @@ const ThinkingIndicator = () => {
           return (
             <div
               key={index}
-              className={`flex items-center gap-2.5 text-xs transition-all duration-300 ${
-                isCurrent
+              className={`flex items-center gap-2.5 text-xs transition-all duration-300 ${isCurrent
                   ? "text-slate-200 font-medium translate-x-0.5"
                   : isDone
-                  ? "text-slate-500 opacity-60"
-                  : "text-slate-600 opacity-35"
-              }`}
+                    ? "text-slate-500 opacity-60"
+                    : "text-slate-600 opacity-35"
+                }`}
             >
               <div className="shrink-0 flex items-center justify-center w-3.5 h-3.5">
                 {isDone ? (
@@ -204,7 +203,7 @@ const CodeBlock = ({ language, value }) => {
   );
 };
 
-const MessageBuble = ({ role, content, isThinking = false, sidebarCollapsed = false }) => {
+const MessageBuble = ({ role, content, images = [], isThinking = false, sidebarCollapsed = false }) => {
   const isUser = role === "user";
   const displayText = formatContent(content);
 
@@ -221,9 +220,8 @@ const MessageBuble = ({ role, content, isThinking = false, sidebarCollapsed = fa
   return (
     <div className="flex items-start gap-2.5 sm:gap-3 my-2 w-full justify-start transition-all duration-200">
       <div
-        className={`w-7 h-7 sm:w-7.5 sm:h-7.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0 mt-0.5 shadow-sm transition-all duration-300 ${
-          isThinking ? "animate-pulse ring-1 ring-indigo-500/30" : ""
-        }`}
+        className={`w-7 h-7 sm:w-7.5 sm:h-7.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0 mt-0.5 shadow-sm transition-all duration-300 ${isThinking ? "animate-pulse ring-1 ring-indigo-500/30" : ""
+          }`}
       >
         {isThinking ? <Brain size={14} className="text-indigo-400" /> : <Sparkles size={13} className="sm:size-[14px]" />}
       </div>
@@ -233,6 +231,39 @@ const MessageBuble = ({ role, content, isThinking = false, sidebarCollapsed = fa
           <ThinkingIndicator />
         ) : (
           <div className="prose prose-invert max-w-none text-[13.5px] sm:text-[14.5px] leading-relaxed">
+            {Array.isArray(images) && images.length > 0 && (
+              <div className="mb-3.5 not-prose">
+                <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium mb-2">
+                  <ImageIcon size={13} className="text-indigo-400" />
+                  <span>Images ({images.length})</span>
+                </div>
+                <div className="flex items-center gap-2.5 overflow-x-auto pb-1.5 hide-scrollbar">
+                  {images.map((imgUrl, idx) => (
+                    <a
+                      key={idx}
+                      href={imgUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 w-32 h-24 sm:w-40 sm:h-28 rounded-xl overflow-hidden border border-white/[0.08] hover:border-indigo-500/50 transition-all duration-200 group relative block bg-[#161822]"
+                      title="Open full image"
+                    >
+                      <img
+                        src={imgUrl}
+                        alt={`Search visual ${idx + 1}`}
+                        loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.parentElement.style.display = "none";
+                        }}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <ExternalLink size={14} className="text-white drop-shadow" />
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{

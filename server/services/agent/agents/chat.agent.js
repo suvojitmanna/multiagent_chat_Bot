@@ -16,7 +16,27 @@ export const chatAgent = async (state) => {
       ? rawHistory.messages
       : [];
 
+  const searchResultsData = state.searchResult || state.searchResults;
+  const hasSearchResults = Array.isArray(searchResultsData)
+    ? searchResultsData.length > 0
+    : Boolean(searchResultsData);
+
+  const searchContext = hasSearchResults
+    ? Array.isArray(searchResultsData)
+      ? `Web search results:\n${searchResultsData
+          .map(
+            (item, idx) =>
+              `[${idx + 1}] ${item.title || "Source"} (${item.url || ""}):\n${item.content || ""}`,
+          )
+          .join(
+            "\n\n",
+          )}\n\nUse the above search results to provide an accurate, up-to-date answer. Cite sources if helpful. Do not mention internal tools.`
+      : `Web search results:\n${JSON.stringify(searchResultsData, null, 2)}\n\nUse the search results to answer the query.`
+    : ``;
+
   const systemPrompt = `You are Shifra Ai, an intelligent AI assistant.
+
+  ${searchContext}
 
     Rules:
     - For simple questions, greetings,and short queries, respond naturally in plain text.

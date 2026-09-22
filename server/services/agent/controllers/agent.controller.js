@@ -1,11 +1,16 @@
 import axios from "axios";
 import { graph } from "../graph/graph.js";
 import { addMessage } from "../config/memory.js";
-import redis from "../../../redis.js";
 
 export const agent = async (req, res) => {
   try {
-    const { prompt, conversationId } = req.body;
+    const { prompt, conversationId, agent } = req.body;
+    console.log(
+      "--> Agent Controller incoming request. Agent:",
+      agent || "auto",
+      "Prompt:",
+      prompt,
+    );
     if (!prompt) {
       return res.status(400).json({ error: "Prompt is required" });
     }
@@ -28,6 +33,7 @@ export const agent = async (req, res) => {
     const result = await graph.invoke({
       prompt,
       conversationId,
+      agent,
     });
 
     const response =
@@ -44,6 +50,7 @@ export const agent = async (req, res) => {
             typeof response === "string" ? response : JSON.stringify(response),
           conversationId,
           role: "assistant",
+          images: Array.isArray(result.images) ? result.images : [],
         });
       } catch (err) {
         console.warn(
@@ -56,6 +63,7 @@ export const agent = async (req, res) => {
     return res.status(200).json({
       success: true,
       response,
+      images: Array.isArray(result.images) ? result.images : [],
     });
   } catch (err) {
     console.error("Agent error:", err);

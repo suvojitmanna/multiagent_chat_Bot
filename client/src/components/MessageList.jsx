@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import { useSelector } from 'react-redux'
 import MessageBuble from './MessageBuble'
-import { Sparkles, MessageSquareCode, Compass, Lightbulb, Bot } from 'lucide-react'
+import { Sparkles, MessageSquareCode, Compass, Lightbulb, Bot, Loader2 } from 'lucide-react'
 
 const SUGGESTIONS = [
   { icon: MessageSquareCode, label: "Write a React component" },
@@ -10,7 +10,7 @@ const SUGGESTIONS = [
   { icon: Bot, label: "Debug an asynchronous error" },
 ]
 
-const MessageList = ({ sidebarCollapsed }) => {
+const MessageList = ({ sidebarCollapsed, loading }) => {
   const { selectedConversation } = useSelector((state) => state.conversation)
   const { messages } = useSelector((state) => state.message)
   const messagesEndRef = useRef(null)
@@ -28,7 +28,16 @@ const MessageList = ({ sidebarCollapsed }) => {
   return (
     <div className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-6 py-2 sm:py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden overscroll-contain transition-all duration-300">
       <div className="w-full max-w-4xl lg:max-w-5xl xl:max-w-6xl min-h-full flex flex-col justify-start">
-        {(!messageList || messageList.length === 0) ? (
+        {loading && (!messageList || messageList.length === 0) ? (
+          <div className="flex-1 flex flex-col items-center justify-center text-center px-2 py-4 sm:py-6 my-auto">
+            <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-3 shadow-lg shadow-indigo-500/10 animate-pulse">
+              <Loader2 size={20} className="animate-spin text-indigo-400" />
+            </div>
+            <p className="text-xs font-medium text-slate-400">
+              Loading conversation...
+            </p>
+          </div>
+        ) : (!messageList || messageList.length === 0) ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center px-2 py-4 sm:py-6 my-auto">
             <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl bg-linear-to-br from-indigo-500/20 to-violet-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-3 shadow-lg shadow-indigo-500/10">
               <Sparkles size={22} className="sm:size-[24px]" />
@@ -70,6 +79,7 @@ const MessageList = ({ sidebarCollapsed }) => {
                 key={msg?._id || `${msg?.role || 'msg'}-${i}`}
                 role={msg?.role}
                 content={msg?.content}
+                images={msg?.images}
                 isThinking={msg?.isThinking}
                 sidebarCollapsed={sidebarCollapsed}
               />

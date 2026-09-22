@@ -7,6 +7,8 @@ import { updateConversation as updateConversationApi } from '../features/updateC
 import { useDispatch, useSelector } from 'react-redux'
 import logout from '../features/logout'
 import { setUserdata } from '../redux/userSlice'
+import { getMessages } from '../features/getMessages'
+import { setMessages } from '../redux/messageSlice'
 
 const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) => {
     const [localCollapsed, setLocalCollapsed] = useState(() => {
@@ -114,10 +116,18 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
         }
     }
 
-    const handleSelectConversation = (conv) => {
+    const handleSelectConversation = async (conv) => {
         dispatch(setSelectedConversation(conv))
         if (window.innerWidth < 1024) {
             setCollaPsed(true)
+        }
+        if (conv?._id) {
+            try {
+                const data = await getMessages(conv._id)
+                dispatch(setMessages(data))
+            } catch (err) {
+                console.error("Failed to load messages on select:", err)
+            }
         }
     }
 

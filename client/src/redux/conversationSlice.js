@@ -3,6 +3,8 @@ import { createSlice } from "@reduxjs/toolkit";
 const loadSavedConversation = () => {
   if (typeof window === "undefined") return null;
   try {
+    localStorage.removeItem("activeConversation");
+
     const saved = sessionStorage.getItem("activeConversation");
     if (!saved) return null;
     const parsed = JSON.parse(saved);
