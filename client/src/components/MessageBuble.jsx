@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Sparkles, Copy, Check, Brain, Loader2, Zap, Image as ImageIcon, ExternalLink } from "lucide-react";
+import { Sparkles, Copy, Check, Brain, Loader2, Zap, Image as ImageIcon, ExternalLink, X } from "lucide-react";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import oneDark from "react-syntax-highlighter/dist/esm/styles/prism/one-dark.js";
 
 const THINKING_PHASES = [
   {
@@ -94,10 +96,10 @@ const ThinkingIndicator = () => {
             <div
               key={index}
               className={`flex items-center gap-2.5 text-xs transition-all duration-300 ${isCurrent
-                  ? "text-slate-200 font-medium translate-x-0.5"
-                  : isDone
-                    ? "text-slate-500 opacity-60"
-                    : "text-slate-600 opacity-35"
+                ? "text-slate-200 font-medium translate-x-0.5"
+                : isDone
+                  ? "text-slate-500 opacity-60"
+                  : "text-slate-600 opacity-35"
                 }`}
             >
               <div className="shrink-0 flex items-center justify-center w-3.5 h-3.5">
@@ -158,8 +160,53 @@ const formatContent = (val) => {
   return String(val);
 };
 
+const LANGUAGE_CONFIG = {
+  javascript: { label: "JavaScript", dot: "bg-amber-400", badge: "text-amber-300 bg-amber-500/10 border-amber-500/25" },
+  js: { label: "JavaScript", dot: "bg-amber-400", badge: "text-amber-300 bg-amber-500/10 border-amber-500/25" },
+  jsx: { label: "React JSX", dot: "bg-cyan-400", badge: "text-cyan-300 bg-cyan-500/10 border-cyan-500/25" },
+  typescript: { label: "TypeScript", dot: "bg-blue-400", badge: "text-blue-300 bg-blue-500/10 border-blue-500/25" },
+  ts: { label: "TypeScript", dot: "bg-blue-400", badge: "text-blue-300 bg-blue-500/10 border-blue-500/25" },
+  tsx: { label: "React TSX", dot: "bg-sky-400", badge: "text-sky-300 bg-sky-500/10 border-sky-500/25" },
+  python: { label: "Python", dot: "bg-emerald-400", badge: "text-emerald-300 bg-emerald-500/10 border-emerald-500/25" },
+  py: { label: "Python", dot: "bg-emerald-400", badge: "text-emerald-300 bg-emerald-500/10 border-emerald-500/25" },
+  html: { label: "HTML", dot: "bg-orange-400", badge: "text-orange-300 bg-orange-500/10 border-orange-500/25" },
+  css: { label: "CSS", dot: "bg-pink-400", badge: "text-pink-300 bg-pink-500/10 border-pink-500/25" },
+  scss: { label: "SCSS", dot: "bg-pink-400", badge: "text-pink-300 bg-pink-500/10 border-pink-500/25" },
+  json: { label: "JSON", dot: "bg-purple-400", badge: "text-purple-300 bg-purple-500/10 border-purple-500/25" },
+  bash: { label: "Bash", dot: "bg-emerald-400", badge: "text-emerald-300 bg-emerald-500/10 border-emerald-500/25" },
+  sh: { label: "Shell", dot: "bg-emerald-400", badge: "text-emerald-300 bg-emerald-500/10 border-emerald-500/25" },
+  sql: { label: "SQL", dot: "bg-sky-400", badge: "text-sky-300 bg-sky-500/10 border-sky-500/25" },
+  rust: { label: "Rust", dot: "bg-rose-400", badge: "text-rose-300 bg-rose-500/10 border-rose-500/25" },
+  go: { label: "Go", dot: "bg-cyan-400", badge: "text-cyan-300 bg-cyan-500/10 border-cyan-500/25" },
+  java: { label: "Java", dot: "bg-red-400", badge: "text-red-300 bg-red-500/10 border-red-500/25" },
+  cpp: { label: "C++", dot: "bg-blue-400", badge: "text-blue-300 bg-blue-500/10 border-blue-500/25" },
+  c: { label: "C", dot: "bg-slate-400", badge: "text-slate-300 bg-slate-500/10 border-slate-500/25" },
+};
+
+const NORMALIZE_LANG = {
+  js: "javascript",
+  jsx: "jsx",
+  ts: "typescript",
+  tsx: "tsx",
+  py: "python",
+  sh: "bash",
+  shell: "bash",
+  zsh: "bash",
+  yml: "yaml",
+  md: "markdown",
+};
+
 const CodeBlock = ({ language, value }) => {
   const [copied, setCopied] = useState(false);
+  const rawLang = (language || "").toLowerCase().trim();
+  const highlightLang = NORMALIZE_LANG[rawLang] || rawLang || "javascript";
+  const langConfig = LANGUAGE_CONFIG[rawLang] || {
+    label: language ? language.toUpperCase() : "CODE",
+    dot: "bg-indigo-400",
+    badge: "text-indigo-300 bg-indigo-500/10 border-indigo-500/25",
+  };
+
+  const lineCount = (value || "").split("\n").length;
 
   const handleCopy = async () => {
     try {
@@ -172,21 +219,35 @@ const CodeBlock = ({ language, value }) => {
   };
 
   return (
-    <div className="my-3 rounded-xl overflow-hidden border border-white/[0.08] shadow-lg bg-[#090b10]">
-      <div className="flex items-center justify-between px-3.5 py-1.5 bg-white/[0.03] border-b border-white/[0.06] text-xs text-slate-400 font-mono">
-        <span className="text-[11.5px] uppercase font-semibold text-slate-400 tracking-wider">
-          {language || "code"}
-        </span>
+    <div className="my-3.5 rounded-2xl overflow-hidden border border-white/[0.1] shadow-2xl bg-[#090b11] transition-all duration-200">
+      <div className="flex items-center justify-between px-3.5 py-2 bg-[#0e111a] border-b border-white/[0.08] select-none">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 mr-1.5 opacity-70">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]/80" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]/80" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f]/80" />
+          </div>
+
+          <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-semibold border ${langConfig.badge}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${langConfig.dot}`} />
+            <span className="tracking-wider uppercase font-mono">{langConfig.label}</span>
+          </div>
+
+          <span className="text-[11px] text-slate-500 font-mono hidden sm:inline">
+            {lineCount} {lineCount === 1 ? "line" : "lines"}
+          </span>
+        </div>
+
         <button
           type="button"
           onClick={handleCopy}
-          className="flex items-center gap-1.5 px-2 py-0.5 rounded-md hover:bg-white/[0.06] text-slate-400 hover:text-slate-200 transition-colors cursor-pointer text-[11.5px]"
-          title="Copy code"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/[0.12] text-slate-400 hover:text-slate-200 transition-all duration-150 cursor-pointer text-[11.5px] font-medium active:scale-95"
+          title="Copy code to clipboard"
         >
           {copied ? (
             <>
               <Check size={12} className="text-emerald-400" />
-              <span className="text-emerald-400 font-medium">Copied!</span>
+              <span className="text-emerald-400 font-semibold">Copied!</span>
             </>
           ) : (
             <>
@@ -196,14 +257,45 @@ const CodeBlock = ({ language, value }) => {
           )}
         </button>
       </div>
-      <pre className="p-3.5 overflow-x-auto text-[13px] font-mono leading-relaxed text-slate-200 [scrollbar-width:thin]">
-        <code>{value}</code>
-      </pre>
+
+      <div className="overflow-x-auto text-[13px] leading-relaxed [scrollbar-width:thin] bg-[#090b11]">
+        <SyntaxHighlighter
+          language={highlightLang}
+          style={oneDark}
+          showLineNumbers={true}
+          wrapLongLines={false}
+          customStyle={{
+            margin: 0,
+            padding: "0.85rem 1rem",
+            background: "transparent",
+            fontSize: "13px",
+            lineHeight: "1.65",
+            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+          }}
+          lineNumberStyle={{
+            minWidth: "2.5em",
+            paddingRight: "1em",
+            color: "#64748b",
+            textAlign: "right",
+            userSelect: "none",
+            borderRight: "1px solid rgba(255, 255, 255, 0.08)",
+            marginRight: "1em",
+          }}
+          codeTagProps={{
+            style: {
+              fontFamily: "inherit",
+            },
+          }}
+        >
+          {value || ""}
+        </SyntaxHighlighter>
+      </div>
     </div>
   );
 };
 
 const MessageBuble = ({ role, content, images = [], isThinking = false, sidebarCollapsed = false }) => {
+  const [lightBox, setLightBox] = useState(null);
   const isUser = role === "user";
   const displayText = formatContent(content);
 
@@ -239,13 +331,11 @@ const MessageBuble = ({ role, content, images = [], isThinking = false, sidebarC
                 </div>
                 <div className="flex items-center gap-2.5 overflow-x-auto pb-1.5 hide-scrollbar">
                   {images.map((imgUrl, idx) => (
-                    <a
+                    <div
                       key={idx}
-                      href={imgUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="shrink-0 w-32 h-24 sm:w-40 sm:h-28 rounded-xl overflow-hidden border border-white/[0.08] hover:border-indigo-500/50 transition-all duration-200 group relative block bg-[#161822]"
-                      title="Open full image"
+                      onClick={() => setLightBox(imgUrl)}
+                      className="shrink-0 w-32 h-24 sm:w-40 sm:h-28 rounded-xl overflow-hidden border border-white/[0.08] hover:border-indigo-500/50 transition-all duration-200 group relative block bg-[#161822] cursor-pointer"
+                      title="Click to view full image"
                     >
                       <img
                         src={imgUrl}
@@ -259,7 +349,7 @@ const MessageBuble = ({ role, content, images = [], isThinking = false, sidebarC
                       <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <ExternalLink size={14} className="text-white drop-shadow" />
                       </div>
-                    </a>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -277,7 +367,7 @@ const MessageBuble = ({ role, content, images = [], isThinking = false, sidebarC
 
                   return (
                     <code
-                      className="px-1.5 py-0.5 rounded-md bg-white/[0.08] text-indigo-300 font-mono text-[12.5px] border border-white/[0.06]"
+                      className="px-1.5 py-0.5 rounded-md bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 font-mono text-[12.5px] font-medium"
                       {...props}
                     >
                       {children}
@@ -341,9 +431,10 @@ const MessageBuble = ({ role, content, images = [], isThinking = false, sidebarC
                       href={href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-indigo-400 hover:text-indigo-300 underline underline-offset-2 transition-colors"
+                      className="text-indigo-400 hover:text-indigo-300 underline underline-offset-2 transition-colors flex items-center gap-1"
                     >
                       {children}
+                      <ExternalLink size={14} />
                     </a>
                   );
                 },
@@ -357,6 +448,27 @@ const MessageBuble = ({ role, content, images = [], isThinking = false, sidebarC
           </div>
         )}
       </div>
+
+      {lightBox && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6 transition-all duration-200"
+          onClick={() => setLightBox(null)}
+        >
+          <button
+            onClick={() => setLightBox(null)}
+            className="absolute top-5 right-5 text-white hover:text-rose-400 text-xl font-bold z-10 bg-black/70 hover:bg-black/90 w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer border border-white/20 shadow-lg"
+            title="Close image"
+          >
+            <X size={20} />
+          </button>
+          <img
+            src={lightBox}
+            alt="Full view"
+            onClick={(e) => e.stopPropagation()}
+            className="max-w-[90vw] max-h-[85vh] object-contain rounded-xl shadow-2xl border border-white/15"
+          />
+        </div>
+      )}
     </div>
   );
 };
