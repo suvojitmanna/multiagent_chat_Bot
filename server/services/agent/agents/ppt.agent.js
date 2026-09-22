@@ -1,5 +1,1 @@
-
-
-export const pptGenAgent = async (params) => {
-
-}
+export const pptGenAgent = async (params) => {};

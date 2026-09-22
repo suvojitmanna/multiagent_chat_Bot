@@ -1,8 +1,9 @@
-import React from 'react'
-import { MessageSquare, Plus, Sparkles, PanelLeftOpen, Trash2 } from 'lucide-react'
+import React, { useState, useRef, useEffect } from 'react'
+import { MessageSquare, Plus, Sparkles, PanelLeftOpen, Trash2, Pencil, Check, X } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux'
-import { setSelectedConversation, removeConversation } from '../redux/conversationSlice'
+import { setSelectedConversation, removeConversation, updateConversationTitle } from '../redux/conversationSlice'
 import { deleteConversation as deleteConversationApi } from '../features/deleteConversation'
+import { updateConversation as updateConversationApi } from '../features/updateConversation'
 
 const Nav = ({ sidebarCollapsed, onToggleSidebar }) => {
     const dispatch = useDispatch()
@@ -11,7 +12,52 @@ const Nav = ({ sidebarCollapsed, onToggleSidebar }) => {
     const messageList = Array.isArray(messages) ? messages : (messages?.messages || [])
     const userMessageCount = messageList.filter((m) => m?.role === "user").length
 
+    const [isEditingTitle, setIsEditingTitle] = useState(false)
+    const [navTitle, setNavTitle] = useState("")
+    const navInputRef = useRef(null)
+
+    useEffect(() => {
+        if (isEditingTitle && navInputRef.current) {
+            navInputRef.current.focus()
+            navInputRef.current.select()
+        }
+    }, [isEditingTitle])
+
+    useEffect(() => {
+        setIsEditingTitle(false)
+    }, [selectedConversation?._id])
+
+    const handleStartEdit = () => {
+        if (!selectedConversation?._id) return
+        setNavTitle(selectedConversation?.title || "New Chat")
+        setIsEditingTitle(true)
+    }
+
+    const handleCancelEdit = () => {
+        setIsEditingTitle(false)
+        setNavTitle("")
+    }
+
+    const handleSaveTitle = async () => {
+        const trimmed = navTitle.trim()
+        if (!trimmed || !selectedConversation?._id) {
+            handleCancelEdit()
+            return
+        }
+
+        const convId = selectedConversation._id
+        dispatch(updateConversationTitle({ id: convId, title: trimmed }))
+        setIsEditingTitle(false)
+
+        try {
+            await updateConversationApi({ id: convId, title: trimmed })
+        } catch (error) {
+            console.error("Error updating title in nav:", error)
+        }
+    }
+
     const handleNewChat = () => {
+        setIsEditingTitle(false)
         dispatch(setSelectedConversation(null))
     }
 
@@ -50,9 +96,66 @@ const Nav = ({ sidebarCollapsed, onToggleSidebar }) => {
                         )}
                     </div>
 
-                    <h1 className="text-[13.5px] sm:text-[14.5px] font-semibold text-slate-100 tracking-tight truncate min-w-0">
-                        {selectedConversation?.title || "New Chat"}
-                    </h1>
+                    {isEditingTitle ? (
+                        <div className="flex items-center gap-1.5 min-w-0 max-w-xs sm:max-w-sm">
+                            <input
+                                ref={navInputRef}
+                                type="text"
+                                value={navTitle}
+                                onChange={(e) => setNavTitle(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                        e.preventDefault()
+                                        handleSaveTitle()
+                                    } else if (e.key === "Escape") {
+                                        e.preventDefault()
+                                        handleCancelEdit()
+                                    }
+                                }}
+                                className="bg-white/[0.08] border border-white/[0.15] focus:border-indigo-400 rounded-md px-2 py-0.5 text-[13px] text-slate-100 outline-none w-full"
+                                placeholder="Chat title..."
+                            />
+                            <button
+                                type="button"
+                                onClick={handleSaveTitle}
+                                className="p-1 rounded-md text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/20 transition-colors cursor-pointer shrink-0"
+                                title="Save title (Enter)"
+                                aria-label="Save title"
+                            >
+                                <Check size={14} />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleCancelEdit}
+                                className="p-1 rounded-md text-slate-400 hover:text-slate-200 hover:bg-white/[0.08] transition-colors cursor-pointer shrink-0"
+                                title="Cancel (Esc)"
+                                aria-label="Cancel"
+                            >
+                                <X size={14} />
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-1.5 min-w-0 max-w-full">
+                            <h1
+                                onDoubleClick={handleStartEdit}
+                                title={selectedConversation?._id ? "Double-click to rename" : undefined}
+                                className="text-[13.5px] sm:text-[14.5px] font-semibold text-slate-100 tracking-tight truncate min-w-0 cursor-default"
+                            >
+                                {selectedConversation?.title || "New Chat"}
+                            </h1>
+                            {selectedConversation?._id && (
+                                <button
+                                    type="button"
+                                    onClick={handleStartEdit}
+                                    className="p-1 rounded-md text-slate-500 hover:text-indigo-300 hover:bg-white/[0.06] transition-colors cursor-pointer shrink-0"
+                                    title="Rename chat"
+                                    aria-label="Rename chat"
+                                >
+                                    <Pencil size={12} />
+                                </button>
+                            )}
+                        </div>
+                    )}
 
                     {(selectedConversation || userMessageCount > 0) && (
                         <span className="inline-flex items-center gap-1 text-[10.5px] sm:text-[11px] font-medium text-slate-400 bg-white/[0.04] border border-white/[0.07] px-2 py-0.5 rounded-full shrink-0">

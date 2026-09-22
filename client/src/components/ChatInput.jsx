@@ -5,7 +5,19 @@ import { sendMessage } from '../features/sendMessage'
 import { getMessages } from '../features/getMessages'
 import { setMessages } from '../redux/messageSlice'
 import { createConversation } from '../features/createConverSation'
-import { addConversation, setSelectedConversation } from '../redux/conversationSlice'
+import { addConversation, setSelectedConversation, updateConversationTitle } from '../redux/conversationSlice'
+import { updateConversation as updateConversationApi } from '../features/updateConversation'
+
+const trimPromptToTitle = (text) => {
+  if (!text || typeof text !== "string") return "New Chat"
+  const singleLine = text.replace(/\s+/g, " ").trim()
+  if (!singleLine) return "New Chat"
+  const formatted = singleLine.charAt(0).toUpperCase() + singleLine.slice(1)
+  if (formatted.length <= 32) {
+    return formatted
+  }
+  return formatted.slice(0, 30).trim() + "..."
+}
 
 const ChatInput = ({ sidebarCollapsed }) => {
   const [value, setValue] = useState("")
@@ -29,43 +41,50 @@ const ChatInput = ({ sidebarCollapsed }) => {
     setLoading(true)
     setValue("")
 
+    const currentList = Array.isArray(messages) ? messages : (messages?.messages || [])
+    const trimmedTitle = trimPromptToTitle(promptText)
+
+    // 1. Immediately show user prompt + thinking state in the UI
+    const pendingUserMsg = { role: "user", content: promptText }
+    const pendingAssistantMsg = { role: "assistant", content: "", isThinking: true }
+    dispatch(setMessages([...currentList, pendingUserMsg, pendingAssistantMsg]))
+
     try {
       let convId = selectedConversation?._id
+      const isNewChat = !convId || !selectedConversation?.title || selectedConversation?.title === "New Chat"
 
+      // 2. If no conversation yet, create one with the trimmed title
       if (!convId) {
-        const convData = await createConversation()
+        const convData = await createConversation({ title: trimmedTitle })
         const newConv = convData?.conversation || convData
         if (newConv?._id) {
+          convId = newConv._id
           dispatch(addConversation(newConv))
           dispatch(setSelectedConversation(newConv))
-          convId = newConv._id
         }
+      } else if (isNewChat) {
+        dispatch(updateConversationTitle({ id: convId, title: trimmedTitle }))
+        updateConversationApi({ id: convId, title: trimmedTitle })
       }
 
-      const currentList = Array.isArray(messages) ? messages : (messages?.messages || [])
-      dispatch(
-        setMessages([
-          ...currentList,
-          { role: "user", content: promptText },
-          { role: "assistant", content: "", isThinking: true },
-        ])
-      )
-
+      // 3. Send message to agent service
       const payload = {
         prompt: promptText,
         conversationId: convId,
       }
       const resData = await sendMessage(payload)
 
+      // 4. Fetch authoritative messages from chat service (or fallback to response)
       if (convId) {
         const data = await getMessages(convId)
-        if (data && (Array.isArray(data) ? data.length > 0 : data?.messages?.length > 0)) {
-          dispatch(setMessages(data))
+        const fetchedList = Array.isArray(data) ? data : (data?.messages || [])
+        if (fetchedList.length > 0) {
+          dispatch(setMessages(fetchedList))
         } else if (resData?.response) {
           dispatch(
             setMessages([
               ...currentList,
-              { role: "user", content: promptText },
+              pendingUserMsg,
               { role: "assistant", content: resData.response, isThinking: false },
             ])
           )
@@ -74,19 +93,24 @@ const ChatInput = ({ sidebarCollapsed }) => {
         dispatch(
           setMessages([
             ...currentList,
-            { role: "user", content: promptText },
+            pendingUserMsg,
             { role: "assistant", content: resData.response, isThinking: false },
           ])
         )
       }
     } catch (error) {
       console.error("Error sending message:", error)
-      if (selectedConversation?._id) {
-        const data = await getMessages(selectedConversation._id)
-        if (data && (Array.isArray(data) ? data.length > 0 : data?.messages?.length > 0)) {
-          dispatch(setMessages(data))
-        }
-      }
+      dispatch(
+        setMessages([
+          ...currentList,
+          pendingUserMsg,
+          {
+            role: "assistant",
+            content: "Sorry, I encountered an error while processing your request. Please try again.",
+            isThinking: false,
+          },
+        ])
+      )
     } finally {
       setLoading(false)
     }
@@ -130,9 +154,8 @@ const ChatInput = ({ sidebarCollapsed }) => {
         <button
           type="button"
           disabled={!value.trim() || loading}
-          className={`shrink-0 flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-indigo-500 to-violet-500 hover:from-indigo-400 hover:to-violet-400 text-white shadow-lg shadow-indigo-500/20 transition-all duration-200 active:scale-95 cursor-pointer ${
-            !value.trim() || loading ? 'opacity-35 cursor-not-allowed' : 'opacity-100 cursor-pointer'
-          }`}
+          className={`shrink-0 flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-indigo-500 to-violet-500 hover:from-indigo-400 hover:to-violet-400 text-white shadow-lg shadow-indigo-500/20 transition-all duration-200 active:scale-95 cursor-pointer ${!value.trim() || loading ? 'opacity-35 cursor-not-allowed' : 'opacity-100 cursor-pointer'
+            }`}
           onClick={handleSendMessage}
         >
           {loading ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}

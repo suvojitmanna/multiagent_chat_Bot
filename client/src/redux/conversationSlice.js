@@ -28,8 +28,14 @@ const conversationSlice = createSlice({
         : action.payload?.conversations || [];
       state.conversations = list;
 
-      if (state.selectedConversation?._id && Array.isArray(list) && list.length > 0) {
-        const found = list.find((c) => c?._id === state.selectedConversation._id);
+      if (
+        state.selectedConversation?._id &&
+        Array.isArray(list) &&
+        list.length > 0
+      ) {
+        const found = list.find(
+          (c) => c?._id === state.selectedConversation._id,
+        );
         if (found) {
           state.selectedConversation = found;
           try {
@@ -48,7 +54,10 @@ const conversationSlice = createSlice({
       state.selectedConversation = action.payload;
       try {
         if (action.payload && action.payload._id) {
-          sessionStorage.setItem("activeConversation", JSON.stringify(action.payload));
+          sessionStorage.setItem(
+            "activeConversation",
+            JSON.stringify(action.payload),
+          );
         } else {
           sessionStorage.removeItem("activeConversation");
         }
@@ -58,7 +67,9 @@ const conversationSlice = createSlice({
     },
     removeConversation: (state, action) => {
       const idToDelete = action.payload;
-      state.conversations = state.conversations.filter((c) => c?._id !== idToDelete);
+      state.conversations = state.conversations.filter(
+        (c) => c?._id !== idToDelete,
+      );
       if (state.selectedConversation?._id === idToDelete) {
         state.selectedConversation = null;
         try {
@@ -66,9 +77,34 @@ const conversationSlice = createSlice({
         } catch {}
       }
     },
+    updateConversationTitle: (state, action) => {
+      const { id, title } = action.payload || {};
+      if (!id || !title) return;
+      const conv = state.conversations.find((c) => c?._id === id);
+      if (conv) {
+        conv.title = title;
+      }
+      if (state.selectedConversation?._id === id) {
+        state.selectedConversation = {
+          ...state.selectedConversation,
+          title,
+        };
+        try {
+          sessionStorage.setItem(
+            "activeConversation",
+            JSON.stringify(state.selectedConversation),
+          );
+        } catch {}
+      }
+    },
   },
 });
 
-export const { setConversations, addConversation, setSelectedConversation, removeConversation } =
-  conversationSlice.actions;
+export const {
+  setConversations,
+  addConversation,
+  setSelectedConversation,
+  removeConversation,
+  updateConversationTitle,
+} = conversationSlice.actions;
 export default conversationSlice.reducer;

@@ -1,5 +1,7 @@
 import axios from "axios";
 import { graph } from "../graph/graph.js";
+import { addMessage } from "../config/memory.js";
+import redis from "../../../redis.js";
 
 export const agent = async (req, res) => {
   try {
@@ -16,7 +18,10 @@ export const agent = async (req, res) => {
           role: "user",
         });
       } catch (err) {
-        console.warn("Could not save user message to chat service:", err.message);
+        console.warn(
+          "Could not save user message to chat service:",
+          err.message,
+        );
       }
     }
 
@@ -25,26 +30,37 @@ export const agent = async (req, res) => {
       conversationId,
     });
 
-    const response = typeof result.aiResponse === "string" 
-      ? result.aiResponse 
-      : (result.aiResponse?.messages || result.aiResponse);
+    const response =
+      typeof result.aiResponse === "string"
+        ? result.aiResponse
+        : result.aiResponse?.messages || result.aiResponse;
 
+    await addMessage(conversationId, "user", prompt);
     if (conversationId && response) {
       try {
+        await addMessage(conversationId, "assistant", response);
         await axios.post(`${process.env.CHAT_SERVICE}/save-messages`, {
-          content: typeof response === "string" ? response : JSON.stringify(response),
+          content:
+            typeof response === "string" ? response : JSON.stringify(response),
           conversationId,
           role: "assistant",
         });
       } catch (err) {
-        console.warn("Could not save assistant message to chat service:", err.message);
+        console.warn(
+          "Could not save assistant message to chat service:",
+          err.message,
+        );
       }
     }
 
-    return res.status(200).json({ success: true, response });
-    
+    return res.status(200).json({
+      success: true,
+      response,
+    });
   } catch (err) {
     console.error("Agent error:", err);
-    return res.status(500).json({ error: "agent service error", details: err.message });
+    return res
+      .status(500)
+      .json({ error: "agent service error", details: err.message });
   }
 };

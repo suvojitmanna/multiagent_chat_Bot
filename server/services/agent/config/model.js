@@ -10,7 +10,7 @@ export const getGroq = () => {
     const apiKey = process.env.GROQ_API_KEY || process.env.GORK_API_KEY;
     if (!apiKey) {
       throw new Error(
-        "Groq API key not found. Please set GROQ_API_KEY in server/services/agent/.env"
+        "Groq API key not found. Please set GROQ_API_KEY in server/services/agent/.env",
       );
     }
     groqInstance = new ChatGroq({
@@ -28,12 +28,12 @@ export const getGemini = () => {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       throw new Error(
-        "Gemini API key not found. Please set GEMINI_API_KEY in server/services/agent/.env"
+        "Gemini API key not found. Please set GEMINI_API_KEY in server/services/agent/.env",
       );
     }
     geminiInstance = new ChatGoogleGenerativeAI({
       apiKey,
-      model: process.env.GEMINI_MODEL || "gemini-1.5-flash",
+      model: process.env.GEMINI_MODEL || "gemini-3.6-flash",
       temperature: 0,
       maxRetries: 2,
     });
@@ -58,10 +58,16 @@ export const getModel = (param = {}) => {
   }
 };
 
-export const groq = new Proxy({}, {
-  get: (_, prop) => getGroq()[prop],
-});
+export const groq = new Proxy(
+  {},
+  {
+    get: (_, prop) => getGroq()[prop],
+  },
+);
 
-export const gemini = new Proxy({}, {
-  get: (_, prop) => getGemini()[prop],
-});
+export const gemini = new Proxy(
+  {},
+  {
+    get: (_, prop) => getGemini()[prop],
+  },
+);

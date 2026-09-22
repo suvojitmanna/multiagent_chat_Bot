@@ -4,9 +4,11 @@ import Message from "../models/message.models.js";
 export const createConverSation = async (req, res) => {
   try {
     const userId = req.headers["x-user-id"] || req.header("x-user-id");
+    const title = req.body?.title || req.query?.title;
     console.log("Creating conversation for userId:", userId);
     const conversation = await Conversation.create({
       userId,
+      ...(title ? { title: String(title).trim() } : {}),
     });
     return res
       .status(201)
@@ -81,13 +83,17 @@ export const getMessages = async (req, res) => {
 
 export const updateConversation = async (req, res) => {
   try {
-    const { id, title } = req.body;
+    const id = req.body?.id || req.body?.conversationId || req.params?.id;
+    const title = req.body?.title;
     if (!id) {
       return res.status(400).json({ message: "Id is required" });
     }
+    if (!title || typeof title !== "string" || !title.trim()) {
+      return res.status(400).json({ message: "Valid title is required" });
+    }
     const conversation = await Conversation.findByIdAndUpdate(
       id,
-      { title },
+      { title: title.trim() },
       { new: true },
     );
     if (!conversation) {

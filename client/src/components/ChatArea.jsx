@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import Nav from './Nav'
 import MessageList from './MessageList'
 import ChatInput from './ChatInput'
@@ -8,13 +8,28 @@ import { setMessages } from '../redux/messageSlice'
 
 const ChatArea = ({ sidebarCollapsed, onToggleSidebar }) => {
   const { selectedConversation } = useSelector((state) => state.conversation)
+  const { messages } = useSelector((state) => state.message)
   const dispatch = useDispatch()
+  const activeConvIdRef = useRef(selectedConversation?._id)
 
   useEffect(() => {
+    const currentId = selectedConversation?._id
+
+    if (activeConvIdRef.current === currentId) {
+      return
+    }
+    activeConvIdRef.current = currentId
+
+    const messageList = Array.isArray(messages) ? messages : (messages?.messages || [])
+    const isCurrentlyThinking = messageList.some((m) => m?.isThinking)
+    if (isCurrentlyThinking) {
+      return
+    }
+
     const fetchConversationMessages = async () => {
-      if (selectedConversation?._id) {
+      if (currentId) {
         try {
-          const data = await getMessages(selectedConversation._id)
+          const data = await getMessages(currentId)
           dispatch(setMessages(data))
         } catch (error) {
           console.error("Error loading messages:", error)

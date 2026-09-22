@@ -1,5 +1,1 @@
-
-
-export const searchGenAgent = async (params) => {
-
-}
+export const searchGenAgent = async (params) => {};

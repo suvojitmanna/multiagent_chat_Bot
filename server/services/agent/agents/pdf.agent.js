@@ -1,5 +1,1 @@
-
-
-export const pdfGenAgent = async (params) => {
-
-}
+export const pdfGenAgent = async (params) => {};
