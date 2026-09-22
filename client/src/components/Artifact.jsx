@@ -2,7 +2,7 @@ import React from 'react'
 
 const Artifact = () => {
   return (
-    <div>Artifact</div>
+    <div></div>
   )
 }
 

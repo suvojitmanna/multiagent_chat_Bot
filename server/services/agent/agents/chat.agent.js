@@ -1,4 +1,4 @@
-import { getModel } from "../config/model"
+import { getModel } from "../config/model.js"
 
 
 export const chatAgent = async (state) => {

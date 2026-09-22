@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
-import { Coins, LogOut, MessageSquare, PanelLeftIcon, PenSquare, Plus, User } from "lucide-react"
+import { Coins, LogOut, MessageSquare, PanelLeftClose, PanelLeftOpen, Plus, User, X } from "lucide-react"
 import { getConversations } from '../features/getConverSations'
 import { addConversation, setConversations, setSelectedConversation } from '../redux/conversationSlice'
 import { createConversation } from '../features/createConverSation'
@@ -7,20 +7,23 @@ import { useDispatch, useSelector } from 'react-redux'
 import logout from '../features/logout'
 import { setUserdata } from '../redux/userSlice'
 
-const Sidebar = () => {
-
-    const [collaPsed, setCollaPsed] = useState(() => {
+const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) => {
+    const [localCollapsed, setLocalCollapsed] = useState(() => {
         if (typeof window !== 'undefined') {
             return window.innerWidth < 1024
         }
         return false
     })
-    
+
+    const collaPsed = propCollapsed !== undefined ? propCollapsed : localCollapsed
+    const setCollaPsed = propSetCollapsed !== undefined ? propSetCollapsed : setLocalCollapsed
+
     const [imageError, setImageError] = useState(false)
     const dispatch = useDispatch()
     const sidebarRef = useRef(null)
 
     const { conversations, selectedConversation } = useSelector((state) => state.conversation)
+    const conversationList = Array.isArray(conversations) ? conversations : []
     const { userData } = useSelector((state) => state.user)
 
     useEffect(() => {
@@ -33,7 +36,7 @@ const Sidebar = () => {
             dispatch(setConversations(data))
         }
         getConv()
-    }, [userData])
+    }, [userData, dispatch])
 
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -52,8 +55,16 @@ const Sidebar = () => {
     }, [collaPsed])
 
     const handleCreateConversation = async () => {
-        const data = await createConversation()
-        dispatch(addConversation(data))
+        try {
+            const data = await createConversation()
+            const newConv = data?.conversation || data
+            if (newConv) {
+                dispatch(addConversation(newConv))
+                dispatch(setSelectedConversation(newConv))
+            }
+        } catch (error) {
+            console.error("Failed to create conversation:", error)
+        }
         if (window.innerWidth < 1024) {
             setCollaPsed(true)
         }
@@ -66,7 +77,19 @@ const Sidebar = () => {
         }
     }
 
-
+    const handleLogout = async () => {
+        try {
+            await logout()
+            dispatch(setUserdata(null))
+            dispatch(setConversations([]))
+            dispatch(setSelectedConversation(null))
+            if (window.innerWidth < 1024) {
+                setCollaPsed(true)
+            }
+        } catch (error) {
+            console.error("Logout failed:", error)
+        }
+    }
 
     return (
         <>
@@ -78,77 +101,71 @@ const Sidebar = () => {
                 />
             )}
 
-            <div
+            <aside
                 ref={sidebarRef}
-                className={`fixed lg:static inset-y-0 left-0 z-40 h-screen shrink-0 bg-[#0d0f14] border-r border-white/[0.06] flex flex-col transition-all duration-300 ease-in-out ${collaPsed ? "w-[68px]" : "w-[270px]"}`}
+                className={`h-screen shrink-0 bg-[#0d0f14] border-white/[0.06] flex flex-col transition-all duration-300 ease-in-out select-none ${collaPsed
+                        ? "w-0 -translate-x-full lg:translate-x-0 lg:w-[68px] overflow-hidden border-r-0 lg:border-r"
+                        : "w-[270px] fixed lg:static inset-y-0 left-0 z-40 shadow-2xl lg:shadow-none translate-x-0 border-r"
+                    }`}
             >
-                <div className="flex flex-col h-full">
-                    <div className={`flex items-center h-14 border-b border-white/[0.06] shrink-0 transition-all duration-300 ${collaPsed ? "justify-center px-0" : "gap-2.5 px-4"}`}>
+                <div className="flex flex-col h-full overflow-hidden">
+
+                    <div className={`flex items-center h-14 border-b border-white/[0.06] shrink-0 transition-all duration-300 ${collaPsed ? "justify-center px-0" : "gap-2.5 px-4 justify-between"}`}>
+                        <div className={`flex items-center gap-2.5 min-w-0 flex-1 ${collaPsed ? "hidden" : "flex"}`}>
+                            <span className="text-[15px] font-semibold text-slate-100 tracking-tight truncate">
+                                ShifraAI
+                            </span>
+                            <span className="text-[10px] font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full tracking-wide uppercase shrink-0">
+                                free
+                            </span>
+                        </div>
+
                         <button
                             type="button"
-                            className="flex items-center justify-center w-7 h-7 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] transition-colors duration-150 bg-transparent border-none cursor-pointer"
+                            className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] transition-colors duration-150 bg-transparent border-none cursor-pointer shrink-0"
                             onClick={() => setCollaPsed(!collaPsed)}
                             title={collaPsed ? "Expand sidebar" : "Collapse sidebar"}
                         >
-                            <PanelLeftIcon size={17} />
+                            {collaPsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
                         </button>
-
-                        {!collaPsed && (
-                            <>
-                                <span className="text-[15px] font-semibold text-slate-100 tracking-tight flex-1 truncate">
-                                    ShifraAI
-                                </span>
-
-                                <span className="text-[10px] font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full tracking-wide uppercase shrink-0">
-                                    free
-                                </span>
-                                <button
-                                    className='flex items-center justify-center w-7 h-7 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/[0.05] transition-colors duration-150 bg-transparent border-none cursor-pointer'
-                                    onClick={() => handleCreateConversation()}
-                                    title="New Chat"
-                                >
-                                    <PenSquare size={14} />
-                                </button>
-                            </>
-                        )}
                     </div>
 
-
-                    <div className={`pt-3.5 pb-1 ${collaPsed ? "px-2.5 flex justify-center" : "px-4"}`}>
+                    <div className={`pt-3.5 pb-1 shrink-0 ${collaPsed ? "px-2.5 flex justify-center" : "px-4"}`}>
                         {collaPsed ? (
                             <button
-                                onClick={() => handleCreateConversation()}
+                                onClick={handleCreateConversation}
                                 title="New Chat"
-                                className="w-10 h-10 flex items-center justify-center text-white bg-linear-to-br from-indigo-500 to-violet-700 rounded-xl border-none cursor-pointer hover:opacity-90 transition-opacity shadow-lg shadow-indigo-500/20"
+                                className="w-10 h-10 flex items-center justify-center text-white bg-linear-to-br from-indigo-500 to-violet-700 rounded-xl border-none cursor-pointer hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-indigo-500/20"
                             >
                                 <Plus size={18} />
                             </button>
                         ) : (
                             <button
-                                className="w-full flex items-center justify-center gap-2 text-sm font-medium text-white bg-linear-to-br from-indigo-500 to-violet-700 rounded-xl py-[10px] border-none cursor-pointer hover:opacity-90 transition-opacity duration-150 shadow-lg shadow-indigo-500/20"
-                                onClick={() => handleCreateConversation()}
+                                className="w-full flex items-center justify-center gap-2 text-[13.5px] font-medium text-white bg-linear-to-br from-indigo-500 to-violet-700 rounded-xl py-2.5 border-none cursor-pointer hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-indigo-500/20"
+                                onClick={handleCreateConversation}
                             >
                                 <Plus size={15} />
-                                New Chat
+                                <span>New Chat</span>
                             </button>
                         )}
                     </div>
 
                     {!collaPsed && (
-                        conversations.length === 0 ? (
-                            <div className="flex items-center justify-center py-6 text-slate-500 text-xs">
-                                No conversations found
+                        conversationList.length === 0 ? (
+                            <div className="flex items-center justify-center py-4 text-slate-500 text-xs shrink-0">
+                                No conversations yet
                             </div>
                         ) : (
-                            <div className="px-5 pt-4 pb-1.5 text-[10.5px] font-semibold uppercase tracking-widest text-slate-600">
-                                Recents
+                            <div className="px-5 pt-4 pb-1.5 text-[10.5px] font-semibold uppercase tracking-widest text-slate-500 shrink-0">
+                                Recent Chats
                             </div>
                         )
                     )}
 
-                    <div className={`flex-1 overflow-y-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${collaPsed ? "px-2 pt-2" : "px-2.5"}`}>
-                        {conversations.map((conv, i) => {
+                    <div className={`flex-1 overflow-y-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${collaPsed ? "px-2 pt-2" : "px-3"}`}>
+                        {conversationList.map((conv, i) => {
                             const isActive = selectedConversation?._id === conv?._id;
+
                             if (collaPsed) {
                                 return (
                                     <div
@@ -156,38 +173,34 @@ const Sidebar = () => {
                                         onClick={() => handleSelectConversation(conv)}
                                         title={conv?.title || "New Chat"}
                                         className={`w-10 h-10 mx-auto flex items-center justify-center cursor-pointer mb-1.5 rounded-xl border transition-all duration-200 ${isActive
-                                            ? "bg-indigo-500/20 border-indigo-500/30 text-indigo-300 shadow-[inset_0_0_15px_rgba(99,102,241,0.1)]"
-                                            : "bg-transparent border-transparent text-slate-400 hover:bg-white/[0.06] hover:text-slate-200"
+                                                ? "bg-indigo-500/20 border-indigo-500/30 text-indigo-300 shadow-[inset_0_0_15px_rgba(99,102,241,0.1)]"
+                                                : "bg-transparent border-transparent text-slate-400 hover:bg-white/[0.06] hover:text-slate-200"
                                             }`}
                                     >
                                         <MessageSquare size={16} strokeWidth={2} />
                                     </div>
-                                );
+                                )
                             }
+
                             return (
                                 <div
                                     key={conv?._id || i}
                                     onClick={() => handleSelectConversation(conv)}
-                                    className={`group flex items-center gap-2.5 cursor-pointer mb-0.5 px-3 py-2.5 rounded-[10px] border transition-all duration-200 ${isActive
-                                        ? "bg-indigo-500/10 border-indigo-500/20 shadow-[inset_0_0_20px_rgba(99,102,241,0.03)]"
-                                        : "bg-transparent border-transparent hover:bg-white/[0.04] hover:border-white/[0.06]"
+                                    className={`group flex items-center gap-2.5 cursor-pointer mb-1 px-3 py-2.5 rounded-xl border transition-all duration-200 ${isActive
+                                            ? "bg-indigo-500/15 border-indigo-500/25 shadow-[inset_0_0_20px_rgba(99,102,241,0.05)] text-slate-100"
+                                            : "bg-transparent border-transparent hover:bg-white/[0.04] hover:border-white/[0.06] text-slate-300 hover:text-slate-100"
                                         }`}
                                 >
                                     <div
-                                        className={`flex items-center justify-center shrink-0 w-[28px] h-[28px] rounded-lg border transition-all duration-200 ${isActive
-                                            ? "bg-indigo-500/15 border-indigo-400/30 text-indigo-300"
-                                            : "bg-white/[0.05] border-white/[0.04] text-slate-500 group-hover:text-slate-300 group-hover:bg-white/[0.08]"
+                                        className={`flex items-center justify-center shrink-0 w-7 h-7 rounded-lg border transition-all duration-200 ${isActive
+                                                ? "bg-indigo-500/20 border-indigo-400/30 text-indigo-300"
+                                                : "bg-white/[0.04] border-white/[0.04] text-slate-400 group-hover:text-slate-200 group-hover:bg-white/[0.07]"
                                             }`}
                                     >
                                         <MessageSquare size={13} strokeWidth={2} />
                                     </div>
 
-                                    <span
-                                        className={`text-[13px] font-medium truncate transition-colors duration-200 ${isActive
-                                            ? "text-slate-100"
-                                            : "text-slate-300 group-hover:text-slate-100"
-                                            }`}
-                                    >
+                                    <span className="text-[13px] font-medium truncate flex-1 min-w-0">
                                         {conv?.title || "New Chat"}
                                     </span>
                                 </div>
@@ -195,8 +208,9 @@ const Sidebar = () => {
                         })}
                     </div>
 
-                    <div className="mx-2.5 h-px bg-white/[0.06]" />
-                    <div className={`py-3.5 ${collaPsed ? "px-2 flex flex-col items-center gap-2" : "px-3.5"}`}>
+                    <div className="mx-3 h-px bg-white/[0.06] shrink-0" />
+
+                    <div className={`py-3 shrink-0 ${collaPsed ? "px-2 flex flex-col items-center gap-2" : "px-3"}`}>
                         {userData ? (
                             collaPsed ? (
                                 <div className="flex flex-col items-center gap-2">
@@ -216,17 +230,14 @@ const Sidebar = () => {
                                     </div>
                                     <button
                                         title="Logout"
-                                        className='flex items-center justify-center w-8 h-8 rounded-lg border-none bg-transparent text-slate-500 cursor-pointer hover:bg-white/[0.08] hover:text-slate-300 transition-all duration-150'
-                                        onClick={async () => {
-                                            await logout()
-                                            dispatch(setUserdata(null))
-                                        }}
+                                        className="flex items-center justify-center w-8 h-8 rounded-lg border-none bg-transparent text-slate-400 cursor-pointer hover:bg-white/[0.08] hover:text-red-400 transition-all duration-150"
+                                        onClick={handleLogout}
                                     >
                                         <LogOut size={16} />
                                     </button>
                                 </div>
                             ) : (
-                                <div className="flex items-center gap-2.5 cursor-pointer rounded-xl px-3 py-2.5 hover:bg-white/[0.05] transition-all duration-200">
+                                <div className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 hover:bg-white/[0.04] transition-all duration-200">
                                     <div className="relative shrink-0">
                                         {userData?.avatar && !imageError ? (
                                             <img
@@ -243,17 +254,25 @@ const Sidebar = () => {
                                     </div>
 
                                     <div className="flex-1 min-w-0">
-                                        <p className='text-[13.5px] font-semibold text-slate-100 truncate'>{userData?.name || "User"}</p>
-                                        <p className='text-[11px] text-slate-600 mt-px'>{"Free Plan"}</p>
+                                        <p className="text-[13px] font-semibold text-slate-100 truncate">
+                                            {userData?.name || "User"}
+                                        </p>
+                                        <p className="text-[11px] text-slate-500 mt-0.5">Free Plan</p>
                                     </div>
 
-                                    <div className="flex gap-1">
-                                        <button className='flex items-center w-7 h-7 rounded-[7px] border-none bg-transparent text-yellow-600 cursor-pointer hover:bg-white/[0.08] hover:text-slate-400 transition-all duration-150'><Coins size={16} /></button>
-                                        <button className='flex items-center justify-center w-7 h-7 rounded-[7px] border-none bg-transparent text-slate-600 cursor-pointer hover:bg-white/[0.08] hover:text-slate-400 transition-all duration-150' onClick={async () => {
-                                            await logout()
-                                            dispatch(setUserdata(null))
-                                        }}>
-                                            <LogOut size={16} />
+                                    <div className="flex items-center gap-1 shrink-0">
+                                        <button
+                                            title="Tokens & Coins"
+                                            className="flex items-center justify-center w-7 h-7 rounded-lg border-none bg-transparent text-amber-400 hover:bg-white/[0.06] transition-all cursor-pointer"
+                                        >
+                                            <Coins size={15} />
+                                        </button>
+                                        <button
+                                            title="Logout"
+                                            onClick={handleLogout}
+                                            className="flex items-center justify-center w-7 h-7 rounded-lg border-none bg-transparent text-slate-400 hover:text-red-400 hover:bg-white/[0.06] transition-all cursor-pointer"
+                                        >
+                                            <LogOut size={15} />
                                         </button>
                                     </div>
                                 </div>
@@ -261,24 +280,20 @@ const Sidebar = () => {
                         ) : (
                             collaPsed ? (
                                 <button
-                                    title="Login"
+                                    title="Guest"
                                     className="w-10 h-10 flex items-center justify-center text-slate-300 bg-white/[0.05] border border-white/[0.08] rounded-xl cursor-pointer hover:bg-white/[0.08] transition-colors duration-150"
                                 >
                                     <User size={16} />
                                 </button>
                             ) : (
-                                <button
-                                    className="w-full flex items-center justify-center gap-2 text-sm font-medium text-slate-200 bg-white/[0.05] border border-white/[0.08] rounded-xl py-[10px] cursor-pointer hover:bg-white/[0.08] transition-colors duration-150"
-                                >
-                                    Login
-                                </button>
+                                <div className="text-center py-2 text-xs text-slate-500">
+                                    Guest mode
+                                </div>
                             )
                         )}
                     </div>
-
                 </div>
-
-            </div>
+            </aside>
         </>
     )
 }

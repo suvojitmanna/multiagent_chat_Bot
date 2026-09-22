@@ -17,7 +17,7 @@ const App = () => {
   }, []);
 
   return (
-    <div>
+    <div className="w-full h-full min-h-screen bg-[#0d0f14]">
       <Home />
     </div>
   );

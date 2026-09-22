@@ -1,4 +1,4 @@
-import { getModel } from "../config/model";
+import { getModel } from "../config/model.js";
 
 export const router = async (state) => {
   const llm = await getModel("router");
@@ -59,9 +59,12 @@ export const router = async (state) => {
     ${state.prompt}
     `;
   const response = await llm.invoke(prompt);
-  console.log(response);
+  const rawText = (typeof response?.content === "string" ? response.content : "").trim().toLowerCase();
+  const validAgents = ["chat", "search", "image", "ppt", "pdf", "coding"];
+  const matchedAgent = validAgents.find((a) => rawText.includes(a)) || "chat";
+
   return {
     ...state,
-    agent: response.content.trim().toLowerCase(),
+    agent: matchedAgent,
   };
 };
