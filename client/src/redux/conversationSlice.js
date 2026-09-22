@@ -1,16 +1,42 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+const loadSavedConversation = () => {
+  if (typeof window === "undefined") return null;
+  try {
+    const saved = sessionStorage.getItem("activeConversation");
+    if (!saved) return null;
+    const parsed = JSON.parse(saved);
+    if (parsed && typeof parsed === "object" && parsed._id) {
+      return parsed;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
 const conversationSlice = createSlice({
   name: "conversation",
   initialState: {
     conversations: [],
-    selectedConversation:null
+    selectedConversation: loadSavedConversation(),
   },
   reducers: {
     setConversations: (state, action) => {
-      state.conversations = Array.isArray(action.payload)
+      const list = Array.isArray(action.payload)
         ? action.payload
         : action.payload?.conversations || [];
+      state.conversations = list;
+
+      if (state.selectedConversation?._id && Array.isArray(list) && list.length > 0) {
+        const found = list.find((c) => c?._id === state.selectedConversation._id);
+        if (found) {
+          state.selectedConversation = found;
+          try {
+            sessionStorage.setItem("activeConversation", JSON.stringify(found));
+          } catch {}
+        }
+      }
     },
     addConversation: (state, action) => {
       const newConv = action.payload?.conversation || action.payload;
@@ -20,10 +46,29 @@ const conversationSlice = createSlice({
     },
     setSelectedConversation: (state, action) => {
       state.selectedConversation = action.payload;
+      try {
+        if (action.payload && action.payload._id) {
+          sessionStorage.setItem("activeConversation", JSON.stringify(action.payload));
+        } else {
+          sessionStorage.removeItem("activeConversation");
+        }
+      } catch (e) {
+        console.error("Failed to update sessionStorage:", e);
+      }
+    },
+    removeConversation: (state, action) => {
+      const idToDelete = action.payload;
+      state.conversations = state.conversations.filter((c) => c?._id !== idToDelete);
+      if (state.selectedConversation?._id === idToDelete) {
+        state.selectedConversation = null;
+        try {
+          sessionStorage.removeItem("activeConversation");
+        } catch {}
+      }
     },
   },
 });
 
-export const { setConversations, addConversation,setSelectedConversation } =
+export const { setConversations, addConversation, setSelectedConversation, removeConversation } =
   conversationSlice.actions;
 export default conversationSlice.reducer;

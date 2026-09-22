@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react'
-import { Coins, LogOut, MessageSquare, PanelLeftClose, PanelLeftOpen, Plus, User, X } from "lucide-react"
+import { Coins, LogOut, MessageSquare, PanelLeftClose, PanelLeftOpen, Plus, User, X, Trash2 } from "lucide-react"
 import { getConversations } from '../features/getConverSations'
-import { addConversation, setConversations, setSelectedConversation } from '../redux/conversationSlice'
-import { createConversation } from '../features/createConverSation'
+import { setConversations, setSelectedConversation, removeConversation } from '../redux/conversationSlice'
+import { deleteConversation as deleteConversationApi } from '../features/deleteConversation'
 import { useDispatch, useSelector } from 'react-redux'
 import logout from '../features/logout'
 import { setUserdata } from '../redux/userSlice'
@@ -54,19 +54,21 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
         }
     }, [collaPsed])
 
-    const handleCreateConversation = async () => {
-        try {
-            const data = await createConversation()
-            const newConv = data?.conversation || data
-            if (newConv) {
-                dispatch(addConversation(newConv))
-                dispatch(setSelectedConversation(newConv))
-            }
-        } catch (error) {
-            console.error("Failed to create conversation:", error)
-        }
+    const handleCreateConversation = () => {
+        dispatch(setSelectedConversation(null))
         if (window.innerWidth < 1024) {
             setCollaPsed(true)
+        }
+    }
+
+    const handleDeleteConversation = async (e, convId) => {
+        e.stopPropagation()
+        if (!convId) return
+        dispatch(removeConversation(convId))
+        try {
+            await deleteConversationApi(convId)
+        } catch (err) {
+            console.error("Failed to delete conversation:", err)
         }
     }
 
@@ -186,7 +188,7 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
                                 <div
                                     key={conv?._id || i}
                                     onClick={() => handleSelectConversation(conv)}
-                                    className={`group flex items-center gap-2.5 cursor-pointer mb-1 px-3 py-2.5 rounded-xl border transition-all duration-200 ${isActive
+                                    className={`group flex items-center gap-2.5 cursor-pointer mb-1 px-3 py-2 rounded-xl border transition-all duration-200 relative ${isActive
                                             ? "bg-indigo-500/15 border-indigo-500/25 shadow-[inset_0_0_20px_rgba(99,102,241,0.05)] text-slate-100"
                                             : "bg-transparent border-transparent hover:bg-white/[0.04] hover:border-white/[0.06] text-slate-300 hover:text-slate-100"
                                         }`}
@@ -203,6 +205,18 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
                                     <span className="text-[13px] font-medium truncate flex-1 min-w-0">
                                         {conv?.title || "New Chat"}
                                     </span>
+
+                                    <button
+                                        type="button"
+                                        onClick={(e) => handleDeleteConversation(e, conv?._id)}
+                                        className={`p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/15 border-none cursor-pointer shrink-0 transition-all duration-150 ${
+                                            isActive ? "opacity-75 hover:opacity-100" : "opacity-0 group-hover:opacity-100"
+                                        }`}
+                                        title="Delete chat"
+                                        aria-label="Delete chat"
+                                    >
+                                        <Trash2 size={13} />
+                                    </button>
                                 </div>
                             )
                         })}

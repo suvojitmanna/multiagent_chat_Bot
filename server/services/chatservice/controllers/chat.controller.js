@@ -103,3 +103,22 @@ export const updateConversation = async (req, res) => {
       .json({ message: "Error while updating conversation" });
   }
 };
+
+export const deleteConversation = async (req, res) => {
+  try {
+    const id = req.params.id || req.body.id || req.body.conversationId;
+    if (!id) {
+      return res.status(400).json({ message: "Conversation ID is required" });
+    }
+    await Conversation.findByIdAndDelete(id);
+    await Message.deleteMany({ conversationId: id });
+    return res
+      .status(200)
+      .json({ success: true, message: "Conversation deleted successfully" });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ message: "Error while deleting conversation" });
+  }
+};
