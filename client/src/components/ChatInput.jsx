@@ -277,7 +277,7 @@ const ChatInput = ({ sidebarCollapsed }) => {
                     </span>
                   </div>
 
-                  <div className="max-h-98` overflow-y-auto flex flex-col gap-1 py-1 hide-scrollbar">
+                  <div className="max-h-96 overflow-y-auto flex flex-col gap-1 py-1 hide-scrollbar">
                     {AGENTS.map((item) => {
                       const Icon = item.icon
                       const isSelected = selectedAgent === item.id

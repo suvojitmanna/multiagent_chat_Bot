@@ -8,6 +8,21 @@ export const router = async (state) => {
       agent: state.agent,
     };
   }
+
+  const promptText = (state.prompt || "").toLowerCase();
+  if (
+    /\b(generate|create|make|draw|paint|render|design)\b.*\b(image|picture|photo|wallpaper|artwork|art|illustration|drawing|portrait|sketch|avatar)\b/i.test(
+      promptText
+    ) ||
+    /^(draw|paint|generate image|create image|ai image)\b/i.test(promptText)
+  ) {
+    console.log("--> Selected Agent (Pattern Match): image");
+    return {
+      ...state,
+      agent: "image",
+    };
+  }
+
   const llm = await getModel("router");
   const prompt = `You are an agent router.
     

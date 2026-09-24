@@ -1,8 +1,12 @@
+import {getModel} from "../config/model.js"
+
 export const pdfGenAgent = async (state) => {
-  console.log("--> Selected Agent: pdf");
-  console.log("PDF agent received prompt:", state?.prompt);
-  return {
-    ...state,
-    aiResponse: "PDF Agent executed. (Placeholder response)",
-  };
+  try {
+    const llm = await getModel();
+    
+
+    
+  } catch (error) {
+    
+  }
 };

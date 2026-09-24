@@ -660,6 +660,24 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                 hr() {
                   return <hr className="border-white/[0.08] my-3" />;
                 },
+                img({ src, alt }) {
+                  return (
+                    <motion.div
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                      onClick={() => setLightBox(src)}
+                      className="my-3.5 max-w-lg rounded-2xl overflow-hidden border border-white/[0.12] bg-[#0c0e16] shadow-2xl group cursor-pointer relative not-prose"
+                      title="Click to view full image"
+                    >
+                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                        <div className="px-3 py-1.5 rounded-full bg-black/70 border border-white/20 text-white text-xs font-medium flex items-center gap-1.5 shadow-lg backdrop-blur-xs">
+                          <ExternalLink size={13} />
+                          <span>View Fullscreen</span>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                },
               }}
             >
               {displayText}
