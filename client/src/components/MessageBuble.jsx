@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useDispatch } from "react-redux";
 import { setActiveArtifact, setVisibleArtifact, clearVisibleArtifact, setArtifactOpen } from "../redux/messageSlice";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Sparkles, Copy, Check, Brain, Loader2, Zap, Image as ImageIcon, ExternalLink, X, Play, FolderCode, FileCode, Code2 } from "lucide-react";
+import { Sparkles, Copy, Check, Brain, Loader2, Zap, Image as ImageIcon, ExternalLink, X, Play, FolderCode, FileCode, Code2, FileText, Presentation, ChevronLeft, ChevronRight, Download, Layers, List } from "lucide-react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import oneDark from "react-syntax-highlighter/dist/esm/styles/prism/one-dark.js";
 
@@ -385,6 +385,347 @@ const getArtifactTitle = (art, content = "") => {
   return art?.title || "Interactive Project";
 };
 
+const parsePresentationData = (content) => {
+  if (!content || typeof content !== "string") return null;
+  const hasMarker =
+    content.includes("Generated Presentation") ||
+    content.includes("download-ppt") ||
+    content.includes(".pptx");
+  if (!hasMarker) return null;
+
+  const titleMatch = content.match(
+    /###\s*(?:[^\w\s]+\s*)?Generated Presentation:\s*\*\*([^*]+)\*\*/i
+  );
+  const title = titleMatch ? titleMatch[1].trim() : "Presentation Deck";
+
+  const subtitleMatch = content.match(/\n\*([^*\n]+)\*\s*\n/);
+  const subtitle = subtitleMatch ? subtitleMatch[1].trim() : "";
+
+  const linkMatch =
+    content.match(/\[([^\]]*PowerPoint[^\]]*)\]\((https?:\/\/[^\s)]+)\)/i) ||
+    content.match(/\[([^\]]*)\]\((https?:\/\/[^\s)]+(?:download-ppt|\.pptx)[^\s)]*)\)/i);
+  const downloadUrl = linkMatch ? linkMatch[2] : null;
+
+  const slideRegex = /\*\*Slide\s+(\d+):\s*([^*]+)\*\*\s*\n([\s\S]*?)(?=\*\*Slide\s+\d+:|$)/gi;
+  const slides = [];
+  let match;
+  while ((match = slideRegex.exec(content)) !== null) {
+    const slideNum = parseInt(match[1], 10);
+    const slideTitle = match[2].trim();
+    const rawBody = match[3].trim();
+    const lines = rawBody
+      .split("\n")
+      .filter((l) => l.trim().startsWith("-") || l.trim().startsWith("*"));
+    const points = lines.map((l, pIdx) => {
+      const clean = l.replace(/^[-*]\s*/, "").trim();
+      const boldMatch = clean.match(/^\*\*([^*]+)\*\*:\s*(.+)$/);
+      if (boldMatch) {
+        return { title: boldMatch[1].trim(), desc: boldMatch[2].trim() };
+      }
+      return { title: `Key Point ${pIdx + 1}`, desc: clean };
+    });
+    slides.push({
+      num: slideNum,
+      title: slideTitle,
+      points: points.length > 0 ? points : [{ title: "Overview", desc: rawBody }],
+    });
+  }
+
+  if (slides.length === 0 && !downloadUrl) return null;
+  return { title, subtitle, downloadUrl, slides };
+};
+
+const DECK_ACCENTS = [
+  { bar: "bg-indigo-500", badge: "bg-indigo-500/15 text-indigo-300 border-indigo-500/30", pill: "bg-indigo-500", text: "text-indigo-400" },
+  { bar: "bg-sky-500", badge: "bg-sky-500/15 text-sky-300 border-sky-500/30", pill: "bg-sky-500", text: "text-sky-400" },
+  { bar: "bg-teal-500", badge: "bg-teal-500/15 text-teal-300 border-teal-500/30", pill: "bg-teal-500", text: "text-teal-400" },
+  { bar: "bg-amber-500", badge: "bg-amber-500/15 text-amber-300 border-amber-500/30", pill: "bg-amber-500", text: "text-amber-400" },
+  { bar: "bg-purple-500", badge: "bg-purple-500/15 text-purple-300 border-purple-500/30", pill: "bg-purple-500", text: "text-purple-400" },
+  { bar: "bg-rose-500", badge: "bg-rose-500/15 text-rose-300 border-rose-500/30", pill: "bg-rose-500", text: "text-rose-400" },
+];
+
+const PresentationDeckCard = ({ data, originalContent }) => {
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [viewMode, setViewMode] = useState("deck");
+  const [copied, setCopied] = useState(false);
+
+  const { title, subtitle, downloadUrl, slides = [] } = data;
+  const currentSlide = slides[activeIdx] || slides[0] || { title: "Overview", points: [] };
+  const currentAccent = DECK_ACCENTS[activeIdx % DECK_ACCENTS.length];
+
+  const handleCopyOutline = async () => {
+    try {
+      await navigator.clipboard.writeText(originalContent);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const downloadFilename = title
+    ? `${title.toLowerCase().replace(/[^\w\s-]/g, "").replace(/\s+/g, "_")}.pptx`
+    : "presentation.pptx";
+
+  let finalDownloadUrl = downloadUrl;
+  if (downloadUrl && downloadUrl.includes("res.cloudinary.com") && downloadUrl.includes("/raw/upload/")) {
+    finalDownloadUrl = `http://localhost:8003/proxy-pdf?url=${encodeURIComponent(downloadUrl)}&filename=${encodeURIComponent(downloadFilename)}`;
+  }
+
+  const pointCount = currentSlide.points?.length || 0;
+  const gridClass =
+    pointCount <= 2
+      ? "grid-cols-1 sm:grid-cols-2"
+      : pointCount === 3
+      ? "grid-cols-1 sm:grid-cols-3"
+      : "grid-cols-1 sm:grid-cols-2";
+
+  return (
+    <div className="my-4 rounded-2xl overflow-hidden border border-amber-500/25 bg-gradient-to-b from-[#13111c] via-[#0c0e17] to-[#090b12] shadow-2xl shadow-amber-950/20 not-prose">
+      {/* Top Accent Gradient Bar */}
+      <div className="h-1 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500" />
+
+      {/* Presentation Header */}
+      <div className="p-4 sm:p-5 border-b border-white/[0.08] flex flex-col md:flex-row md:items-center justify-between gap-3.5 bg-white/[0.02]">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-600/30 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0 shadow-sm mt-0.5">
+            <Presentation size={20} />
+          </div>
+          <div className="min-w-0 flex flex-col">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-bold text-slate-100 text-base sm:text-lg truncate tracking-tight">
+                {title}
+              </h3>
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300">
+                {slides.length} Slides
+              </span>
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/[0.05] border border-white/[0.08] text-slate-400">
+                16:9 Widescreen
+              </span>
+            </div>
+            {subtitle && (
+              <p className="text-xs text-slate-400 mt-0.5 truncate">
+                {subtitle}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Header Action Buttons */}
+        <div className="flex items-center gap-2 self-start md:self-auto shrink-0 flex-wrap">
+          <div className="flex items-center rounded-lg bg-white/[0.04] p-0.5 border border-white/[0.08]">
+            <button
+              type="button"
+              onClick={() => setViewMode("deck")}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
+                viewMode === "deck"
+                  ? "bg-amber-500/20 text-amber-300 shadow-xs"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              <Layers size={13} />
+              <span>Slide Deck</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("outline")}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
+                viewMode === "outline"
+                  ? "bg-amber-500/20 text-amber-300 shadow-xs"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              <List size={13} />
+              <span>Outline</span>
+            </button>
+          </div>
+
+          {finalDownloadUrl && (
+            <motion.a
+              href={finalDownloadUrl}
+              download={downloadFilename}
+              target="_self"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 text-white font-semibold text-xs shadow-md shadow-orange-500/20 cursor-pointer no-underline"
+            >
+              <Download size={13} />
+              <span>Download PPTX</span>
+            </motion.a>
+          )}
+        </div>
+      </div>
+
+      {/* Main Body */}
+      {viewMode === "deck" ? (
+        <div className="p-4 sm:p-5 flex flex-col gap-4">
+          {/* Active Slide Canvas */}
+          <div className="rounded-xl border border-white/[0.08] bg-[#0f121d] p-4 sm:p-5 flex flex-col min-h-[300px] shadow-inner relative overflow-hidden">
+            {/* Slide Category & Number Bar */}
+            <div className="flex items-center justify-between gap-2 pb-3 mb-3.5 border-b border-white/[0.06]">
+              <div className="flex items-center gap-2">
+                <span className={`w-1.5 h-4 rounded-full ${currentAccent.bar}`} />
+                <span className={`text-[11px] font-bold uppercase tracking-wider ${currentAccent.text}`}>
+                  {currentSlide.category || "STRATEGIC OVERVIEW"}
+                </span>
+                <span className="text-slate-600 text-xs">•</span>
+                <h4 className="text-sm sm:text-base font-bold text-white tracking-tight">
+                  {currentSlide.title}
+                </h4>
+              </div>
+
+              <div className="text-[11px] font-mono font-medium text-slate-400 shrink-0 bg-white/[0.05] px-2 py-0.5 rounded-md border border-white/[0.06]">
+                Slide {activeIdx + 1} of {slides.length}
+              </div>
+            </div>
+
+            {/* Slide Point Cards Grid */}
+            <div className={`grid ${gridClass} gap-3 my-auto py-1`}>
+              {(currentSlide.points || []).map((pt, pIdx) => {
+                const numStr = `0${pIdx + 1}`;
+                return (
+                  <motion.div
+                    key={pIdx}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2, delay: pIdx * 0.05 }}
+                    className="flex flex-col gap-1.5 p-3 sm:p-3.5 rounded-xl bg-white/[0.025] hover:bg-white/[0.045] border border-white/[0.07] hover:border-amber-500/30 transition-all duration-200"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className={`w-5 h-5 rounded-md flex items-center justify-center text-[10.5px] font-bold text-white shrink-0 ${currentAccent.pill}`}>
+                        {numStr}
+                      </span>
+                      <span className="font-semibold text-slate-100 text-xs sm:text-[13px] line-clamp-1">
+                        {pt.title}
+                      </span>
+                    </div>
+                    <p className="text-slate-300 text-xs leading-relaxed pl-7">
+                      {pt.desc}
+                    </p>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {/* Slide Card Watermark */}
+            <div className="pt-3 mt-3 border-t border-white/[0.05] flex items-center justify-between text-[10.5px] text-slate-500 font-sans">
+              <span>Shifra AI Executive Deck</span>
+              <span>16:9 Presentation View</span>
+            </div>
+          </div>
+
+          {/* Slide Deck Navigation Bar */}
+          <div className="flex items-center justify-between gap-3 pt-1">
+            <button
+              type="button"
+              disabled={activeIdx === 0}
+              onClick={() => setActiveIdx((prev) => Math.max(0, prev - 1))}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
+                activeIdx === 0
+                  ? "opacity-35 cursor-not-allowed border-white/[0.06] text-slate-500"
+                  : "bg-white/[0.04] hover:bg-white/[0.08] border-white/[0.1] text-slate-300 hover:text-white cursor-pointer"
+              }`}
+            >
+              <ChevronLeft size={14} />
+              <span>Previous</span>
+            </button>
+
+            {/* Slide Dots / Thumbnails */}
+            <div className="flex items-center gap-1.5 overflow-x-auto max-w-[50%] py-1">
+              {slides.map((s, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setActiveIdx(idx)}
+                  className={`h-2 rounded-full transition-all cursor-pointer ${
+                    activeIdx === idx
+                      ? "w-6 bg-amber-400 shadow-xs shadow-amber-400/50"
+                      : "w-2 bg-white/20 hover:bg-white/40"
+                  }`}
+                  title={`Jump to slide ${idx + 1}: ${s.title}`}
+                />
+              ))}
+            </div>
+
+            <button
+              type="button"
+              disabled={activeIdx === slides.length - 1}
+              onClick={() => setActiveIdx((prev) => Math.min(slides.length - 1, prev + 1))}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
+                activeIdx === slides.length - 1
+                  ? "opacity-35 cursor-not-allowed border-white/[0.06] text-slate-500"
+                  : "bg-white/[0.04] hover:bg-white/[0.08] border-white/[0.1] text-slate-300 hover:text-white cursor-pointer"
+              }`}
+            >
+              <span>Next</span>
+              <ChevronRight size={14} />
+            </button>
+          </div>
+        </div>
+      ) : (
+        /* Outline View */
+        <div className="p-4 sm:p-5 flex flex-col gap-3">
+          <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
+            <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+              Presentation Outline ({slides.length} Slides)
+            </span>
+            <button
+              type="button"
+              onClick={handleCopyOutline}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-400 hover:text-white text-xs transition-colors cursor-pointer"
+            >
+              {copied ? (
+                <>
+                  <Check size={12} className="text-emerald-400" />
+                  <span className="text-emerald-400">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy size={12} />
+                  <span>Copy Outline</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-3 max-h-[360px] overflow-y-auto pr-1">
+            {slides.map((s, idx) => (
+              <div
+                key={idx}
+                className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] flex flex-col gap-1.5"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-bold text-slate-100 text-xs sm:text-[13px]">
+                    Slide {idx + 1}: {s.title}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveIdx(idx);
+                      setViewMode("deck");
+                    }}
+                    className="text-[11px] text-amber-400 hover:text-amber-300 hover:underline cursor-pointer"
+                  >
+                    View Slide
+                  </button>
+                </div>
+                <div className="space-y-1 pl-2 border-l border-white/[0.08] mt-1">
+                  {(s.points || []).map((pt, pIdx) => (
+                    <div key={pIdx} className="text-xs text-slate-300">
+                      <span className="font-semibold text-slate-200">{pt.title}: </span>
+                      <span className="text-slate-400">{pt.desc}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking = false, sidebarCollapsed = false }) => {
   const dispatch = useDispatch();
   const [lightBox, setLightBox] = useState(null);
@@ -444,6 +785,7 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
 
   const isUser = role === "user";
   const displayText = formatContent(content);
+  const pptData = useMemo(() => parsePresentationData(displayText), [displayText]);
 
   if (isUser) {
     return (
@@ -573,9 +915,12 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                 })}
               </div>
             )}
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              components={{
+            {pptData ? (
+              <PresentationDeckCard data={pptData} originalContent={displayText} />
+            ) : (
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
                 code({ node, inline, className, children, ...props }) {
                   const match = /language-(\w+)/.exec(className || "");
                   const codeString = String(children).replace(/\n$/, "");
@@ -645,6 +990,75 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                   );
                 },
                 a({ href, children }) {
+                  const isPdf = href && (href.endsWith(".pdf") || href.includes("download-pdf"));
+                  const isPpt =
+                    href &&
+                    (href.endsWith(".pptx") ||
+                      href.endsWith(".ppt") ||
+                      href.includes("download-ppt") ||
+                      href.includes("download-pptx"));
+                  const isDownload =
+                    isPdf ||
+                    isPpt ||
+                    (href &&
+                      (href.includes("download") ||
+                        (typeof children === "string" &&
+                          children.toLowerCase().includes("download"))));
+
+                  if (isDownload) {
+                    let finalUrl = href;
+                    let downloadFilename = isPpt ? "presentation.pptx" : "document.pdf";
+                    try {
+                      const parsed = new URL(href, window.location.origin);
+                      const queryFilename = parsed.searchParams.get("filename");
+                      if (queryFilename) {
+                        downloadFilename = queryFilename;
+                      } else {
+                        const pathEnd = parsed.pathname.split("/").pop();
+                        if (
+                          pathEnd &&
+                          (pathEnd.endsWith(".pdf") ||
+                            pathEnd.endsWith(".pptx") ||
+                            pathEnd.endsWith(".ppt"))
+                        ) {
+                          downloadFilename = decodeURIComponent(pathEnd);
+                        }
+                      }
+                    } catch (e) {
+                      const lastPart = href.split("/").pop()?.split("?")[0];
+                      if (
+                        lastPart &&
+                        (lastPart.endsWith(".pdf") ||
+                          lastPart.endsWith(".pptx") ||
+                          lastPart.endsWith(".ppt"))
+                      ) {
+                        downloadFilename = decodeURIComponent(lastPart);
+                      }
+                    }
+
+                    if (href.includes("res.cloudinary.com") && href.includes("/raw/upload/")) {
+                      finalUrl = `http://localhost:8003/proxy-pdf?url=${encodeURIComponent(href)}&filename=${encodeURIComponent(downloadFilename)}`;
+                    }
+
+                    return (
+                      <motion.a
+                        href={finalUrl}
+                        download={downloadFilename}
+                        target="_self"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className={`inline-flex items-center gap-2 px-4 py-2.5 my-2 rounded-xl text-white font-semibold text-xs shadow-lg transition-all not-prose no-underline cursor-pointer select-none ${
+                          isPpt
+                            ? "bg-linear-to-r from-amber-600 via-orange-600 to-rose-600 hover:from-amber-500 hover:to-rose-500 shadow-orange-500/25"
+                            : "bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-indigo-500/25"
+                        }`}
+                      >
+                        {isPpt ? <Presentation size={15} /> : <FileText size={15} />}
+                        <span>{children}</span>
+                      </motion.a>
+                    );
+                  }
+
                   return (
                     <a
                       href={href}
@@ -660,28 +1074,14 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                 hr() {
                   return <hr className="border-white/[0.08] my-3" />;
                 },
-                img({ src, alt }) {
-                  return (
-                    <motion.div
-                      whileHover={{ scale: 1.01 }}
-                      whileTap={{ scale: 0.99 }}
-                      onClick={() => setLightBox(src)}
-                      className="my-3.5 max-w-lg rounded-2xl overflow-hidden border border-white/[0.12] bg-[#0c0e16] shadow-2xl group cursor-pointer relative not-prose"
-                      title="Click to view full image"
-                    >
-                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                        <div className="px-3 py-1.5 rounded-full bg-black/70 border border-white/20 text-white text-xs font-medium flex items-center gap-1.5 shadow-lg backdrop-blur-xs">
-                          <ExternalLink size={13} />
-                          <span>View Fullscreen</span>
-                        </div>
-                      </div>
-                    </motion.div>
-                  );
+                img() {
+                  return null;
                 },
               }}
             >
               {displayText}
             </ReactMarkdown>
+            )}
           </div>
         )}
       </div>

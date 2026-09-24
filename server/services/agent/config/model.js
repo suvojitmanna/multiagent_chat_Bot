@@ -60,6 +60,7 @@ export const getModel = (param = {}) => {
     case "image":
     case "ppt":
     case "pdf":
+      return getGroq();
     case "coding":
       return openRouter;
     default:
@@ -67,11 +68,18 @@ export const getModel = (param = {}) => {
   }
 };
 
-export const invokeWithFallback = async (primaryModel, fallbackModel, input) => {
+export const invokeWithFallback = async (
+  primaryModel,
+  fallbackModel,
+  input,
+) => {
   try {
     return await primaryModel.invoke(input);
   } catch (err) {
-    console.warn("Primary model invocation failed, attempting fallback:", err.message);
+    console.warn(
+      "Primary model invocation failed, attempting fallback:",
+      err.message,
+    );
     if (fallbackModel) {
       return await fallbackModel.invoke(input);
     }

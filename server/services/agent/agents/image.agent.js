@@ -89,9 +89,7 @@ const generateWithClipdrop = async (prompt, apiKey) => {
  * Exclusively uses Clipdrop AI and uploads generated images to Cloudinary
  */
 export const imageGenAgent = async (state) => {
-  console.log("--> Selected Agent: image (Clipdrop AI Exclusive)");
   const userPrompt = (state?.prompt || "").trim();
-  console.log("Image agent received prompt:", userPrompt);
 
   if (!userPrompt) {
     return {
@@ -137,9 +135,6 @@ export const imageGenAgent = async (state) => {
 
     const markdownResponse = `### 🎨 Clipdrop AI Generated Image
 
-![${userPrompt.replace(/"/g, "'")}](${finalImageUrl})
-
----
 - **Prompt**: *${userPrompt}*
 - **Enhanced Style**: *${enhancedPrompt}*
 - **AI Model**: Clipdrop AI (Text-to-Image / SDXL)

@@ -18,6 +18,19 @@ export const isCloudinaryConfigured = () => {
   );
 };
 
+export const getCloudinaryDownloadUrl = (publicId, resourceType = "raw") => {
+  if (!isCloudinaryConfigured() || !publicId) return "";
+  try {
+    return cloudinary.utils.private_download_url(publicId, null, {
+      resource_type: resourceType,
+      type: "upload",
+    });
+  } catch (err) {
+    console.warn("[Cloudinary] Failed to create signed download URL:", err.message);
+    return "";
+  }
+};
+
 export const uploadImageToCloudinary = async (imageSource, options = {}) => {
   if (!isCloudinaryConfigured()) {
     console.warn(
@@ -53,8 +66,17 @@ export const uploadImageToCloudinary = async (imageSource, options = {}) => {
       result = await cloudinary.uploader.upload(imageSource, uploadOptions);
     }
 
+    let downloadUrl = result.secure_url || result.url;
+    if (uploadOptions.resource_type === "raw" && result.public_id) {
+      const signed = getCloudinaryDownloadUrl(result.public_id, "raw");
+      if (signed) {
+        downloadUrl = signed;
+      }
+    }
+
     return {
-      url: result.secure_url || result.url,
+      url: downloadUrl,
+      rawUrl: result.secure_url || result.url,
       publicId: result.public_id,
       width: result.width,
       height: result.height,
