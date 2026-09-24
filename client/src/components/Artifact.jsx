@@ -1,19 +1,20 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { clearActiveArtifact } from '../redux/messageSlice'
-import { 
-  Play, 
-  Code2, 
-  Copy, 
-  Check, 
-  Download, 
-  RefreshCw, 
-  X, 
-  Maximize2, 
-  Minimize2, 
-  FileCode, 
+import { setArtifactOpen, setActiveArtifact } from '../redux/messageSlice'
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+  Play,
+  Copy,
+  Check,
+  Download,
+  RefreshCw,
+  X,
+  Maximize2,
+  Minimize2,
+  FileCode,
   Sparkles,
-  ExternalLink 
+  ExternalLink,
+  ChevronLeft
 } from 'lucide-react'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import oneDark from 'react-syntax-highlighter/dist/esm/styles/prism/one-dark.js'
@@ -40,30 +41,44 @@ const getLanguageFromFileName = (name = '') => {
 
 const Artifact = () => {
   const dispatch = useDispatch()
-  const { activeArtifact } = useSelector((state) => state.message)
+  const { activeArtifact, visibleArtifact, isArtifactOpen, messages } = useSelector((state) => state.message)
 
   const [activeTab, setActiveTab] = useState('preview')
   const [copied, setCopied] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [previewKey, setPreviewKey] = useState(0)
 
+  const currentArtifact = useMemo(() => {
+    if (activeArtifact && Array.isArray(activeArtifact.files) && activeArtifact.files.length > 0) {
+      return activeArtifact
+    }
+    const messageList = Array.isArray(messages) ? messages : (messages?.messages || [])
+    for (let i = messageList.length - 1; i >= 0; i--) {
+      const arts = messageList[i]?.artifacts
+      if (Array.isArray(arts) && arts.length > 0 && Array.isArray(arts[0].files) && arts[0].files.length > 0) {
+        return arts[0]
+      }
+    }
+    return null
+  }, [activeArtifact, messages])
+
   const files = useMemo(() => {
-    return Array.isArray(activeArtifact?.files) ? activeArtifact.files : []
-  }, [activeArtifact])
+    return Array.isArray(currentArtifact?.files) ? currentArtifact.files : []
+  }, [currentArtifact])
 
   const hasHtml = useMemo(() => {
     return files.some((f) => f.name && f.name.toLowerCase().endsWith('.html'))
   }, [files])
 
   useEffect(() => {
-    if (activeArtifact) {
+    if (currentArtifact) {
       if (hasHtml) {
         setActiveTab('preview')
       } else if (files.length > 0) {
         setActiveTab(files[0].name)
       }
     }
-  }, [activeArtifact, hasHtml, files])
+  }, [currentArtifact, hasHtml, files])
 
   const bundledHtml = useMemo(() => {
     if (!hasHtml) return ''
@@ -93,9 +108,28 @@ const Artifact = () => {
     return html
   }, [files, hasHtml])
 
-  if (!activeArtifact || files.length === 0) {
-    return null
-  }
+  const resolvedTitle = useMemo(() => {
+    if (
+      currentArtifact?.title &&
+      currentArtifact.title.trim() &&
+      !['interactive project', 'project', 'web project', 'generated web project'].includes(
+        currentArtifact.title.trim().toLowerCase()
+      )
+    ) {
+      return currentArtifact.title.trim()
+    }
+    const htmlFile = files.find((f) => f.name && f.name.toLowerCase().endsWith('.html'))
+    if (htmlFile?.content) {
+      const match = /<title>(.*?)<\/title>/i.exec(htmlFile.content)
+      if (match && match[1]?.trim()) {
+        const title = match[1].trim()
+        if (!['document', 'untitled', 'index', 'my project'].includes(title.toLowerCase())) {
+          return title
+        }
+      }
+    }
+    return currentArtifact?.title || 'Interactive Project'
+  }, [currentArtifact, files])
 
   const currentFile = files.find((f) => f.name === activeTab) || files[0]
 
@@ -131,186 +165,256 @@ const Artifact = () => {
     window.open(url, '_blank')
   }
 
+  const handleOpenDrawer = () => {
+    const targetArtifact = visibleArtifact || currentArtifact
+    if (targetArtifact) {
+      dispatch(setActiveArtifact({ ...targetArtifact, title: visibleArtifact?.title || resolvedTitle }))
+    }
+    dispatch(setArtifactOpen(true))
+  }
+
+  const handleCloseDrawer = () => {
+    dispatch(setArtifactOpen(false))
+  }
+
+  const isVerticalTabVisible = Boolean(visibleArtifact && !isArtifactOpen)
+  const isDrawerAvailable = Boolean((activeArtifact || visibleArtifact || currentArtifact) && files.length > 0)
+  const displayTitle = visibleArtifact?.title || resolvedTitle || 'Interactive Project'
+
   return (
-    <div
-      className={`fixed z-40 transition-all duration-300 ease-in-out flex flex-col bg-[#0b0d13] border-l border-white/[0.08] shadow-2xl ${
-        isFullscreen
-          ? 'inset-0 w-full h-full'
-          : 'top-0 right-0 h-full w-full sm:w-[500px] md:w-[600px] lg:w-[680px] xl:w-[760px]'
-      }`}
-    >
-      <div className="flex items-center justify-between px-4 py-3 bg-[#11141c] border-b border-white/[0.08] select-none">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 rounded-xl bg-linear-to-br from-indigo-500/20 to-violet-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
-            <Sparkles size={16} />
-          </div>
-          <div className="flex flex-col min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold text-slate-100 truncate">
-                {activeArtifact.title || 'Interactive Project'}
-              </h3>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 shrink-0">
-                {files.length} {files.length === 1 ? 'file' : 'files'}
+    <>
+      <AnimatePresence>
+        {isVerticalTabVisible && (
+          <motion.button
+            key="vertical-artifact-tab"
+            initial={{ x: 60, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: 60, opacity: 0 }}
+            whileHover={{ x: -3, scale: 1.02 }}
+            whileTap={{ scale: 0.96 }}
+            transition={{ type: 'spring', damping: 22, stiffness: 260 }}
+            onClick={handleOpenDrawer}
+            className="fixed right-0 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center gap-2 py-3.5 px-2 rounded-l-2xl bg-[#0f121d]/95 hover:bg-[#141827] border-y border-l border-indigo-500/40 hover:border-indigo-400 shadow-xl shadow-indigo-500/15 backdrop-blur-md cursor-pointer transition-colors duration-200 group select-none"
+            title={`Open Project: ${displayTitle}`}
+          >
+            <div className="w-7 h-7 rounded-xl bg-linear-to-br from-indigo-500/25 to-violet-600/30 border border-indigo-500/50 flex items-center justify-center text-indigo-400 group-hover:text-indigo-300 group-hover:scale-105 transition-all shadow-xs">
+              <Sparkles size={13} />
+            </div>
+
+            <div className="flex items-center justify-center py-1">
+              <span className="[writing-mode:vertical-rl] rotate-180 text-[12.5px] font-semibold tracking-wide text-slate-200 group-hover:text-white max-h-52 truncate">
+                {displayTitle}
               </span>
             </div>
-            <span className="text-[11px] text-slate-400 truncate">
-              {activeArtifact.type || 'Web Application'} • Live Artifact
-            </span>
-          </div>
-        </div>
 
-        <div className="flex items-center gap-1.5 shrink-0">
-          {activeTab === 'preview' && (
-            <>
-              <button
-                type="button"
-                onClick={() => setPreviewKey((prev) => prev + 1)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] transition-all cursor-pointer"
-                title="Reload Preview"
-              >
-                <RefreshCw size={14} />
-              </button>
-              <button
-                type="button"
-                onClick={handleOpenInNewTab}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] transition-all cursor-pointer"
-                title="Open in new window"
-              >
-                <ExternalLink size={14} />
-              </button>
-            </>
-          )}
-
-          {activeTab !== 'preview' && (
-            <button
-              type="button"
-              onClick={handleCopyCurrentFile}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-all cursor-pointer"
-              title="Copy current file content"
-            >
-              {copied ? (
-                <>
-                  <Check size={12} className="text-emerald-400" />
-                  <span className="text-emerald-400">Copied</span>
-                </>
-              ) : (
-                <>
-                  <Copy size={12} />
-                  <span>Copy</span>
-                </>
-              )}
-            </button>
-          )}
-
-          <button
-            type="button"
-            onClick={handleDownloadAll}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] transition-all cursor-pointer"
-            title="Download project files"
-          >
-            <Download size={14} />
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setIsFullscreen((prev) => !prev)}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] transition-all cursor-pointer"
-            title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
-          >
-            {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => dispatch(clearActiveArtifact())}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 bg-white/[0.03] hover:bg-rose-500/10 border border-white/[0.06] transition-all cursor-pointer ml-1"
-            title="Close Panel"
-          >
-            <X size={15} />
-          </button>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-1 px-3 py-2 bg-[#0e1017] border-b border-white/[0.06] overflow-x-auto [scrollbar-width:none]">
-        {hasHtml && (
-          <button
-            type="button"
-            onClick={() => setActiveTab('preview')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer shrink-0 ${
-              activeTab === 'preview'
-                ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shadow-xs'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
-            }`}
-          >
-            <Play size={12} className={activeTab === 'preview' ? 'text-indigo-400 fill-indigo-400/30' : ''} />
-            <span>Live Preview</span>
-          </button>
+            <div className="flex flex-col items-center gap-1.5 pt-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <ChevronLeft size={13} className="text-slate-400 group-hover:text-indigo-300 group-hover:-translate-x-0.5 transition-transform" />
+            </div>
+          </motion.button>
         )}
+      </AnimatePresence>
 
-        {files.map((file) => {
-          const isSelected = activeTab === file.name
-          return (
-            <button
-              key={file.name}
-              type="button"
-              onClick={() => setActiveTab(file.name)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer shrink-0 font-mono ${
-                isSelected
-                  ? 'bg-white/[0.1] text-white border border-white/[0.15]'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
+      <AnimatePresence>
+        {isDrawerAvailable && isArtifactOpen && (
+          <motion.div
+            key="artifact-drawer"
+            initial={{ x: '100%', opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: '100%', opacity: 0 }}
+            transition={{ type: 'spring', damping: 28, stiffness: 240 }}
+            className={`fixed z-40 flex flex-col bg-[#0b0d13] border-l border-white/[0.08] shadow-2xl ${isFullscreen
+                ? 'inset-0 w-full h-full'
+                : 'top-0 right-0 h-full w-full sm:w-[500px] md:w-[600px] lg:w-[680px] xl:w-[760px]'
               }`}
-            >
-              <FileCode size={12} className={isSelected ? 'text-indigo-400' : 'text-slate-500'} />
-              <span>{file.name}</span>
-            </button>
-          )
-        })}
-      </div>
+          >
+            <div className="flex items-center justify-between px-4 py-3 bg-[#11141c] border-b border-white/[0.08] select-none">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-linear-to-br from-indigo-500/20 to-violet-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
+                  <Sparkles size={16} />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-semibold text-slate-100 truncate">
+                      {resolvedTitle}
+                    </h3>
+                    <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 shrink-0">
+                      {files.length} {files.length === 1 ? 'file' : 'files'}
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-slate-400 truncate">
+                    {currentArtifact.type || 'Web Application'} • Live Artifact
+                  </span>
+                </div>
+              </div>
 
-      <div className="flex-1 min-h-0 bg-[#08090e] relative overflow-hidden">
-        {activeTab === 'preview' && hasHtml ? (
-          <div className="w-full h-full bg-white relative">
-            <iframe
-              key={previewKey}
-              title="Artifact Preview"
-              srcDoc={bundledHtml}
-              sandbox="allow-scripts allow-modals allow-forms allow-same-origin"
-              className="w-full h-full border-none"
-            />
-          </div>
-        ) : (
-          <div className="w-full h-full overflow-auto [scrollbar-width:thin]">
-            <SyntaxHighlighter
-              language={getLanguageFromFileName(currentFile?.name)}
-              style={oneDark}
-              showLineNumbers={true}
-              wrapLongLines={false}
-              customStyle={{
-                margin: 0,
-                padding: '1.2rem 1.2rem',
-                background: '#090b11',
-                fontSize: '13px',
-                lineHeight: '1.65',
-                minHeight: '100%',
-                fontFamily:
-                  'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-              }}
-              lineNumberStyle={{
-                minWidth: '2.8em',
-                paddingRight: '1em',
-                color: '#475569',
-                textAlign: 'right',
-                userSelect: 'none',
-                borderRight: '1px solid rgba(255, 255, 255, 0.08)',
-                marginRight: '1em',
-              }}
-            >
-              {currentFile?.content || '// No content in file'}
-            </SyntaxHighlighter>
-          </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                {activeTab === 'preview' && (
+                  <>
+                    <motion.button
+                      type="button"
+                      whileHover={{ scale: 1.08 }}
+                      whileTap={{ scale: 0.92 }}
+                      onClick={() => setPreviewKey((prev) => prev + 1)}
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] transition-colors cursor-pointer"
+                      title="Reload Preview"
+                    >
+                      <RefreshCw size={14} />
+                    </motion.button>
+                    <motion.button
+                      type="button"
+                      whileHover={{ scale: 1.08 }}
+                      whileTap={{ scale: 0.92 }}
+                      onClick={handleOpenInNewTab}
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] transition-colors cursor-pointer"
+                      title="Open in new window"
+                    >
+                      <ExternalLink size={14} />
+                    </motion.button>
+                  </>
+                )}
+
+                {activeTab !== 'preview' && (
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: 1.08 }}
+                    whileTap={{ scale: 0.92 }}
+                    onClick={handleCopyCurrentFile}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-colors cursor-pointer"
+                    title="Copy current file content"
+                  >
+                    {copied ? (
+                      <>
+                        <Check size={12} className="text-emerald-400" />
+                        <span className="text-emerald-400">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={12} />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </motion.button>
+                )}
+
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.92 }}
+                  onClick={handleDownloadAll}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] transition-colors cursor-pointer"
+                  title="Download project files"
+                >
+                  <Download size={14} />
+                </motion.button>
+
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.92 }}
+                  onClick={() => setIsFullscreen((prev) => !prev)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] transition-colors cursor-pointer"
+                  title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+                >
+                  {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                </motion.button>
+
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.92 }}
+                  onClick={handleCloseDrawer}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 bg-white/[0.03] hover:bg-rose-500/10 border border-white/[0.06] transition-colors cursor-pointer ml-1"
+                  title="Close Panel"
+                >
+                  <X size={15} />
+                </motion.button>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1 px-3 py-2 bg-[#0e1017] border-b border-white/[0.06] overflow-x-auto [scrollbar-width:none]">
+              {hasHtml && (
+                <motion.button
+                  type="button"
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => setActiveTab('preview')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer shrink-0 ${activeTab === 'preview'
+                      ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shadow-xs'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
+                    }`}
+                >
+                  <Play size={12} className={activeTab === 'preview' ? 'text-indigo-400 fill-indigo-400/30' : ''} />
+                  <span>Live Preview</span>
+                </motion.button>
+              )}
+
+              {files.map((file) => {
+                const isSelected = activeTab === file.name
+                return (
+                  <motion.button
+                    key={file.name}
+                    type="button"
+                    whileTap={{ scale: 0.96 }}
+                    onClick={() => setActiveTab(file.name)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer shrink-0 font-mono ${isSelected
+                        ? 'bg-white/[0.1] text-white border border-white/[0.15]'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
+                      }`}
+                  >
+                    <FileCode size={12} className={isSelected ? 'text-indigo-400' : 'text-slate-500'} />
+                    <span>{file.name}</span>
+                  </motion.button>
+                )
+              })}
+            </div>
+
+            <div className="flex-1 min-h-0 bg-[#08090e] relative overflow-hidden">
+              {activeTab === 'preview' && hasHtml ? (
+                <div className="w-full h-full bg-white relative">
+                  <iframe
+                    key={previewKey}
+                    title="Artifact Preview"
+                    srcDoc={bundledHtml}
+                    sandbox="allow-scripts allow-modals allow-forms allow-same-origin"
+                    className="w-full h-full border-none"
+                  />
+                </div>
+              ) : (
+                <div className="w-full h-full overflow-auto [scrollbar-width:thin]">
+                  <SyntaxHighlighter
+                    language={getLanguageFromFileName(currentFile?.name)}
+                    style={oneDark}
+                    showLineNumbers={true}
+                    wrapLongLines={false}
+                    customStyle={{
+                      margin: 0,
+                      padding: '1.2rem 1.2rem',
+                      background: '#090b11',
+                      fontSize: '13px',
+                      lineHeight: '1.65',
+                      minHeight: '100%',
+                      fontFamily:
+                        'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                    }}
+                    lineNumberStyle={{
+                      minWidth: '2.8em',
+                      paddingRight: '1em',
+                      color: '#475569',
+                      textAlign: 'right',
+                      userSelect: 'none',
+                      borderRight: '1px solid rgba(255, 255, 255, 0.08)',
+                      marginRight: '1em',
+                    }}
+                  >
+                    {currentFile?.content || '// No content in file'}
+                  </SyntaxHighlighter>
+                </div>
+              )}
+            </div>
+          </motion.div>
         )}
-      </div>
-    </div>
+      </AnimatePresence>
+    </>
   )
 }
 

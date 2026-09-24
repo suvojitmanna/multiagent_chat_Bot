@@ -19,7 +19,8 @@ const cleanJsonString = (str) => {
 
 const extractFilesFromText = (text) => {
   const files = [];
-  const codeBlockRegex = /```(?:([a-zA-Z0-9_\-+]+)\s+)?([a-zA-Z0-9_./\-]+)?\n([\s\S]*?)```/g;
+  const codeBlockRegex =
+    /```(?:([a-zA-Z0-9_\-+]+)\s+)?([a-zA-Z0-9_./\-]+)?\n([\s\S]*?)```/g;
   let match;
   let index = 1;
 
@@ -32,7 +33,8 @@ const extractFilesFromText = (text) => {
       if (lang === "html") filename = "index.html";
       else if (lang === "css") filename = "style.css";
       else if (lang === "javascript" || lang === "js") filename = "script.js";
-      else if (lang === "python" || lang === "py") filename = `script_${index}.py`;
+      else if (lang === "python" || lang === "py")
+        filename = `script_${index}.py`;
       else if (lang === "json") filename = `data_${index}.json`;
       else filename = `file_${index}.${lang || "txt"}`;
     }
@@ -65,7 +67,10 @@ export const codingGenAgent = async (state) => {
 
     const recentHistory = history
       .slice(-4)
-      .map((m) => `${m.role === "user" ? "User" : "Assistant"}: ${typeof m.content === "string" ? m.content.slice(0, 400) : ""}`)
+      .map(
+        (m) =>
+          `${m.role === "user" ? "User" : "Assistant"}: ${typeof m.content === "string" ? m.content.slice(0, 400) : ""}`,
+      )
       .join("\n\n");
 
     const promptText = (state.prompt || "").trim();
@@ -126,7 +131,11 @@ Important Rules:
 
       let projectRes;
       try {
-        projectRes = await invokeWithFallback(codingLlm, fallbackLlm, projectPrompt);
+        projectRes = await invokeWithFallback(
+          codingLlm,
+          fallbackLlm,
+          projectPrompt,
+        );
       } catch (err) {
         console.error("Project generation LLM error:", err);
       }
@@ -139,11 +148,73 @@ Important Rules:
           const cleaned = cleanJsonString(rawContent);
           parsed = JSON.parse(cleaned);
         } catch {
-          console.warn("JSON parsing of project failed, trying fallback extraction");
+          console.warn(
+            "JSON parsing of project failed, trying fallback extraction",
+          );
         }
 
+        const resolveProjectTitle = (
+          parsedTitle,
+          files = [],
+          promptText = "",
+        ) => {
+          if (
+            parsedTitle &&
+            parsedTitle.trim() &&
+            ![
+              "interactive project",
+              "project",
+              "web project",
+              "generated web project",
+            ].includes(parsedTitle.trim().toLowerCase())
+          ) {
+            return parsedTitle.trim();
+          }
+
+          const htmlFile = files.find((f) =>
+            f.name?.toLowerCase().endsWith(".html"),
+          );
+          if (htmlFile?.content) {
+            const match = /<title>(.*?)<\/title>/i.exec(htmlFile.content);
+            if (match && match[1]?.trim()) {
+              const cleanTitle = match[1].trim();
+              if (
+                !["document", "untitled", "index"].includes(
+                  cleanTitle.toLowerCase(),
+                )
+              ) {
+                return cleanTitle;
+              }
+            }
+          }
+
+          if (promptText) {
+            const clean = promptText
+              .replace(
+                /\b(create|build|make|generate|code|design|write|a|an|the|in|html|css|js|javascript|using)\b/gi,
+                " ",
+              )
+              .replace(/\s+/g, " ")
+              .trim();
+            if (clean.length > 2 && clean.length < 35) {
+              return clean
+                .split(" ")
+                .map(
+                  (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(),
+                )
+                .join(" ");
+            }
+          }
+
+          return parsedTitle?.trim() || "Web Project";
+        };
+
         if (parsed && Array.isArray(parsed.files) && parsed.files.length > 0) {
-          const projectTitle = parsed.title || "Interactive Project";
+          const projectTitle = resolveProjectTitle(
+            parsed.title,
+            parsed.files,
+            promptText,
+          );
           const overviewText =
             parsed.overview ||
             `### 🚀 ${projectTitle}\n\nI have generated a complete, interactive project with **${parsed.files.length} files** (${parsed.files.map((f) => `\`${f.name}\``).join(", ")}).\n\nYou can interact with the live preview directly in the Artifacts tab or inspect the source code.`;
@@ -164,14 +235,19 @@ Important Rules:
 
         const extractedFiles = extractFilesFromText(rawContent);
         if (extractedFiles.length > 0) {
+          const projectTitle = resolveProjectTitle(
+            "",
+            extractedFiles,
+            promptText,
+          );
           return {
             ...state,
-            aiResponse: `### 🚀 Interactive Web Project\n\nI have generated the project files for you. You can preview them or copy the code from the Artifact panel.\n\n${rawContent}`,
+            aiResponse: `### 🚀 ${projectTitle}\n\nI have generated the project files for you. You can preview them or copy the code from the Artifact panel.\n\n${rawContent}`,
             artifacts: [
               {
                 id: Date.now().toString(),
                 type: "Project",
-                title: "Generated Web Project",
+                title: projectTitle,
                 files: extractedFiles,
               },
             ],
@@ -198,7 +274,11 @@ Guidelines for your response:
 6. **Tone**: Helpful, authoritative, and concise. Avoid fluff or generic boilerplate.
 `;
 
-    const res = await invokeWithFallback(codingLlm, fallbackLlm, generalCodingPrompt);
+    const res = await invokeWithFallback(
+      codingLlm,
+      fallbackLlm,
+      generalCodingPrompt,
+    );
     const answer = res?.content || "No response generated. Please try again.";
 
     const extractedFiles = extractFilesFromText(answer);
@@ -219,7 +299,6 @@ Guidelines for your response:
         : [],
     };
   } catch (error) {
-
     return {
       ...state,
       aiResponse: `I encountered an issue processing your coding request: ${error.message}. Please try rephrasing or asking again.`,

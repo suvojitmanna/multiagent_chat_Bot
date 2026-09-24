@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
-import { setActiveArtifact } from "../redux/messageSlice";
+import { setActiveArtifact, setVisibleArtifact, clearVisibleArtifact } from "../redux/messageSlice";
+import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Sparkles, Copy, Check, Brain, Loader2, Zap, Image as ImageIcon, ExternalLink, X, Play, FolderCode, FileCode } from "lucide-react";
@@ -296,9 +297,78 @@ const CodeBlock = ({ language, value }) => {
   );
 };
 
+const getArtifactTitle = (art, content = "") => {
+  if (
+    art?.title &&
+    art.title.trim() &&
+    !["interactive project", "project", "web project", "generated web project"].includes(
+      art.title.trim().toLowerCase()
+    )
+  ) {
+    return art.title.trim();
+  }
+
+  const htmlFile = art?.files?.find((f) => f.name?.toLowerCase().endsWith(".html"));
+  if (htmlFile?.content) {
+    const match = /<title>(.*?)<\/title>/i.exec(htmlFile.content);
+    if (match && match[1]?.trim()) {
+      const title = match[1].trim();
+      if (!["document", "untitled", "index", "my project"].includes(title.toLowerCase())) {
+        return title;
+      }
+    }
+  }
+
+  if (content && typeof content === "string") {
+    const headingMatch = /^#{1,3}\s+(?:[^\w\s]+\s+)?([^\n#]+)/m.exec(content);
+    if (headingMatch && headingMatch[1]?.trim()) {
+      const heading = headingMatch[1].trim();
+      if (!["overview", "interactive web project", "project"].includes(heading.toLowerCase())) {
+        return heading;
+      }
+    }
+  }
+
+  const specificFile = art?.files?.find(
+    (f) => f.name && !["index.html", "style.css", "script.js"].includes(f.name.toLowerCase())
+  );
+  if (specificFile) {
+    return specificFile.name.replace(/\.[^/.]+$/, "");
+  }
+
+  return art?.title || "Interactive Project";
+};
+
 const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking = false, sidebarCollapsed = false }) => {
   const dispatch = useDispatch();
   const [lightBox, setLightBox] = useState(null);
+  const artifactCardRef = useRef(null);
+
+  useEffect(() => {
+    const el = artifactCardRef.current;
+    if (!el || !Array.isArray(artifacts) || artifacts.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          const firstArt = artifacts[0];
+          const resolvedTitle = getArtifactTitle(firstArt, content);
+          dispatch(setVisibleArtifact({ ...firstArt, title: resolvedTitle }));
+        } else {
+          dispatch(clearVisibleArtifact(artifacts[0]?.id));
+        }
+      },
+      {
+        threshold: 0.1,
+      }
+    );
+
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      dispatch(clearVisibleArtifact(artifacts[0]?.id));
+    };
+  }, [artifacts, content, dispatch]);
 
   useEffect(() => {
     if (!lightBox) return;
@@ -331,16 +401,26 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
 
   if (isUser) {
     return (
-      <div className="flex items-start my-1.5 w-full justify-end transition-all duration-200">
+      <motion.div
+        initial={{ opacity: 0, y: 10, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.22, ease: "easeOut" }}
+        className="flex items-start my-1.5 w-full justify-end"
+      >
         <div className="max-w-[85%] sm:max-w-[78%] md:max-w-[72%] px-4 py-2.5 rounded-2xl rounded-tr-sm bg-linear-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/15 text-[13.5px] sm:text-[14px] leading-relaxed whitespace-pre-wrap break-words">
           {displayText}
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="flex items-start gap-2.5 sm:gap-3 my-2 w-full justify-start transition-all duration-200">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
+      className="flex items-start gap-2.5 sm:gap-3 my-2 w-full justify-start"
+    >
       <div
         className={`w-7 h-7 sm:w-7.5 sm:h-7.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0 mt-0.5 shadow-sm transition-all duration-300 ${isThinking ? "animate-pulse ring-1 ring-indigo-500/30" : ""
           }`}
@@ -361,10 +441,12 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                 </div>
                 <div className="flex items-center gap-2.5 overflow-x-auto pb-1.5 hide-scrollbar">
                   {images.map((imgUrl, idx) => (
-                    <div
+                    <motion.div
                       key={idx}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={() => setLightBox(imgUrl)}
-                      className="shrink-0 w-32 h-24 sm:w-40 sm:h-28 rounded-xl overflow-hidden border border-white/[0.08] hover:border-indigo-500/50 transition-all duration-200 group relative block bg-[#161822] cursor-pointer"
+                      className="shrink-0 w-32 h-24 sm:w-40 sm:h-28 rounded-xl overflow-hidden border border-white/[0.08] hover:border-indigo-500/50 transition-colors duration-200 group relative block bg-[#161822] cursor-pointer"
                       title="Click to view full image"
                     >
                       <img
@@ -379,19 +461,24 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                       <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <ExternalLink size={14} className="text-white drop-shadow" />
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </div>
             )}
             {Array.isArray(artifacts) && artifacts.length > 0 && (
-              <div className="mb-4 flex flex-col gap-2.5 not-prose">
+              <div ref={artifactCardRef} className="mb-4 flex flex-col gap-2.5 not-prose">
                 {artifacts.map((art, idx) => {
                   const filesCount = art.files?.length || 0;
+                  const resolvedTitle = getArtifactTitle(art, content);
                   return (
-                    <div
+                    <motion.div
                       key={art.id || idx}
-                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-linear-to-r from-indigo-950/40 via-[#111422] to-violet-950/30 border border-indigo-500/25 shadow-lg shadow-indigo-500/5 group hover:border-indigo-500/40 transition-all duration-200"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      whileHover={{ y: -2 }}
+                      transition={{ duration: 0.2 }}
+                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-linear-to-r from-indigo-950/40 via-[#111422] to-violet-950/30 border border-indigo-500/25 shadow-lg shadow-indigo-500/5 group hover:border-indigo-500/40 transition-colors duration-200"
                     >
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-500/20 to-violet-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-400 shrink-0 shadow-xs">
@@ -400,7 +487,7 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                         <div className="flex flex-col min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="font-semibold text-slate-100 text-sm truncate">
-                              {art.title || "Interactive Project"}
+                              {resolvedTitle}
                             </span>
                             <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 shrink-0">
                               {filesCount} {filesCount === 1 ? "file" : "files"}
@@ -425,15 +512,17 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                         </div>
                       </div>
 
-                      <button
+                      <motion.button
                         type="button"
-                        onClick={() => dispatch(setActiveArtifact(art))}
-                        className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-white bg-linear-to-r from-indigo-500 to-violet-600 hover:from-indigo-400 hover:to-violet-500 border border-indigo-400/30 shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all duration-150 cursor-pointer active:scale-95 shrink-0 self-stretch sm:self-auto justify-center"
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.96 }}
+                        onClick={() => dispatch(setActiveArtifact({ ...art, title: resolvedTitle }))}
+                        className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-white bg-linear-to-r from-indigo-500 to-violet-600 hover:from-indigo-400 hover:to-violet-500 border border-indigo-400/30 shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all duration-150 cursor-pointer shrink-0 self-stretch sm:self-auto justify-center"
                       >
                         <Play size={13} className="fill-white" />
                         <span>Open & Preview</span>
-                      </button>
-                    </div>
+                      </motion.button>
+                    </motion.div>
                   );
                 })}
               </div>
@@ -533,27 +622,39 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
         )}
       </div>
 
-      {lightBox && (
-        <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6 cursor-pointer select-none"
-          onClick={() => setLightBox(null)}
-        >
-          <button
+      <AnimatePresence>
+        {lightBox && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6 cursor-pointer select-none"
             onClick={() => setLightBox(null)}
-            className="absolute top-5 right-5 text-white hover:text-rose-400 text-xl font-bold z-10 bg-black/70 hover:bg-black/90 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer border border-white/20 shadow-lg"
-            title="Close image"
           >
-            <X size={20} />
-          </button>
-          <img
-            src={lightBox}
-            alt="Full view"
-            onClick={(e) => e.stopPropagation()}
-            className="max-w-[90vw] max-h-[85vh] object-contain rounded-xl shadow-2xl border border-white/15 cursor-default"
-          />
-        </div>
-      )}
-    </div>
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setLightBox(null)}
+              className="absolute top-5 right-5 text-white hover:text-rose-400 text-xl font-bold z-10 bg-black/70 hover:bg-black/90 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer border border-white/20 shadow-lg"
+              title="Close image"
+            >
+              <X size={20} />
+            </motion.button>
+            <motion.img
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              src={lightBox}
+              alt="Full view"
+              onClick={(e) => e.stopPropagation()}
+              className="max-w-[90vw] max-h-[85vh] object-contain rounded-xl shadow-2xl border border-white/15 cursor-default"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 
