@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { MessageSquare, Plus, Sparkles, PanelLeftOpen, Trash2, Pencil, Check, X } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux'
 import { setSelectedConversation, removeConversation, updateConversationTitle } from '../redux/conversationSlice'
@@ -77,15 +78,17 @@ const Nav = ({ sidebarCollapsed, onToggleSidebar }) => {
             <div className="w-full max-w-4xl lg:max-w-5xl xl:max-w-6xl h-full flex items-center justify-between gap-2.5 px-3 sm:px-4 md:px-6">
                 <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
                     {sidebarCollapsed && onToggleSidebar && (
-                        <button
+                        <motion.button
                             type="button"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
                             onClick={onToggleSidebar}
                             className="flex lg:hidden items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] transition-colors cursor-pointer shrink-0 mr-1"
                             title="Expand sidebar"
                             aria-label="Expand sidebar"
                         >
                             <PanelLeftOpen size={18} />
-                        </button>
+                        </motion.button>
                     )}
 
                     <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-indigo-500/10 border border-indigo-500/20 shrink-0">
@@ -115,24 +118,28 @@ const Nav = ({ sidebarCollapsed, onToggleSidebar }) => {
                                 className="bg-white/[0.08] border border-white/[0.15] focus:border-indigo-400 rounded-md px-2 py-0.5 text-[13px] text-slate-100 outline-none w-full"
                                 placeholder="Chat title..."
                             />
-                            <button
+                            <motion.button
                                 type="button"
+                                whileHover={{ scale: 1.15 }}
+                                whileTap={{ scale: 0.9 }}
                                 onClick={handleSaveTitle}
                                 className="p-1 rounded-md text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/20 transition-colors cursor-pointer shrink-0"
                                 title="Save title (Enter)"
                                 aria-label="Save title"
                             >
                                 <Check size={14} />
-                            </button>
-                            <button
+                            </motion.button>
+                            <motion.button
                                 type="button"
+                                whileHover={{ scale: 1.15 }}
+                                whileTap={{ scale: 0.9 }}
                                 onClick={handleCancelEdit}
                                 className="p-1 rounded-md text-slate-400 hover:text-slate-200 hover:bg-white/[0.08] transition-colors cursor-pointer shrink-0"
                                 title="Cancel (Esc)"
                                 aria-label="Cancel"
                             >
                                 <X size={14} />
-                            </button>
+                            </motion.button>
                         </div>
                     ) : (
                         <div className="flex items-center gap-1.5 min-w-0 max-w-full">
@@ -144,15 +151,17 @@ const Nav = ({ sidebarCollapsed, onToggleSidebar }) => {
                                 {selectedConversation?.title || "New Chat"}
                             </h1>
                             {selectedConversation?._id && (
-                                <button
+                                <motion.button
                                     type="button"
+                                    whileHover={{ scale: 1.2 }}
+                                    whileTap={{ scale: 0.85 }}
                                     onClick={handleStartEdit}
                                     className="p-1 rounded-md text-slate-500 hover:text-indigo-300 hover:bg-white/[0.06] transition-colors cursor-pointer shrink-0"
                                     title="Rename chat"
                                     aria-label="Rename chat"
                                 >
                                     <Pencil size={12} />
-                                </button>
+                                </motion.button>
                             )}
                         </div>
                     )}
@@ -167,28 +176,37 @@ const Nav = ({ sidebarCollapsed, onToggleSidebar }) => {
                 </div>
 
                 <div className="flex items-center gap-1.5 shrink-0">
-                    {selectedConversation?._id && (
-                        <button
-                            type="button"
-                            onClick={handleDeleteActiveChat}
-                            className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-rose-400 bg-white/[0.04] hover:bg-rose-500/10 border border-white/[0.07] hover:border-rose-500/20 transition-all duration-150 cursor-pointer"
-                            title="Delete this chat"
-                            aria-label="Delete this chat"
-                        >
-                            <Trash2 size={13} />
-                            <span className="hidden sm:inline">Delete</span>
-                        </button>
-                    )}
+                    <AnimatePresence>
+                        {selectedConversation?._id && (
+                            <motion.button
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                type="button"
+                                whileHover={{ scale: 1.04 }}
+                                whileTap={{ scale: 0.96 }}
+                                onClick={handleDeleteActiveChat}
+                                className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-rose-400 bg-white/[0.04] hover:bg-rose-500/10 border border-white/[0.07] hover:border-rose-500/20 transition-colors cursor-pointer"
+                                title="Delete this chat"
+                                aria-label="Delete this chat"
+                            >
+                                <Trash2 size={13} />
+                                <span className="hidden sm:inline">Delete</span>
+                            </motion.button>
+                        )}
+                    </AnimatePresence>
 
-                    <button
+                    <motion.button
                         type="button"
+                        whileHover={{ scale: 1.04 }}
+                        whileTap={{ scale: 0.96 }}
                         onClick={handleNewChat}
-                        className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-slate-100 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.07] transition-all duration-150 cursor-pointer"
+                        className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-slate-100 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.07] transition-colors cursor-pointer"
                         title="Start new chat"
                     >
                         <Plus size={14} />
                         <span className="hidden sm:inline">New Chat</span>
-                    </button>
+                    </motion.button>
                 </div>
             </div>
         </header>

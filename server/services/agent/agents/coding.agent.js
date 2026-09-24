@@ -101,8 +101,15 @@ Standards for the code:
 2. Robust JavaScript: Clean, modular, error-handled, interactive, and completely working.
 3. Accessible & Semantic HTML5 with high aesthetic polish.
 4. If a game or interactive tool: include scoring, controls, restart options, sound synthesis or visual effects if appropriate.
+5. Always use real, publicly accessible images from Unsplash when images are needed.
+6. Use direct Unsplash image URLs in the format https://images.unsplash.com/... whenever possible.
+7. Images must be relevant to the project's content and should look realistic and professional.
+8. For multiple cards, products, destinations, articles, profiles, or gallery items, use different relevant Unsplash images instead of repeating one image.
+9. Never use placeholder images, dummy image URLs, broken image URLs, local image paths, base64 images, or generic placeholder services.
+10. Make sure every referenced image URL can be loaded directly by the browser without requiring a local file.
 
 Return ONLY a valid JSON object without surrounding commentary.
+
 Structure:
 {
   "title": "Short descriptive title of the project",
@@ -125,8 +132,10 @@ Structure:
 
 Important Rules:
 - Return ONLY valid JSON.
-- Do NOT wrap in markdown fences if possible, or if you do, use \`\`\`json.
+- Do NOT wrap in markdown fences.
 - Include the complete code for every file; do NOT leave placeholders or TODOs.
+- Always use real Unsplash images when the project requires images.
+- Never invent or fabricate image URLs.
 `;
 
       let projectRes;

@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
-import { setActiveArtifact, setVisibleArtifact, clearVisibleArtifact } from "../redux/messageSlice";
+import { setActiveArtifact, setVisibleArtifact, clearVisibleArtifact, setArtifactOpen } from "../redux/messageSlice";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Sparkles, Copy, Check, Brain, Loader2, Zap, Image as ImageIcon, ExternalLink, X, Play, FolderCode, FileCode } from "lucide-react";
+import { Sparkles, Copy, Check, Brain, Loader2, Zap, Image as ImageIcon, ExternalLink, X, Play, FolderCode, FileCode, Code2 } from "lucide-react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import oneDark from "react-syntax-highlighter/dist/esm/styles/prism/one-dark.js";
 
@@ -200,6 +200,7 @@ const NORMALIZE_LANG = {
 };
 
 const CodeBlock = ({ language, value }) => {
+  const dispatch = useDispatch();
   const [copied, setCopied] = useState(false);
   const rawLang = (language || "").toLowerCase().trim();
   const highlightLang = NORMALIZE_LANG[rawLang] || rawLang || "javascript";
@@ -219,6 +220,34 @@ const CodeBlock = ({ language, value }) => {
     } catch (err) {
       console.error("Failed to copy text:", err);
     }
+  };
+
+  const handleOpenInMonaco = () => {
+    const extMap = {
+      javascript: "js",
+      typescript: "ts",
+      python: "py",
+      html: "html",
+      css: "css",
+      json: "json",
+      sql: "sql",
+      bash: "sh",
+      shell: "sh",
+      cpp: "cpp",
+      c: "c",
+      java: "java",
+      markdown: "md",
+      rust: "rs",
+      go: "go",
+    };
+    const ext = extMap[highlightLang] || highlightLang || "txt";
+    dispatch(
+      setActiveArtifact({
+        title: `${langConfig.label} Snippet`,
+        files: [{ name: `snippet.${ext}`, content: value }],
+      })
+    );
+    dispatch(setArtifactOpen(true));
   };
 
   return (
@@ -241,24 +270,41 @@ const CodeBlock = ({ language, value }) => {
           </span>
         </div>
 
-        <button
-          type="button"
-          onClick={handleCopy}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/[0.12] text-slate-400 hover:text-slate-200 transition-all duration-150 cursor-pointer text-[11.5px] font-medium active:scale-95"
-          title="Copy code to clipboard"
-        >
-          {copied ? (
-            <>
-              <Check size={12} className="text-emerald-400" />
-              <span className="text-emerald-400 font-semibold">Copied!</span>
-            </>
-          ) : (
-            <>
-              <Copy size={12} />
-              <span>Copy</span>
-            </>
-          )}
-        </button>
+        <div className="flex items-center gap-1.5">
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.94 }}
+            onClick={handleOpenInMonaco}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/25 text-indigo-300 hover:text-indigo-200 transition-colors cursor-pointer text-[11.5px] font-medium"
+            title="Open and edit in Monaco Editor"
+          >
+            <Code2 size={12} className="text-indigo-400" />
+            <span className="hidden sm:inline">View Or Edit</span>
+            <span className="sm:hidden">View Or Edit</span>
+          </motion.button>
+
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.94 }}
+            onClick={handleCopy}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/[0.12] text-slate-400 hover:text-slate-200 transition-colors cursor-pointer text-[11.5px] font-medium"
+            title="Copy code to clipboard"
+          >
+            {copied ? (
+              <>
+                <Check size={12} className="text-emerald-400" />
+                <span className="text-emerald-400 font-semibold">Copied!</span>
+              </>
+            ) : (
+              <>
+                <Copy size={12} />
+                <span>Copy</span>
+              </>
+            )}
+          </motion.button>
+        </div>
       </div>
 
       <div className="overflow-x-auto text-[13px] leading-relaxed [scrollbar-width:thin] bg-[#090b11]">

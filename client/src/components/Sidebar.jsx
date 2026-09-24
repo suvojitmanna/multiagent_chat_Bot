@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Coins, LogOut, MessageSquare, PanelLeftClose, PanelLeftOpen, Plus, User, X, Trash2, Pencil, Check } from "lucide-react"
 import { getConversations } from '../features/getConverSations'
 import { setConversations, setSelectedConversation, removeConversation, updateConversationTitle } from '../redux/conversationSlice'
@@ -147,13 +148,19 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
 
     return (
         <>
-            {!collaPsed && (
-                <div
-                    className="fixed inset-0 z-30 bg-black/60 backdrop-blur-xs lg:hidden cursor-pointer transition-opacity duration-300"
-                    onClick={() => setCollaPsed(true)}
-                    aria-label="Close sidebar"
-                />
-            )}
+            <AnimatePresence>
+                {!collaPsed && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="fixed inset-0 z-30 bg-black/60 backdrop-blur-xs lg:hidden cursor-pointer"
+                        onClick={() => setCollaPsed(true)}
+                        aria-label="Close sidebar"
+                    />
+                )}
+            </AnimatePresence>
 
             <aside
                 ref={sidebarRef}
@@ -165,183 +172,235 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
                 <div className="flex flex-col h-full overflow-hidden">
 
                     <div className={`flex items-center h-14 border-b border-white/[0.06] shrink-0 transition-all duration-300 ${collaPsed ? "justify-center px-0" : "gap-2.5 px-4 justify-between"}`}>
-                        <div className={`flex items-center gap-2.5 min-w-0 flex-1 ${collaPsed ? "hidden" : "flex"}`}>
-                            <span className="text-[15px] font-semibold text-slate-100 tracking-tight truncate">
-                                ShifraAI
-                            </span>
-                            <span className="text-[10px] font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full tracking-wide uppercase shrink-0">
-                                free
-                            </span>
-                        </div>
+                        <AnimatePresence initial={false}>
+                            {!collaPsed && (
+                                <motion.div
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -10 }}
+                                    transition={{ duration: 0.15 }}
+                                    className="flex items-center gap-2.5 min-w-0 flex-1"
+                                >
+                                    <span className="text-[15px] font-semibold text-slate-100 tracking-tight truncate">
+                                        ShifraAI
+                                    </span>
+                                    <span className="text-[10px] font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full tracking-wide uppercase shrink-0">
+                                        free
+                                    </span>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
-                        <button
+                        <motion.button
                             type="button"
-                            className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] transition-colors duration-150 bg-transparent border-none cursor-pointer shrink-0"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] transition-colors bg-transparent border-none cursor-pointer shrink-0"
                             onClick={() => setCollaPsed(!collaPsed)}
                             title={collaPsed ? "Expand sidebar" : "Collapse sidebar"}
                         >
                             {collaPsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
-                        </button>
+                        </motion.button>
                     </div>
 
                     <div className={`pt-3.5 pb-1 shrink-0 ${collaPsed ? "px-2.5 flex justify-center" : "px-4"}`}>
                         {collaPsed ? (
-                            <button
+                            <motion.button
+                                whileHover={{ scale: 1.08 }}
+                                whileTap={{ scale: 0.92 }}
                                 onClick={handleCreateConversation}
                                 title="New Chat"
-                                className="w-10 h-10 flex items-center justify-center text-white bg-linear-to-br from-indigo-500 to-violet-700 rounded-xl border-none cursor-pointer hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-indigo-500/20"
+                                className="w-10 h-10 flex items-center justify-center text-white bg-linear-to-br from-indigo-500 to-violet-700 rounded-xl border-none cursor-pointer shadow-lg shadow-indigo-500/20"
                             >
                                 <Plus size={18} />
-                            </button>
+                            </motion.button>
                         ) : (
-                            <button
-                                className="w-full flex items-center justify-center gap-2 text-[13.5px] font-medium text-white bg-linear-to-br from-indigo-500 to-violet-700 rounded-xl py-2.5 border-none cursor-pointer hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-indigo-500/20"
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.97 }}
+                                className="w-full flex items-center justify-center gap-2 text-[13.5px] font-medium text-white bg-linear-to-br from-indigo-500 to-violet-700 rounded-xl py-2.5 border-none cursor-pointer shadow-lg shadow-indigo-500/20"
                                 onClick={handleCreateConversation}
                             >
                                 <Plus size={15} />
                                 <span>New Chat</span>
-                            </button>
+                            </motion.button>
                         )}
                     </div>
 
-                    {!collaPsed && (
-                        conversationList.length === 0 ? (
-                            <div className="flex items-center justify-center py-4 text-slate-500 text-xs shrink-0">
-                                No conversations yet
-                            </div>
-                        ) : (
-                            <div className="px-5 pt-4 pb-1.5 text-[10.5px] font-semibold uppercase tracking-widest text-slate-500 shrink-0">
-                                Recent Chats
-                            </div>
-                        )
-                    )}
+                    <AnimatePresence initial={false}>
+                        {!collaPsed && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.15 }}
+                                className="shrink-0 overflow-hidden"
+                            >
+                                {conversationList.length === 0 ? (
+                                    <div className="flex items-center justify-center py-4 text-slate-500 text-xs shrink-0">
+                                        No conversations yet
+                                    </div>
+                                ) : (
+                                    <div className="px-5 pt-4 pb-1.5 text-[10.5px] font-semibold uppercase tracking-widest text-slate-500 shrink-0">
+                                        Recent Chats
+                                    </div>
+                                )}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
                     <div className={`flex-1 overflow-y-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${collaPsed ? "px-2 pt-2" : "px-3"}`}>
-                        {conversationList.map((conv, i) => {
-                            const isActive = selectedConversation?._id === conv?._id;
+                        <AnimatePresence mode="popLayout" initial={false}>
+                            {conversationList.map((conv, i) => {
+                                const isActive = selectedConversation?._id === conv?._id;
 
-                            if (collaPsed) {
+                                if (collaPsed) {
+                                    return (
+                                        <motion.div
+                                            key={conv?._id || i}
+                                            layout
+                                            initial={{ opacity: 0, scale: 0.8 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 0.8, height: 0 }}
+                                            whileHover={{ scale: 1.08 }}
+                                            whileTap={{ scale: 0.94 }}
+                                            onClick={() => handleSelectConversation(conv)}
+                                            title={conv?.title || "New Chat"}
+                                            className={`w-10 h-10 mx-auto flex items-center justify-center cursor-pointer mb-1.5 rounded-xl border transition-colors duration-200 ${isActive
+                                                ? "bg-indigo-500/20 border-indigo-500/30 text-indigo-300 shadow-[inset_0_0_15px_rgba(99,102,241,0.1)]"
+                                                : "bg-transparent border-transparent text-slate-400 hover:bg-white/[0.06] hover:text-slate-200"
+                                                }`}
+                                        >
+                                            <MessageSquare size={16} strokeWidth={2} />
+                                        </motion.div>
+                                    )
+                                }
+
+                                const isEditing = editingId === conv?._id;
+
+                                if (isEditing) {
+                                    return (
+                                        <motion.div
+                                            key={conv?._id || i}
+                                            layout
+                                            initial={{ opacity: 0, scale: 0.95 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 0.95 }}
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="flex items-center gap-1.5 mb-1 px-2.5 py-1.5 rounded-xl border bg-white/[0.06] border-indigo-500/40 text-slate-100 shadow-sm"
+                                        >
+                                            <div className="flex items-center justify-center shrink-0 w-6 h-6 rounded-lg bg-indigo-500/20 text-indigo-300">
+                                                <MessageSquare size={12} strokeWidth={2} />
+                                            </div>
+
+                                            <input
+                                                ref={editInputRef}
+                                                type="text"
+                                                value={editTitle}
+                                                onChange={(e) => setEditTitle(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter") {
+                                                        e.preventDefault()
+                                                        handleSaveTitle(e, conv?._id)
+                                                    } else if (e.key === "Escape") {
+                                                        e.preventDefault()
+                                                        handleCancelEdit(e)
+                                                    }
+                                                }}
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="flex-1 min-w-0 bg-white/[0.08] border border-white/[0.15] focus:border-indigo-400 rounded-md px-2 py-0.5 text-[12.5px] text-slate-100 outline-none placeholder:text-slate-500"
+                                                placeholder="Chat title..."
+                                            />
+
+                                            <motion.button
+                                                type="button"
+                                                whileHover={{ scale: 1.15 }}
+                                                whileTap={{ scale: 0.9 }}
+                                                onClick={(e) => handleSaveTitle(e, conv?._id)}
+                                                className="p-1 rounded-md text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/20 transition-colors cursor-pointer shrink-0"
+                                                title="Save title (Enter)"
+                                                aria-label="Save title"
+                                            >
+                                                <Check size={13} />
+                                            </motion.button>
+
+                                            <motion.button
+                                                type="button"
+                                                whileHover={{ scale: 1.15 }}
+                                                whileTap={{ scale: 0.9 }}
+                                                onClick={handleCancelEdit}
+                                                className="p-1 rounded-md text-slate-400 hover:text-slate-200 hover:bg-white/[0.08] transition-colors cursor-pointer shrink-0"
+                                                title="Cancel (Esc)"
+                                                aria-label="Cancel"
+                                            >
+                                                <X size={13} />
+                                            </motion.button>
+                                        </motion.div>
+                                    )
+                                }
+
                                 return (
-                                    <div
+                                    <motion.div
                                         key={conv?._id || i}
+                                        layout
+                                        initial={{ opacity: 0, y: -4 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.9, height: 0, marginBottom: 0, padding: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                        whileHover={{ x: 2 }}
                                         onClick={() => handleSelectConversation(conv)}
-                                        title={conv?.title || "New Chat"}
-                                        className={`w-10 h-10 mx-auto flex items-center justify-center cursor-pointer mb-1.5 rounded-xl border transition-all duration-200 ${isActive
-                                            ? "bg-indigo-500/20 border-indigo-500/30 text-indigo-300 shadow-[inset_0_0_15px_rgba(99,102,241,0.1)]"
-                                            : "bg-transparent border-transparent text-slate-400 hover:bg-white/[0.06] hover:text-slate-200"
+                                        onDoubleClick={(e) => handleStartEdit(e, conv)}
+                                        className={`group flex items-center gap-2.5 cursor-pointer mb-1 px-3 py-2 rounded-xl border transition-colors duration-200 relative ${isActive
+                                            ? "bg-indigo-500/15 border-indigo-500/25 shadow-[inset_0_0_20px_rgba(99,102,241,0.05)] text-slate-100"
+                                            : "bg-transparent border-transparent hover:bg-white/[0.04] hover:border-white/[0.06] text-slate-300 hover:text-slate-100"
                                             }`}
                                     >
-                                        <MessageSquare size={16} strokeWidth={2} />
-                                    </div>
-                                )
-                            }
-
-                            const isEditing = editingId === conv?._id;
-
-                            if (isEditing) {
-                                return (
-                                    <div
-                                        key={conv?._id || i}
-                                        onClick={(e) => e.stopPropagation()}
-                                        className="flex items-center gap-1.5 mb-1 px-2.5 py-1.5 rounded-xl border bg-white/[0.06] border-indigo-500/40 text-slate-100 shadow-sm"
-                                    >
-                                        <div className="flex items-center justify-center shrink-0 w-6 h-6 rounded-lg bg-indigo-500/20 text-indigo-300">
-                                            <MessageSquare size={12} strokeWidth={2} />
+                                        <div
+                                            className={`flex items-center justify-center shrink-0 w-7 h-7 rounded-lg border transition-all duration-200 ${isActive
+                                                ? "bg-indigo-500/20 border-indigo-400/30 text-indigo-300"
+                                                : "bg-white/[0.04] border-white/[0.04] text-slate-400 group-hover:text-slate-200 group-hover:bg-white/[0.07]"
+                                                }`}
+                                        >
+                                            <MessageSquare size={13} strokeWidth={2} />
                                         </div>
 
-                                        <input
-                                            ref={editInputRef}
-                                            type="text"
-                                            value={editTitle}
-                                            onChange={(e) => setEditTitle(e.target.value)}
-                                            onKeyDown={(e) => {
-                                                if (e.key === "Enter") {
-                                                    e.preventDefault()
-                                                    handleSaveTitle(e, conv?._id)
-                                                } else if (e.key === "Escape") {
-                                                    e.preventDefault()
-                                                    handleCancelEdit(e)
-                                                }
-                                            }}
-                                            onClick={(e) => e.stopPropagation()}
-                                            className="flex-1 min-w-0 bg-white/[0.08] border border-white/[0.15] focus:border-indigo-400 rounded-md px-2 py-0.5 text-[12.5px] text-slate-100 outline-none placeholder:text-slate-500"
-                                            placeholder="Chat title..."
-                                        />
-
-                                        <button
-                                            type="button"
-                                            onClick={(e) => handleSaveTitle(e, conv?._id)}
-                                            className="p-1 rounded-md text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/20 transition-colors cursor-pointer shrink-0"
-                                            title="Save title (Enter)"
-                                            aria-label="Save title"
+                                        <span
+                                            className="text-[13px] font-medium truncate flex-1 min-w-0 select-none"
+                                            title={conv?.title || "New Chat"}
                                         >
-                                            <Check size={13} />
-                                        </button>
+                                            {conv?.title || "New Chat"}
+                                        </span>
 
-                                        <button
-                                            type="button"
-                                            onClick={handleCancelEdit}
-                                            className="p-1 rounded-md text-slate-400 hover:text-slate-200 hover:bg-white/[0.08] transition-colors cursor-pointer shrink-0"
-                                            title="Cancel (Esc)"
-                                            aria-label="Cancel"
-                                        >
-                                            <X size={13} />
-                                        </button>
-                                    </div>
+                                        <div className={`flex items-center gap-0.5 shrink-0 transition-opacity duration-150 ${isActive ? "opacity-90" : "opacity-0 group-hover:opacity-100"
+                                            }`}>
+                                            <motion.button
+                                                type="button"
+                                                whileHover={{ scale: 1.15 }}
+                                                whileTap={{ scale: 0.85 }}
+                                                onClick={(e) => handleStartEdit(e, conv)}
+                                                className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-300 hover:bg-indigo-500/15 border-none cursor-pointer transition-colors"
+                                                title="Rename chat (or double click)"
+                                                aria-label="Rename chat"
+                                            >
+                                                <Pencil size={12} />
+                                            </motion.button>
+
+                                            <motion.button
+                                                type="button"
+                                                whileHover={{ scale: 1.15 }}
+                                                whileTap={{ scale: 0.85 }}
+                                                onClick={(e) => handleDeleteConversation(e, conv?._id)}
+                                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/15 border-none cursor-pointer transition-colors"
+                                                title="Delete chat"
+                                                aria-label="Delete chat"
+                                            >
+                                                <Trash2 size={12} />
+                                            </motion.button>
+                                        </div>
+                                    </motion.div>
                                 )
-                            }
-
-                            return (
-                                <div
-                                    key={conv?._id || i}
-                                    onClick={() => handleSelectConversation(conv)}
-                                    onDoubleClick={(e) => handleStartEdit(e, conv)}
-                                    className={`group flex items-center gap-2.5 cursor-pointer mb-1 px-3 py-2 rounded-xl border transition-all duration-200 relative ${isActive
-                                        ? "bg-indigo-500/15 border-indigo-500/25 shadow-[inset_0_0_20px_rgba(99,102,241,0.05)] text-slate-100"
-                                        : "bg-transparent border-transparent hover:bg-white/[0.04] hover:border-white/[0.06] text-slate-300 hover:text-slate-100"
-                                        }`}
-                                >
-                                    <div
-                                        className={`flex items-center justify-center shrink-0 w-7 h-7 rounded-lg border transition-all duration-200 ${isActive
-                                            ? "bg-indigo-500/20 border-indigo-400/30 text-indigo-300"
-                                            : "bg-white/[0.04] border-white/[0.04] text-slate-400 group-hover:text-slate-200 group-hover:bg-white/[0.07]"
-                                            }`}
-                                    >
-                                        <MessageSquare size={13} strokeWidth={2} />
-                                    </div>
-
-                                    <span
-                                        className="text-[13px] font-medium truncate flex-1 min-w-0 select-none"
-                                        title={conv?.title || "New Chat"}
-                                    >
-                                        {conv?.title || "New Chat"}
-                                    </span>
-
-                                    <div className={`flex items-center gap-0.5 shrink-0 transition-opacity duration-150 ${isActive ? "opacity-90" : "opacity-0 group-hover:opacity-100"
-                                        }`}>
-                                        <button
-                                            type="button"
-                                            onClick={(e) => handleStartEdit(e, conv)}
-                                            className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-300 hover:bg-indigo-500/15 border-none cursor-pointer transition-all duration-150"
-                                            title="Rename chat (or double click)"
-                                            aria-label="Rename chat"
-                                        >
-                                            <Pencil size={12} />
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={(e) => handleDeleteConversation(e, conv?._id)}
-                                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/15 border-none cursor-pointer transition-all duration-150"
-                                            title="Delete chat"
-                                            aria-label="Delete chat"
-                                        >
-                                            <Trash2 size={12} />
-                                        </button>
-                                    </div>
-                                </div>
-                            )
-                        })}
+                            })}
+                        </AnimatePresence>
                     </div>
 
                     <div className="mx-3 h-px bg-white/[0.06] shrink-0" />
@@ -364,13 +423,15 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
                                             </div>
                                         )}
                                     </div>
-                                    <button
+                                    <motion.button
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
                                         title="Logout"
-                                        className="flex items-center justify-center w-8 h-8 rounded-lg border-none bg-transparent text-slate-400 cursor-pointer hover:bg-white/[0.08] hover:text-red-400 transition-all duration-150"
+                                        className="flex items-center justify-center w-8 h-8 rounded-lg border-none bg-transparent text-slate-400 cursor-pointer hover:bg-white/[0.08] hover:text-red-400 transition-colors"
                                         onClick={handleLogout}
                                     >
                                         <LogOut size={16} />
-                                    </button>
+                                    </motion.button>
                                 </div>
                             ) : (
                                 <div className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 hover:bg-white/[0.04] transition-all duration-200">
@@ -397,30 +458,36 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
                                     </div>
 
                                     <div className="flex items-center gap-1 shrink-0">
-                                        <button
+                                        <motion.button
+                                            whileHover={{ scale: 1.15, rotate: 12 }}
+                                            whileTap={{ scale: 0.9 }}
                                             title="Tokens & Coins"
-                                            className="flex items-center justify-center w-7 h-7 rounded-lg border-none bg-transparent text-amber-400 hover:bg-white/[0.06] transition-all cursor-pointer"
+                                            className="flex items-center justify-center w-7 h-7 rounded-lg border-none bg-transparent text-amber-400 hover:bg-white/[0.06] transition-colors cursor-pointer"
                                         >
                                             <Coins size={15} />
-                                        </button>
-                                        <button
+                                        </motion.button>
+                                        <motion.button
+                                            whileHover={{ scale: 1.15 }}
+                                            whileTap={{ scale: 0.9 }}
                                             title="Logout"
                                             onClick={handleLogout}
-                                            className="flex items-center justify-center w-7 h-7 rounded-lg border-none bg-transparent text-slate-400 hover:text-red-400 hover:bg-white/[0.06] transition-all cursor-pointer"
+                                            className="flex items-center justify-center w-7 h-7 rounded-lg border-none bg-transparent text-slate-400 hover:text-red-400 hover:bg-white/[0.06] transition-colors cursor-pointer"
                                         >
                                             <LogOut size={15} />
-                                        </button>
+                                        </motion.button>
                                     </div>
                                 </div>
                             )
                         ) : (
                             collaPsed ? (
-                                <button
+                                <motion.button
+                                    whileHover={{ scale: 1.08 }}
+                                    whileTap={{ scale: 0.92 }}
                                     title="Guest"
-                                    className="w-10 h-10 flex items-center justify-center text-slate-300 bg-white/[0.05] border border-white/[0.08] rounded-xl cursor-pointer hover:bg-white/[0.08] transition-colors duration-150"
+                                    className="w-10 h-10 flex items-center justify-center text-slate-300 bg-white/[0.05] border border-white/[0.08] rounded-xl cursor-pointer hover:bg-white/[0.08] transition-colors"
                                 >
                                     <User size={16} />
-                                </button>
+                                </motion.button>
                             ) : (
                                 <div className="text-center py-2 text-xs text-slate-500">
                                     Guest mode

@@ -14,6 +14,7 @@ import {
   Check,
 } from 'lucide-react'
 import React, { useState, useEffect, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useDispatch, useSelector } from 'react-redux'
 import { sendMessage } from '../features/sendMessage'
 import { getMessages } from '../features/getMessages'
@@ -185,12 +186,12 @@ const ChatInput = ({ sidebarCollapsed }) => {
             setMessages([
               ...currentList,
               pendingUserMsg,
-              { 
-                role: "assistant", 
-                content: resData.response, 
-                images: resData?.images || [], 
-                artifacts: resData?.artifacts || [], 
-                isThinking: false 
+              {
+                role: "assistant",
+                content: resData.response,
+                images: resData?.images || [],
+                artifacts: resData?.artifacts || [],
+                isThinking: false
               },
             ])
           )
@@ -200,12 +201,12 @@ const ChatInput = ({ sidebarCollapsed }) => {
           setMessages([
             ...currentList,
             pendingUserMsg,
-            { 
-              role: "assistant", 
-              content: resData.response, 
-              images: resData?.images || [], 
-              artifacts: resData?.artifacts || [], 
-              isThinking: false 
+            {
+              role: "assistant",
+              content: resData.response,
+              images: resData?.images || [],
+              artifacts: resData?.artifacts || [],
+              isThinking: false
             },
           ])
         )
@@ -243,10 +244,12 @@ const ChatInput = ({ sidebarCollapsed }) => {
         <div className="w-full flex items-center gap-2 bg-white/[0.03] border border-white/[0.07] rounded-2xl px-3 py-2 transition-all duration-300 focus-within:border-indigo-500/20 focus-within:bg-white/[0.04] relative z-20">
 
           <div className="relative shrink-0" ref={dropdownRef}>
-            <button
+            <motion.button
               type="button"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => setDropdownOpen((prev) => !prev)}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium border transition-all duration-150 cursor-pointer select-none shrink-0 ${dropdownOpen
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium border transition-colors cursor-pointer select-none shrink-0 ${dropdownOpen
                 ? "bg-indigo-500/20 border-indigo-500/40 text-indigo-200 ring-1 ring-indigo-500/30"
                 : "bg-white/[0.04] border-white/[0.08] text-slate-200 hover:bg-white/[0.08] hover:border-white/[0.15]"
                 }`}
@@ -254,70 +257,82 @@ const ChatInput = ({ sidebarCollapsed }) => {
             >
               <Plus size={14} className="text-indigo-400 shrink-0" />
               <span className="text-[12.5px] font-medium text-slate-200">{activeAgentConfig.label}</span>
-            </button>
+            </motion.button>
 
-            {dropdownOpen && (
-              <div className="absolute bottom-full mb-2 left-0 z-50 w-72 sm:w-80 bg-[#12141c]/95 backdrop-blur-xl border border-white/[0.12] rounded-2xl p-2 shadow-2xl shadow-black/80 flex flex-col gap-1 animate-in fade-in zoom-in-95 duration-150">
-                <div className="px-3 py-2 border-b border-white/[0.06] flex items-center justify-between">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                    Select AI Agent
-                  </span>
-                  <span className="text-[10.5px] text-indigo-400 font-mono">
-                    {AGENTS.length} Agents
-                  </span>
-                </div>
+            <AnimatePresence>
+              {dropdownOpen && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: 8 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 8 }}
+                  transition={{ duration: 0.16, ease: "easeOut" }}
+                  className="absolute bottom-full mb-2 left-0 z-100 w-72 sm:w-100 bg-[#12141c]/95 backdrop-blur-xl border border-white/[0.12] rounded-2xl p-2 shadow-2xl shadow-black/80 flex flex-col gap-1"
+                >
+                  <div className="px-3 py-2 border-b border-white/[0.06] flex items-center justify-between">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                      Select AI Agent
+                    </span>
+                    <span className="text-[10.5px] text-indigo-400 font-mono">
+                      {AGENTS.length} Agents
+                    </span>
+                  </div>
 
-                <div className="max-h-72 overflow-y-auto flex flex-col gap-1 py-1 hide-scrollbar">
-                  {AGENTS.map((item) => {
-                    const Icon = item.icon
-                    const isSelected = selectedAgent === item.id
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => {
-                          console.log(`Agent Selected: ${item.label} (${item.id})`)
-                          setSelectedAgent(item.id)
-                          setDropdownOpen(false)
-                        }}
-                        className={`flex items-start gap-2.5 p-2 rounded-xl text-left transition-all duration-150 cursor-pointer ${isSelected
-                          ? "bg-indigo-500/15 border border-indigo-500/30 text-slate-100"
-                          : "bg-transparent border border-transparent hover:bg-white/[0.05] text-slate-300 hover:text-white"
-                          }`}
-                      >
-                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center border shrink-0 mt-0.5 ${item.color}`}>
-                          <Icon size={14} />
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-1.5">
-                            <span className="text-[12.5px] font-semibold truncate">
-                              {item.label}
-                            </span>
-                            {isSelected && (
-                              <Check size={13} className="text-emerald-400 shrink-0" />
-                            )}
+                  <div className="max-h-98` overflow-y-auto flex flex-col gap-1 py-1 hide-scrollbar">
+                    {AGENTS.map((item) => {
+                      const Icon = item.icon
+                      const isSelected = selectedAgent === item.id
+                      return (
+                        <motion.button
+                          key={item.id}
+                          type="button"
+                          whileHover={{ x: 3 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => {
+                            console.log(`Agent Selected: ${item.label} (${item.id})`)
+                            setSelectedAgent(item.id)
+                            setDropdownOpen(false)
+                          }}
+                          className={`flex items-start gap-2.5 p-2 rounded-xl text-left transition-colors cursor-pointer ${isSelected
+                            ? "bg-indigo-500/15 border border-indigo-500/30 text-slate-100"
+                            : "bg-transparent border border-transparent hover:bg-white/[0.05] text-slate-300 hover:text-white"
+                            }`}
+                        >
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center border shrink-0 mt-0.5 ${item.color}`}>
+                            <Icon size={14} />
                           </div>
-                          <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">
-                            {item.description}
-                          </p>
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-1.5">
+                              <span className="text-[12.5px] font-semibold truncate">
+                                {item.label}
+                              </span>
+                              {isSelected && (
+                                <Check size={13} className="text-emerald-400 shrink-0" />
+                              )}
+                            </div>
+                            <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">
+                              {item.description}
+                            </p>
+                          </div>
+                        </motion.button>
+                      )
+                    })}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
-          <button
+          <motion.button
             type="button"
-            className="shrink-0 flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/[0.05] border border-transparent hover:border-white/[0.06] transition-all duration-150 cursor-pointer"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className="shrink-0 flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/[0.05] border border-transparent hover:border-white/[0.06] transition-colors cursor-pointer"
             title="Attach file"
             aria-label="Attach file"
           >
             <Paperclip size={16} />
-          </button>
+          </motion.button>
 
           <textarea
             value={value}
@@ -328,26 +343,31 @@ const ChatInput = ({ sidebarCollapsed }) => {
             className="flex-1 min-w-0 bg-transparent outline-none resize-none text-[14px] text-slate-200 placeholder:text-slate-500 leading-relaxed [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           />
 
-          <button
+          <motion.button
             type="button"
-            className="shrink-0 flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/[0.05] border border-transparent hover:border-white/[0.06] transition-all duration-150 cursor-pointer"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className="shrink-0 flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/[0.05] border border-transparent hover:border-white/[0.06] transition-colors cursor-pointer"
             title="Voice input"
             aria-label="Voice input"
           >
             <Mic size={16} />
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
             type="button"
+            whileHover={{ scale: !value.trim() || loading ? 1 : 1.08 }}
+            whileTap={{ scale: !value.trim() || loading ? 1 : 0.92 }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
             disabled={!value.trim() || loading}
-            className={`shrink-0 flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-indigo-500 to-violet-500 hover:from-indigo-400 hover:to-violet-400 text-white shadow-lg shadow-indigo-500/20 transition-all duration-200 active:scale-95 cursor-pointer ${!value.trim() || loading ? 'opacity-35 cursor-not-allowed' : 'opacity-100 cursor-pointer'
+            className={`shrink-0 flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-indigo-500 to-violet-500 hover:from-indigo-400 hover:to-violet-400 text-white shadow-lg shadow-indigo-500/20 transition-opacity cursor-pointer ${!value.trim() || loading ? 'opacity-35 cursor-not-allowed' : 'opacity-100 cursor-pointer'
               }`}
             onClick={handleSendMessage}
             title="Send message"
             aria-label="Send message"
           >
             {loading ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
-          </button>
+          </motion.button>
         </div>
       </div>
     </div>
