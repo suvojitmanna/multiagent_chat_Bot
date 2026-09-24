@@ -80,6 +80,7 @@ const MessageList = ({ sidebarCollapsed, loading }) => {
                 role={msg?.role}
                 content={msg?.content}
                 images={msg?.images}
+                artifacts={msg?.artifacts}
                 isThinking={msg?.isThinking}
                 sidebarCollapsed={sidebarCollapsed}
               />

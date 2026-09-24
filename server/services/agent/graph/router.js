@@ -73,7 +73,6 @@ export const router = async (state) => {
     .toLowerCase();
   const validAgents = ["chat", "search", "image", "ppt", "pdf", "coding"];
   const matchedAgent = validAgents.find((a) => rawText.includes(a)) || "chat";
-  console.log("--> Selected Agent (Auto Router Decision):", matchedAgent);
 
   return {
     ...state,

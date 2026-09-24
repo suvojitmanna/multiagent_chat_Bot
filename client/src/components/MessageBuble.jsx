@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { setActiveArtifact } from "../redux/messageSlice";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Sparkles, Copy, Check, Brain, Loader2, Zap, Image as ImageIcon, ExternalLink, X } from "lucide-react";
+import { Sparkles, Copy, Check, Brain, Loader2, Zap, Image as ImageIcon, ExternalLink, X, Play, FolderCode, FileCode } from "lucide-react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import oneDark from "react-syntax-highlighter/dist/esm/styles/prism/one-dark.js";
 
@@ -294,8 +296,36 @@ const CodeBlock = ({ language, value }) => {
   );
 };
 
-const MessageBuble = ({ role, content, images = [], isThinking = false, sidebarCollapsed = false }) => {
+const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking = false, sidebarCollapsed = false }) => {
+  const dispatch = useDispatch();
   const [lightBox, setLightBox] = useState(null);
+
+  useEffect(() => {
+    if (!lightBox) return;
+
+    const handleClose = () => {
+      setLightBox(null);
+    };
+
+    window.addEventListener("wheel", handleClose, { passive: true });
+    window.addEventListener("scroll", handleClose, { passive: true, capture: true });
+    window.addEventListener("touchmove", handleClose, { passive: true });
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setLightBox(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("wheel", handleClose);
+      window.removeEventListener("scroll", handleClose, { capture: true });
+      window.removeEventListener("touchmove", handleClose);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [lightBox]);
+
   const isUser = role === "user";
   const displayText = formatContent(content);
 
@@ -352,6 +382,60 @@ const MessageBuble = ({ role, content, images = [], isThinking = false, sidebarC
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+            {Array.isArray(artifacts) && artifacts.length > 0 && (
+              <div className="mb-4 flex flex-col gap-2.5 not-prose">
+                {artifacts.map((art, idx) => {
+                  const filesCount = art.files?.length || 0;
+                  return (
+                    <div
+                      key={art.id || idx}
+                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-linear-to-r from-indigo-950/40 via-[#111422] to-violet-950/30 border border-indigo-500/25 shadow-lg shadow-indigo-500/5 group hover:border-indigo-500/40 transition-all duration-200"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-500/20 to-violet-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-400 shrink-0 shadow-xs">
+                          <FolderCode size={20} />
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-slate-100 text-sm truncate">
+                              {art.title || "Interactive Project"}
+                            </span>
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 shrink-0">
+                              {filesCount} {filesCount === 1 ? "file" : "files"}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 mt-1 overflow-x-auto [scrollbar-width:none]">
+                            {(art.files || []).slice(0, 4).map((f, fi) => (
+                              <span
+                                key={fi}
+                                className="inline-flex items-center gap-1 text-[11px] font-mono text-slate-400 bg-white/[0.04] px-2 py-0.5 rounded-md border border-white/[0.06]"
+                              >
+                                <FileCode size={10} className="text-indigo-400" />
+                                {f.name}
+                              </span>
+                            ))}
+                            {(art.files?.length || 0) > 4 && (
+                              <span className="text-[10px] text-slate-500">
+                                +{art.files.length - 4} more
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => dispatch(setActiveArtifact(art))}
+                        className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-white bg-linear-to-r from-indigo-500 to-violet-600 hover:from-indigo-400 hover:to-violet-500 border border-indigo-400/30 shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all duration-150 cursor-pointer active:scale-95 shrink-0 self-stretch sm:self-auto justify-center"
+                      >
+                        <Play size={13} className="fill-white" />
+                        <span>Open & Preview</span>
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             )}
             <ReactMarkdown
@@ -451,12 +535,12 @@ const MessageBuble = ({ role, content, images = [], isThinking = false, sidebarC
 
       {lightBox && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6 transition-all duration-200"
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6 cursor-pointer select-none"
           onClick={() => setLightBox(null)}
         >
           <button
             onClick={() => setLightBox(null)}
-            className="absolute top-5 right-5 text-white hover:text-rose-400 text-xl font-bold z-10 bg-black/70 hover:bg-black/90 w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer border border-white/20 shadow-lg"
+            className="absolute top-5 right-5 text-white hover:text-rose-400 text-xl font-bold z-10 bg-black/70 hover:bg-black/90 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer border border-white/20 shadow-lg"
             title="Close image"
           >
             <X size={20} />
@@ -465,7 +549,7 @@ const MessageBuble = ({ role, content, images = [], isThinking = false, sidebarC
             src={lightBox}
             alt="Full view"
             onClick={(e) => e.stopPropagation()}
-            className="max-w-[90vw] max-h-[85vh] object-contain rounded-xl shadow-2xl border border-white/15"
+            className="max-w-[90vw] max-h-[85vh] object-contain rounded-xl shadow-2xl border border-white/15 cursor-default"
           />
         </div>
       )}

@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { ChatGroq } from "@langchain/groq";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { ChatOpenRouter } from "@langchain/openrouter";
 
 let groqInstance = null;
 let geminiInstance = null;
@@ -41,20 +42,40 @@ export const getGemini = () => {
   return geminiInstance;
 };
 
+export const openRouter = new ChatOpenRouter({
+  apiKey: process.env.OPENROUTER_API_KEY?.trim()?.replace(/^"|"$/g, ""),
+  model: process.env.OPENROUTER_MODEL || "deepseek/deepseek-chat",
+  temperature: 0.2,
+  maxTokens: parseInt(process.env.OPENROUTER_MAX_TOKENS || "4096", 10),
+});
+
 export const getModel = (param = {}) => {
   const agent = typeof param === "string" ? param : param?.agent;
   switch (agent) {
     case "router":
     case "chat":
     case "search":
+    case "intent":
       return getGroq();
     case "image":
     case "ppt":
     case "pdf":
     case "coding":
-      return getGemini();
+      return openRouter;
     default:
       return getGroq();
+  }
+};
+
+export const invokeWithFallback = async (primaryModel, fallbackModel, input) => {
+  try {
+    return await primaryModel.invoke(input);
+  } catch (err) {
+    console.warn("Primary model invocation failed, attempting fallback:", err.message);
+    if (fallbackModel) {
+      return await fallbackModel.invoke(input);
+    }
+    throw err;
   }
 };
 

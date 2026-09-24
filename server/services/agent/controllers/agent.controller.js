@@ -5,12 +5,6 @@ import { addMessage } from "../config/memory.js";
 export const agent = async (req, res) => {
   try {
     const { prompt, conversationId, agent } = req.body;
-    console.log(
-      "--> Agent Controller incoming request. Agent:",
-      agent || "auto",
-      "Prompt:",
-      prompt,
-    );
     if (!prompt) {
       return res.status(400).json({ error: "Prompt is required" });
     }
@@ -51,6 +45,7 @@ export const agent = async (req, res) => {
           conversationId,
           role: "assistant",
           images: Array.isArray(result.images) ? result.images : [],
+          artifacts: Array.isArray(result.artifacts) ? result.artifacts : [],
         });
       } catch (err) {
         console.warn(
@@ -64,6 +59,7 @@ export const agent = async (req, res) => {
       success: true,
       response,
       images: Array.isArray(result.images) ? result.images : [],
+      artifacts: Array.isArray(result.artifacts) ? result.artifacts : [],
     });
   } catch (err) {
     console.error("Agent error:", err);

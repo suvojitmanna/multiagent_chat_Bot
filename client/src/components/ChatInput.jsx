@@ -17,7 +17,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { sendMessage } from '../features/sendMessage'
 import { getMessages } from '../features/getMessages'
-import { setMessages } from '../redux/messageSlice'
+import { setMessages, setActiveArtifact } from '../redux/messageSlice'
 import { createConversation } from '../features/createConverSation'
 import { addConversation, setSelectedConversation, updateConversationTitle } from '../redux/conversationSlice'
 import { updateConversation as updateConversationApi } from '../features/updateConversation'
@@ -171,6 +171,10 @@ const ChatInput = ({ sidebarCollapsed }) => {
       console.log(`Sending message with Agent: [${selectedAgent}]`, payload)
       const resData = await sendMessage(payload)
 
+      if (resData?.artifacts && Array.isArray(resData.artifacts) && resData.artifacts.length > 0) {
+        dispatch(setActiveArtifact(resData.artifacts[0]))
+      }
+
       if (convId) {
         const data = await getMessages(convId)
         const fetchedList = Array.isArray(data) ? data : (data?.messages || [])
@@ -181,7 +185,13 @@ const ChatInput = ({ sidebarCollapsed }) => {
             setMessages([
               ...currentList,
               pendingUserMsg,
-              { role: "assistant", content: resData.response, images: resData?.images || [], isThinking: false },
+              { 
+                role: "assistant", 
+                content: resData.response, 
+                images: resData?.images || [], 
+                artifacts: resData?.artifacts || [], 
+                isThinking: false 
+              },
             ])
           )
         }
@@ -190,7 +200,13 @@ const ChatInput = ({ sidebarCollapsed }) => {
           setMessages([
             ...currentList,
             pendingUserMsg,
-            { role: "assistant", content: resData.response, images: resData?.images || [], isThinking: false },
+            { 
+              role: "assistant", 
+              content: resData.response, 
+              images: resData?.images || [], 
+              artifacts: resData?.artifacts || [], 
+              isThinking: false 
+            },
           ])
         )
       }
