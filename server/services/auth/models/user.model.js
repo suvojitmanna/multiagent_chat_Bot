@@ -23,6 +23,23 @@ const userSchema = new mongoose.Schema(
       unique: true,
       sparse: true,
     },
+    plan:{
+      type:String,
+      default:"free"
+    },
+    credits:{
+      type:Number,
+      default:100,
+    },
+    totalCredits:{
+      type:Number,
+      default:100,
+    },
+    planExpiresAt:{
+      type:Date,
+      default:Date.now() + 30 * 24 * 60 * 60 * 1000,
+    },
+    
   },
   {
     timestamps: true,

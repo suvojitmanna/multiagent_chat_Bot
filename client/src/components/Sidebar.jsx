@@ -10,6 +10,7 @@ import logout from '../features/logout'
 import { setUserdata } from '../redux/userSlice'
 import { getMessages } from '../features/getMessages'
 import { setMessages } from '../redux/messageSlice'
+import BillingDrawer from './BillingDrawer'
 
 const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) => {
     const [localCollapsed, setLocalCollapsed] = useState(() => {
@@ -32,6 +33,7 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
 
     const [editingId, setEditingId] = useState(null)
     const [editTitle, setEditTitle] = useState("")
+    const [showBilling, setShowBilling] = useState(false)
     const editInputRef = useRef(null)
 
     useEffect(() => {
@@ -454,13 +456,16 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
                                         <p className="text-[13px] font-semibold text-slate-100 truncate">
                                             {userData?.name || "User"}
                                         </p>
-                                        <p className="text-[11px] text-slate-500 mt-0.5">Free Plan</p>
+                                        <p className="text-[11px] text-slate-500 mt-0.5 capitalize">
+                                            {userData?.plan || "Free"} Plan
+                                        </p>
                                     </div>
 
                                     <div className="flex items-center gap-1 shrink-0">
                                         <motion.button
                                             whileHover={{ scale: 1.15, rotate: 12 }}
                                             whileTap={{ scale: 0.9 }}
+                                            onClick={() => setShowBilling(!showBilling)}
                                             title="Tokens & Coins"
                                             className="flex items-center justify-center w-7 h-7 rounded-lg border-none bg-transparent text-amber-400 hover:bg-white/[0.06] transition-colors cursor-pointer"
                                         >
@@ -496,7 +501,12 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
                         )}
                     </div>
                 </div>
+
             </aside>
+            <BillingDrawer
+                open={showBilling}
+                onClose={() => setShowBilling(false)}
+            />
         </>
     )
 }
