@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    firebaseUid: {
+    googleId: {
       type: String,
       unique: true,
       sparse: true,

@@ -29,6 +29,7 @@ const AGENTS = [
   {
     id: "auto",
     label: "Auto",
+    credits: -1,
     icon: Zap,
     color: "text-amber-400 border-amber-500/30 bg-amber-500/10",
     placeholder: "Ask anything... (Auto will route to the best agent)",
@@ -37,6 +38,7 @@ const AGENTS = [
   {
     id: "chat",
     label: "Chat",
+    credits: -1,
     icon: MessageSquare,
     color: "text-indigo-400 border-indigo-500/30 bg-indigo-500/10",
     placeholder: "Chat, brainstorm ideas, ask general questions...",
@@ -45,6 +47,7 @@ const AGENTS = [
   {
     id: "coding",
     label: "Coding",
+    credits: -10,
     icon: Code2,
     color: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10",
     placeholder: "Ask for code, debug errors, explain architecture...",
@@ -53,6 +56,7 @@ const AGENTS = [
   {
     id: "pdf",
     label: "PDF",
+    credits: -10,
     icon: FileText,
     color: "text-rose-400 border-rose-500/30 bg-rose-500/10",
     placeholder: "Ask questions about documents, reports, or PDF context...",
@@ -61,6 +65,7 @@ const AGENTS = [
   {
     id: "ppt",
     label: "PPT",
+    credits: -10,
     icon: Presentation,
     color: "text-purple-400 border-purple-500/30 bg-purple-500/10",
     placeholder: "Describe a topic for slide presentations and deck outlines...",
@@ -69,6 +74,7 @@ const AGENTS = [
   {
     id: "image",
     label: "Image",
+    credits: -10,
     icon: ImageIcon,
     color: "text-cyan-400 border-cyan-500/30 bg-cyan-500/10",
     placeholder: "Describe the image or visual scene you want to generate...",
@@ -77,6 +83,7 @@ const AGENTS = [
   {
     id: "search",
     label: "Search",
+    credits: -5,
     icon: Globe,
     color: "text-blue-400 border-blue-500/30 bg-blue-500/10",
     placeholder: "Search the web for latest news, facts, and live data...",
@@ -93,16 +100,6 @@ const trimPromptToTitle = (text) => {
     return formatted
   }
   return formatted.slice(0, 30).trim() + "..."
-}
-
-const AGENT_COSTS = {
-  auto: 1,
-  chat: 1,
-  search: 5,
-  coding: 10,
-  pdf: 10,
-  ppt: 10,
-  image: 10,
 }
 
 const ChatInput = ({ sidebarCollapsed }) => {
@@ -433,8 +430,8 @@ const ChatInput = ({ sidebarCollapsed }) => {
         </AnimatePresence>
 
         <div className={`w-full flex items-center gap-2 rounded-2xl px-3 py-2 transition-all duration-300 relative z-20 border ${isListening
-            ? "border-rose-500/40 bg-rose-500/[0.06] dark:bg-rose-500/[0.03] ring-1 ring-rose-500/20 shadow-lg shadow-rose-500/10"
-            : "bg-slate-100/90 dark:bg-white/[0.03] border-slate-200 dark:border-white/[0.07] focus-within:border-indigo-400 dark:focus-within:border-indigo-500/20 focus-within:bg-white dark:focus-within:bg-white/[0.04] shadow-xs"
+          ? "border-rose-500/40 bg-rose-500/[0.06] dark:bg-rose-500/[0.03] ring-1 ring-rose-500/20 shadow-lg shadow-rose-500/10"
+          : "bg-slate-100/90 dark:bg-white/[0.03] border-slate-200 dark:border-white/[0.07] focus-within:border-indigo-400 dark:focus-within:border-indigo-500/20 focus-within:bg-white dark:focus-within:bg-white/[0.04] shadow-xs"
           }`}>
 
           <div className="relative shrink-0" ref={dropdownRef}>
@@ -475,6 +472,7 @@ const ChatInput = ({ sidebarCollapsed }) => {
                     {AGENTS.map((item) => {
                       const Icon = item.icon
                       const isSelected = selectedAgent === item.id
+
                       return (
                         <motion.button
                           key={item.id}
@@ -491,7 +489,9 @@ const ChatInput = ({ sidebarCollapsed }) => {
                             : "bg-transparent border border-transparent hover:bg-slate-100 dark:hover:bg-white/[0.05] text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                             }`}
                         >
-                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center border shrink-0 mt-0.5 ${item.color}`}>
+                          <div
+                            className={`w-7 h-7 rounded-lg flex items-center justify-center border shrink-0 mt-0.5 ${item.color}`}
+                          >
                             <Icon size={14} />
                           </div>
 
@@ -500,10 +500,21 @@ const ChatInput = ({ sidebarCollapsed }) => {
                               <span className="text-[12.5px] font-semibold truncate">
                                 {item.label}
                               </span>
-                              {isSelected && (
-                                <Check size={13} className="text-emerald-500 dark:text-emerald-400 shrink-0" />
-                              )}
+
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <span className="text-[10px] font-medium text-amber-500 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded-md">
+                                  {item.credits} credits / request
+                                </span>
+
+                                {isSelected && (
+                                  <Check
+                                    size={13}
+                                    className="text-emerald-500 dark:text-emerald-400"
+                                  />
+                                )}
+                              </div>
                             </div>
+
                             <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">
                               {item.description}
                             </p>
@@ -547,8 +558,8 @@ const ChatInput = ({ sidebarCollapsed }) => {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             className={`shrink-0 flex items-center justify-center w-8 h-8 rounded-lg transition-all cursor-pointer ${isListening
-                ? "bg-rose-500/20 text-rose-500 dark:text-rose-400 border border-rose-500/40 shadow-lg shadow-rose-500/20 animate-pulse"
-                : "text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-white/[0.05] border border-transparent hover:border-slate-300 dark:hover:border-white/[0.06] transition-colors"
+              ? "bg-rose-500/20 text-rose-500 dark:text-rose-400 border border-rose-500/40 shadow-lg shadow-rose-500/20 animate-pulse"
+              : "text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-white/[0.05] border border-transparent hover:border-slate-300 dark:hover:border-white/[0.06] transition-colors"
               }`}
             title={isListening ? "Listening... Click to stop" : "Voice input"}
             aria-label={isListening ? "Stop voice input" : "Start voice input"}

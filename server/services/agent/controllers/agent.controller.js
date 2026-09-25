@@ -28,7 +28,6 @@ export const agent = async (req, res) => {
     const requiredCredits =
       COST[normalizedAgent] !== undefined ? COST[normalizedAgent] : 1;
 
- 
     if (userId) {
       try {
         const userRes = await axios.get(`${authServiceUrl}/user/${userId}`);

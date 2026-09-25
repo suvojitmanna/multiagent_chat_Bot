@@ -1,7 +1,5 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { signInWithPopup } from 'firebase/auth'
-import { auth, googleProvider } from '../../utils/firebase'
 import { FcGoogle } from "react-icons/fc"
 import { Sparkles, Loader2 } from "lucide-react"
 import api from '../../utils/axios'
@@ -24,23 +22,107 @@ const Home = () => {
 
     const handleLogin = async (token) => {
         try {
+            setLoginLoading(true)
             const { data } = await api.post("/api/auth/login", { token })
             const user = data.user || data
             dispatch(setUserdata(user))
         } catch (err) {
             console.error("Login API error:", err?.response?.data || err.message || err)
+        } finally {
+            setLoginLoading(false)
         }
     }
 
-    const googleLogin = async () => {
+    const googleLogin = () => {
+        const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+        if (!clientId) {
+            console.error("VITE_GOOGLE_CLIENT_ID is not configured in client .env")
+            return
+        }
+
+        setLoginLoading(true)
+
+        // Native Google Identity Services OAuth2 token client
+        if (window.google?.accounts?.oauth2) {
+            try {
+                const tokenClient = window.google.accounts.oauth2.initTokenClient({
+                    client_id: clientId,
+                    scope: "openid email profile",
+                    callback: async (response) => {
+                        if (response.error) {
+                            console.error("Google sign-in error response:", response)
+                            setLoginLoading(false)
+                            return
+                        }
+                        if (response.access_token) {
+                            await handleLogin(response.access_token)
+                        } else {
+                            setLoginLoading(false)
+                        }
+                    },
+                    error_callback: (err) => {
+                        console.error("Google OAuth error:", err)
+                        setLoginLoading(false)
+                    }
+                })
+                tokenClient.requestAccessToken({ prompt: "consent" })
+                return
+            } catch (err) {
+                console.error("GIS initTokenClient error:", err)
+            }
+        }
+
+        // Direct Browser OAuth2 popup fallback (zero scripts)
         try {
-            setLoginLoading(true)
-            const data = await signInWithPopup(auth, googleProvider)
-            const token = await data.user.getIdToken()
-            await handleLogin(token)
-        } catch (error) {
-            console.error("Google sign-in error:", error)
-        } finally {
+            const redirectUri = window.location.origin
+            const scope = encodeURIComponent("openid email profile")
+            const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}&prompt=select_account`
+            
+            const width = 500
+            const height = 600
+            const left = window.screenX + (window.outerWidth - width) / 2
+            const top = window.screenY + (window.outerHeight - height) / 2
+            
+            const popup = window.open(
+                authUrl,
+                "google_oauth_popup",
+                `width=${width},height=${height},left=${left},top=${top}`
+            )
+
+            if (!popup) {
+                setLoginLoading(false)
+                alert("Please allow popups to continue with Google sign-in.")
+                return
+            }
+
+            const pollTimer = setInterval(() => {
+                try {
+                    if (popup.closed) {
+                        clearInterval(pollTimer)
+                        setLoginLoading(false)
+                        return
+                    }
+                    if (popup.location.href.includes(window.location.origin)) {
+                        const hash = popup.location.hash
+                        if (hash) {
+                            const params = new URLSearchParams(hash.substring(1))
+                            const accessToken = params.get("access_token")
+                            const idToken = params.get("id_token")
+                            const token = idToken || accessToken
+                            if (token) {
+                                popup.close()
+                                clearInterval(pollTimer)
+                                handleLogin(token)
+                                return
+                            }
+                        }
+                    }
+                } catch (e) {
+                    // Cross-origin access until Google redirects back to window.location.origin
+                }
+            }, 500)
+        } catch (e) {
+            console.error("OAuth popup error:", e)
             setLoginLoading(false)
         }
     }

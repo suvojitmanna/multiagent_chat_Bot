@@ -1,33 +1,104 @@
-import { getAuth } from "firebase-admin/auth";
-import { app } from "../config/firebase.js";
 import User from "../models/user.model.js";
 import crypto from "crypto";
 import redis from "../../../redis.js";
 
+/**
+ * Verify a Google ID token or OAuth2 access token directly with Google's official REST APIs
+ * without using any external libraries.
+ */
+async function verifyGoogleToken(token) {
+  const isJwt = typeof token === "string" && token.split(".").length === 3;
+
+  if (isJwt) {
+    try {
+      const response = await fetch(
+        `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(token)}`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        return {
+          googleId: data.sub,
+          email: data.email,
+          name: data.name || data.email?.split("@")[0] || "User",
+          picture: data.picture || "",
+        };
+      }
+    } catch (e) {
+      console.warn("Google tokeninfo check failed, trying userinfo endpoint:", e.message);
+    }
+  }
+
+  // Fallback to Google OAuth2 userinfo endpoint (handles OAuth2 access tokens)
+  try {
+    const userinfoResponse = await fetch(
+      "https://www.googleapis.com/oauth2/v3/userinfo",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (userinfoResponse.ok) {
+      const data = await userinfoResponse.json();
+      return {
+        googleId: data.sub,
+        email: data.email,
+        name: data.name || data.email?.split("@")[0] || "User",
+        picture: data.picture || "",
+      };
+    }
+  } catch (e) {
+    console.warn("Google userinfo endpoint check failed:", e.message);
+  }
+
+  // Final fallback to tokeninfo in case token wasn't detected as JWT
+  if (!isJwt) {
+    try {
+      const fallbackResponse = await fetch(
+        `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(token)}`
+      );
+      if (fallbackResponse.ok) {
+        const data = await fallbackResponse.json();
+        return {
+          googleId: data.sub,
+          email: data.email,
+          name: data.name || data.email?.split("@")[0] || "User",
+          picture: data.picture || "",
+        };
+      }
+    } catch (e) {
+      // Ignore
+    }
+  }
+
+  throw new Error("Invalid or expired Google authentication token");
+}
+
 export const login = async (req, res) => {
   try {
-    const { token } = req.body;
+    const token = req.body.token || req.body.credential || req.body.idToken;
     if (!token) {
       return res
         .status(400)
         .json({ success: false, message: "Token is required" });
     }
 
-    const decoded = await getAuth(app).verifyIdToken(token);
+    const decoded = await verifyGoogleToken(token);
 
-    // Look up user by firebaseUid OR email to prevent duplicate key crashes
+    // Look up user by googleId OR email to prevent duplicate key crashes
     let user = await User.findOne({
       $or: [
-        { firebaseUid: decoded.uid },
+        { googleId: decoded.googleId },
         ...(decoded.email ? [{ email: decoded.email.toLowerCase() }] : []),
       ],
     });
 
     if (!user) {
       user = await User.create({
-        firebaseUid: decoded.uid,
+        googleId: decoded.googleId,
         name: decoded.name || decoded.email?.split("@")[0] || "User",
-        email: decoded.email ? decoded.email.toLowerCase() : `${decoded.uid}@user.local`,
+        email: decoded.email ? decoded.email.toLowerCase() : `${decoded.googleId}@user.local`,
         avatar: decoded.picture || "",
         plan: "free",
         credits: 100,
@@ -36,8 +107,8 @@ export const login = async (req, res) => {
       });
     } else {
       let updated = false;
-      if (!user.firebaseUid || user.firebaseUid !== decoded.uid) {
-        user.firebaseUid = decoded.uid;
+      if (!user.googleId) {
+        user.googleId = decoded.googleId;
         updated = true;
       }
       if ((!user.name || user.name === "User") && decoded.name) {
