@@ -484,10 +484,9 @@ const PresentationDeckCard = ({ data, originalContent }) => {
 
   return (
     <div className="my-4 rounded-2xl overflow-hidden border border-amber-300/80 dark:border-amber-500/25 bg-white dark:bg-gradient-to-b dark:from-[#13111c] dark:via-[#0c0e17] dark:to-[#090b12] shadow-xl not-prose">
-      {/* Top Accent Gradient Bar */}
+
       <div className="h-1 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500" />
 
-      {/* Presentation Header */}
       <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-white/[0.08] flex flex-col md:flex-row md:items-center justify-between gap-3.5 bg-slate-50/80 dark:bg-white/[0.02]">
         <div className="flex items-start gap-3 min-w-0">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-600/30 border border-amber-500/40 flex items-center justify-center text-amber-500 dark:text-amber-400 shrink-0 shadow-sm mt-0.5">
@@ -513,7 +512,6 @@ const PresentationDeckCard = ({ data, originalContent }) => {
           </div>
         </div>
 
-        {/* Header Action Buttons */}
         <div className="flex items-center gap-2 self-start md:self-auto shrink-0 flex-wrap">
           <div className="flex items-center rounded-lg bg-slate-100 dark:bg-white/[0.04] p-0.5 border border-slate-200 dark:border-white/[0.08]">
             <button
@@ -558,12 +556,10 @@ const PresentationDeckCard = ({ data, originalContent }) => {
         </div>
       </div>
 
-      {/* Main Body */}
       {viewMode === "deck" ? (
         <div className="p-4 sm:p-5 flex flex-col gap-4">
-          {/* Active Slide Canvas */}
           <div className="rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50/80 dark:bg-[#0f121d] p-4 sm:p-5 flex flex-col min-h-[300px] shadow-inner relative overflow-hidden">
-            {/* Slide Category & Number Bar */}
+
             <div className="flex items-center justify-between gap-2 pb-3 mb-3.5 border-b border-slate-200 dark:border-white/[0.06]">
               <div className="flex items-center gap-2">
                 <span className={`w-1.5 h-4 rounded-full ${currentAccent.bar}`} />
@@ -581,7 +577,6 @@ const PresentationDeckCard = ({ data, originalContent }) => {
               </div>
             </div>
 
-            {/* Slide Point Cards Grid */}
             <div className={`grid ${gridClass} gap-3 my-auto py-1`}>
               {(currentSlide.points || []).map((pt, pIdx) => {
                 const numStr = `0${pIdx + 1}`;
@@ -609,14 +604,12 @@ const PresentationDeckCard = ({ data, originalContent }) => {
               })}
             </div>
 
-            {/* Slide Card Watermark */}
             <div className="pt-3 mt-3 border-t border-slate-200 dark:border-white/[0.05] flex items-center justify-between text-[10.5px] text-slate-400 dark:text-slate-500 font-sans">
               <span>Shifra AI Executive Deck</span>
               <span>16:9 Presentation View</span>
             </div>
           </div>
 
-          {/* Slide Deck Navigation Bar */}
           <div className="flex items-center justify-between gap-3 pt-1">
             <button
               type="button"
@@ -632,7 +625,6 @@ const PresentationDeckCard = ({ data, originalContent }) => {
               <span>Previous</span>
             </button>
 
-            {/* Slide Dots / Thumbnails */}
             <div className="flex items-center gap-1.5 overflow-x-auto max-w-[50%] py-1">
               {slides.map((s, idx) => (
                 <button

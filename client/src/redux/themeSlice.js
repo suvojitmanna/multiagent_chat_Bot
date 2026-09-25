@@ -25,7 +25,7 @@ const initialMode = getSavedThemeMode();
 const themeSlice = createSlice({
   name: "theme",
   initialState: {
-    themeMode: initialMode, // 'light' | 'dark' | 'system'
+    themeMode: initialMode,
     isDark: getInitialIsDark(initialMode),
   },
   reducers: {

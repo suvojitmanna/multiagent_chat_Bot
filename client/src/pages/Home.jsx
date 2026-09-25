@@ -28,7 +28,7 @@ const Home = () => {
             const user = data.user || data
             dispatch(setUserdata(user))
         } catch (err) {
-            console.error("Login API error:", err)
+            console.error("Login API error:", err?.response?.data || err.message || err)
         }
     }
 

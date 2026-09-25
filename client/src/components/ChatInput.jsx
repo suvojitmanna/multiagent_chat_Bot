@@ -149,7 +149,6 @@ const ChatInput = ({ sidebarCollapsed }) => {
       return
     }
 
-    // Explicitly prompt/verify microphone permission to prevent browser network masking
     if (navigator?.mediaDevices?.getUserMedia) {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -310,7 +309,7 @@ const ChatInput = ({ sidebarCollapsed }) => {
         dispatch(updateCredits(resData.credits))
       }
 
-      // Live-sync fresh user data immediately from /api/me without waiting or requiring a page refresh
+
       getCurrentUser().then((freshUser) => {
         if (freshUser) {
           dispatch(setUserdata(freshUser))

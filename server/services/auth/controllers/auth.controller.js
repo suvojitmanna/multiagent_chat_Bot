@@ -7,16 +7,28 @@ import redis from "../../../redis.js";
 export const login = async (req, res) => {
   try {
     const { token } = req.body;
+    if (!token) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Token is required" });
+    }
+
     const decoded = await getAuth(app).verifyIdToken(token);
+
+    // Look up user by firebaseUid OR email to prevent duplicate key crashes
     let user = await User.findOne({
-      firebaseUid: decoded.uid,
+      $or: [
+        { firebaseUid: decoded.uid },
+        ...(decoded.email ? [{ email: decoded.email.toLowerCase() }] : []),
+      ],
     });
+
     if (!user) {
       user = await User.create({
         firebaseUid: decoded.uid,
-        name: decoded.name,
-        email: decoded.email,
-        avatar: decoded.picture,
+        name: decoded.name || decoded.email?.split("@")[0] || "User",
+        email: decoded.email ? decoded.email.toLowerCase() : `${decoded.uid}@user.local`,
+        avatar: decoded.picture || "",
         plan: "free",
         credits: 100,
         totalCredits: 100,
@@ -24,15 +36,27 @@ export const login = async (req, res) => {
       });
     } else {
       let updated = false;
+      if (!user.firebaseUid || user.firebaseUid !== decoded.uid) {
+        user.firebaseUid = decoded.uid;
+        updated = true;
+      }
+      if ((!user.name || user.name === "User") && decoded.name) {
+        user.name = decoded.name;
+        updated = true;
+      }
+      if (!user.avatar && decoded.picture) {
+        user.avatar = decoded.picture;
+        updated = true;
+      }
       if (!user.plan) {
         user.plan = "free";
         updated = true;
       }
-      if (user.credits === undefined) {
+      if (user.credits === undefined || user.credits === null) {
         user.credits = 100;
         updated = true;
       }
-      if (user.totalCredits === undefined) {
+      if (user.totalCredits === undefined || user.totalCredits === null) {
         user.totalCredits = 100;
         updated = true;
       }
@@ -72,6 +96,7 @@ export const login = async (req, res) => {
     });
     return res.status(200).json({ success: true, user });
   } catch (error) {
+    console.error("Login controller error:", error);
     return res.status(500).json({
       success: false,
       message: "auth server error",

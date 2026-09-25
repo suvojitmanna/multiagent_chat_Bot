@@ -28,7 +28,7 @@ export const agent = async (req, res) => {
     const requiredCredits =
       COST[normalizedAgent] !== undefined ? COST[normalizedAgent] : 1;
 
-    // Check balance before invoking model (without deducting)
+ 
     if (userId) {
       try {
         const userRes = await axios.get(`${authServiceUrl}/user/${userId}`);
@@ -97,7 +97,6 @@ export const agent = async (req, res) => {
       }
     }
 
-    // Always deduct credits AFTER answer is successfully generated
     if (userId && response) {
       try {
         const deductRes = await axios.post(

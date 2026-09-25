@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from 'react-redux'
 import { setSelectedConversation, removeConversation, updateConversationTitle } from '../redux/conversationSlice'
 import { deleteConversation as deleteConversationApi } from '../features/deleteConversation'
 import { updateConversation as updateConversationApi } from '../features/updateConversation'
-import ThemeToggle from './ThemeToggle'
 
 const Nav = ({ sidebarCollapsed, onToggleSidebar }) => {
     const dispatch = useDispatch()
@@ -177,8 +176,6 @@ const Nav = ({ sidebarCollapsed, onToggleSidebar }) => {
                 </div>
 
                 <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                    <ThemeToggle />
-
                     <AnimatePresence>
                         {selectedConversation?._id && (
                             <motion.button

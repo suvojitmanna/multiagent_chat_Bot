@@ -17,7 +17,6 @@ const App = () => {
     getUser()
   }, [dispatch]);
 
-  // Synchronize theme with document and OS preference
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
