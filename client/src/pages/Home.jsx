@@ -46,7 +46,7 @@ const Home = () => {
     }
 
     return (
-        <div className="h-screen h-[100dvh] w-full flex bg-[#0d0f14] text-white overflow-hidden relative selection:bg-indigo-500/30">
+        <div className="h-screen h-[100dvh] w-full flex bg-slate-50 dark:bg-[#0d0f14] text-slate-900 dark:text-white overflow-hidden relative selection:bg-indigo-500/30">
             <Sidebar
                 collapsed={sidebarCollapsed}
                 setCollapsed={setSidebarCollapsed}
@@ -66,21 +66,21 @@ const Home = () => {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto"
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/70 backdrop-blur-sm p-4 overflow-y-auto"
                     >
                         <motion.div
                             initial={{ opacity: 0, scale: 0.92, y: 15 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.92, y: 15 }}
                             transition={{ type: "spring", damping: 25, stiffness: 350 }}
-                            className="w-full max-w-[360px] bg-[#13151c] border border-white/[0.08] rounded-2xl p-6 sm:p-7 flex flex-col gap-5 shadow-2xl my-auto"
+                            className="w-full max-w-[360px] bg-white dark:bg-[#13151c] border border-slate-200 dark:border-white/[0.08] rounded-2xl p-6 sm:p-7 flex flex-col gap-5 shadow-2xl my-auto"
                         >
                             <div className="flex items-center gap-3">
                                 <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-linear-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/20 text-white shrink-0">
                                     <Sparkles size={20} />
                                 </div>
                                 <div className="flex flex-col">
-                                    <h2 className="text-[17px] font-semibold text-slate-100 tracking-tight">
+                                    <h2 className="text-[17px] font-semibold text-slate-800 dark:text-slate-100 tracking-tight">
                                         ShifraAI
                                     </h2>
                                     <span className="text-[11px] text-slate-500">
@@ -89,7 +89,7 @@ const Home = () => {
                                 </div>
                             </div>
 
-                            <p className="text-[13px] text-slate-400 leading-relaxed">
+                            <p className="text-[13px] text-slate-600 dark:text-slate-400 leading-relaxed">
                                 Sign in to save your chat history, manage multi-agent conversations, and access smart tools.
                             </p>
 

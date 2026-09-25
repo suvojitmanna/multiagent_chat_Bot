@@ -11,6 +11,7 @@ import { setUserdata } from '../redux/userSlice'
 import { getMessages } from '../features/getMessages'
 import { setMessages } from '../redux/messageSlice'
 import BillingDrawer from './BillingDrawer'
+import ThemeToggle from './ThemeToggle'
 
 const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) => {
     const [localCollapsed, setLocalCollapsed] = useState(() => {
@@ -166,14 +167,14 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
 
             <aside
                 ref={sidebarRef}
-                className={`h-screen shrink-0 bg-[#0d0f14] border-white/[0.06] flex flex-col transition-all duration-300 ease-in-out select-none ${collaPsed
+                className={`h-screen shrink-0 bg-white dark:bg-[#0d0f14] border-slate-200 dark:border-white/[0.06] flex flex-col transition-all duration-300 ease-in-out select-none ${collaPsed
                     ? "w-0 -translate-x-full lg:translate-x-0 lg:w-[68px] overflow-hidden border-r-0 lg:border-r"
                     : "w-[270px] fixed lg:static inset-y-0 left-0 z-40 shadow-2xl lg:shadow-none translate-x-0 border-r"
                     }`}
             >
                 <div className="flex flex-col h-full overflow-hidden">
 
-                    <div className={`flex items-center h-14 border-b border-white/[0.06] shrink-0 transition-all duration-300 ${collaPsed ? "justify-center px-0" : "gap-2.5 px-4 justify-between"}`}>
+                    <div className={`flex items-center h-14 border-b border-slate-200 dark:border-white/[0.06] shrink-0 transition-all duration-300 ${collaPsed ? "justify-center px-0" : "gap-2.5 px-4 justify-between"}`}>
                         <AnimatePresence initial={false}>
                             {!collaPsed && (
                                 <motion.div
@@ -183,10 +184,10 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
                                     transition={{ duration: 0.15 }}
                                     className="flex items-center gap-2.5 min-w-0 flex-1"
                                 >
-                                    <span className="text-[15px] font-semibold text-slate-100 tracking-tight truncate">
+                                    <span className="text-[15px] font-semibold text-slate-800 dark:text-slate-100 tracking-tight truncate">
                                         ShifraAI
                                     </span>
-                                    <span className="text-[10px] font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full tracking-wide uppercase shrink-0">
+                                    <span className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 border-indigo-200 dark:text-indigo-400 dark:bg-indigo-500/10 dark:border-indigo-500/20 px-2 py-0.5 rounded-full tracking-wide uppercase shrink-0">
                                         free
                                     </span>
                                 </motion.div>
@@ -197,7 +198,7 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
                             type="button"
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
-                            className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] transition-colors bg-transparent border-none cursor-pointer shrink-0"
+                            className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-white/[0.06] transition-colors bg-transparent border-none cursor-pointer shrink-0"
                             onClick={() => setCollaPsed(!collaPsed)}
                             title={collaPsed ? "Expand sidebar" : "Collapse sidebar"}
                         >
@@ -239,11 +240,11 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
                                 className="shrink-0 overflow-hidden"
                             >
                                 {conversationList.length === 0 ? (
-                                    <div className="flex items-center justify-center py-4 text-slate-500 text-xs shrink-0">
+                                    <div className="flex items-center justify-center py-4 text-slate-400 dark:text-slate-500 text-xs shrink-0">
                                         No conversations yet
                                     </div>
                                 ) : (
-                                    <div className="px-5 pt-4 pb-1.5 text-[10.5px] font-semibold uppercase tracking-widest text-slate-500 shrink-0">
+                                    <div className="px-5 pt-4 pb-1.5 text-[10.5px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 shrink-0">
                                         Recent Chats
                                     </div>
                                 )}
@@ -269,8 +270,8 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
                                             onClick={() => handleSelectConversation(conv)}
                                             title={conv?.title || "New Chat"}
                                             className={`w-10 h-10 mx-auto flex items-center justify-center cursor-pointer mb-1.5 rounded-xl border transition-colors duration-200 ${isActive
-                                                ? "bg-indigo-500/20 border-indigo-500/30 text-indigo-300 shadow-[inset_0_0_15px_rgba(99,102,241,0.1)]"
-                                                : "bg-transparent border-transparent text-slate-400 hover:bg-white/[0.06] hover:text-slate-200"
+                                                ? "bg-indigo-50 dark:bg-indigo-500/20 border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-300 shadow-[inset_0_0_15px_rgba(99,102,241,0.08)]"
+                                                : "bg-transparent border-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-slate-200"
                                                 }`}
                                         >
                                             <MessageSquare size={16} strokeWidth={2} />
@@ -289,9 +290,9 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
                                             animate={{ opacity: 1, scale: 1 }}
                                             exit={{ opacity: 0, scale: 0.95 }}
                                             onClick={(e) => e.stopPropagation()}
-                                            className="flex items-center gap-1.5 mb-1 px-2.5 py-1.5 rounded-xl border bg-white/[0.06] border-indigo-500/40 text-slate-100 shadow-sm"
+                                            className="flex items-center gap-1.5 mb-1 px-2.5 py-1.5 rounded-xl border bg-slate-100 dark:bg-white/[0.06] border-indigo-300 dark:border-indigo-500/40 text-slate-900 dark:text-slate-100 shadow-xs"
                                         >
-                                            <div className="flex items-center justify-center shrink-0 w-6 h-6 rounded-lg bg-indigo-500/20 text-indigo-300">
+                                            <div className="flex items-center justify-center shrink-0 w-6 h-6 rounded-lg bg-indigo-500/15 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300">
                                                 <MessageSquare size={12} strokeWidth={2} />
                                             </div>
 
@@ -310,7 +311,7 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
                                                     }
                                                 }}
                                                 onClick={(e) => e.stopPropagation()}
-                                                className="flex-1 min-w-0 bg-white/[0.08] border border-white/[0.15] focus:border-indigo-400 rounded-md px-2 py-0.5 text-[12.5px] text-slate-100 outline-none placeholder:text-slate-500"
+                                                className="flex-1 min-w-0 bg-white dark:bg-white/[0.08] border border-slate-300 dark:border-white/[0.15] focus:border-indigo-400 rounded-md px-2 py-0.5 text-[12.5px] text-slate-900 dark:text-slate-100 outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
                                                 placeholder="Chat title..."
                                             />
 
@@ -319,7 +320,7 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
                                                 whileHover={{ scale: 1.15 }}
                                                 whileTap={{ scale: 0.9 }}
                                                 onClick={(e) => handleSaveTitle(e, conv?._id)}
-                                                className="p-1 rounded-md text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/20 transition-colors cursor-pointer shrink-0"
+                                                className="p-1 rounded-md text-emerald-500 hover:text-emerald-600 dark:text-emerald-400 dark:hover:text-emerald-300 hover:bg-emerald-500/10 dark:hover:bg-emerald-500/20 transition-colors cursor-pointer shrink-0"
                                                 title="Save title (Enter)"
                                                 aria-label="Save title"
                                             >
@@ -331,7 +332,7 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
                                                 whileHover={{ scale: 1.15 }}
                                                 whileTap={{ scale: 0.9 }}
                                                 onClick={handleCancelEdit}
-                                                className="p-1 rounded-md text-slate-400 hover:text-slate-200 hover:bg-white/[0.08] transition-colors cursor-pointer shrink-0"
+                                                className="p-1 rounded-md text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-colors cursor-pointer shrink-0"
                                                 title="Cancel (Esc)"
                                                 aria-label="Cancel"
                                             >
@@ -353,21 +354,21 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
                                         onClick={() => handleSelectConversation(conv)}
                                         onDoubleClick={(e) => handleStartEdit(e, conv)}
                                         className={`group flex items-center gap-2.5 cursor-pointer mb-1 px-3 py-2 rounded-xl border transition-colors duration-200 relative ${isActive
-                                            ? "bg-indigo-500/15 border-indigo-500/25 shadow-[inset_0_0_20px_rgba(99,102,241,0.05)] text-slate-100"
-                                            : "bg-transparent border-transparent hover:bg-white/[0.04] hover:border-white/[0.06] text-slate-300 hover:text-slate-100"
+                                            ? "bg-indigo-50/80 dark:bg-indigo-500/15 border-indigo-200/80 dark:border-indigo-500/25 shadow-[inset_0_0_20px_rgba(99,102,241,0.04)] text-indigo-950 dark:text-slate-100 font-medium"
+                                            : "bg-transparent border-transparent hover:bg-slate-100 hover:border-slate-200 dark:hover:bg-white/[0.04] dark:hover:border-white/[0.06] text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
                                             }`}
                                     >
                                         <div
                                             className={`flex items-center justify-center shrink-0 w-7 h-7 rounded-lg border transition-all duration-200 ${isActive
-                                                ? "bg-indigo-500/20 border-indigo-400/30 text-indigo-300"
-                                                : "bg-white/[0.04] border-white/[0.04] text-slate-400 group-hover:text-slate-200 group-hover:bg-white/[0.07]"
+                                                ? "bg-indigo-500/15 border-indigo-300/40 text-indigo-600 dark:bg-indigo-500/20 dark:border-indigo-400/30 dark:text-indigo-300"
+                                                : "bg-slate-100 border-slate-200 text-slate-500 group-hover:text-slate-700 group-hover:bg-slate-200/60 dark:bg-white/[0.04] dark:border-white/[0.04] dark:text-slate-400 dark:group-hover:text-slate-200 dark:group-hover:bg-white/[0.07]"
                                                 }`}
                                         >
                                             <MessageSquare size={13} strokeWidth={2} />
                                         </div>
 
                                         <span
-                                            className="text-[13px] font-medium truncate flex-1 min-w-0 select-none"
+                                            className="text-[13px] truncate flex-1 min-w-0 select-none"
                                             title={conv?.title || "New Chat"}
                                         >
                                             {conv?.title || "New Chat"}
@@ -380,7 +381,7 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
                                                 whileHover={{ scale: 1.15 }}
                                                 whileTap={{ scale: 0.85 }}
                                                 onClick={(e) => handleStartEdit(e, conv)}
-                                                className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-300 hover:bg-indigo-500/15 border-none cursor-pointer transition-colors"
+                                                className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:text-indigo-300 dark:hover:bg-indigo-500/15 border-none cursor-pointer transition-colors"
                                                 title="Rename chat (or double click)"
                                                 aria-label="Rename chat"
                                             >
@@ -392,7 +393,7 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
                                                 whileHover={{ scale: 1.15 }}
                                                 whileTap={{ scale: 0.85 }}
                                                 onClick={(e) => handleDeleteConversation(e, conv?._id)}
-                                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/15 border-none cursor-pointer transition-colors"
+                                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:text-rose-400 dark:hover:bg-rose-500/15 border-none cursor-pointer transition-colors"
                                                 title="Delete chat"
                                                 aria-label="Delete chat"
                                             >
@@ -405,7 +406,7 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
                         </AnimatePresence>
                     </div>
 
-                    <div className="mx-3 h-px bg-white/[0.06] shrink-0" />
+                    <div className="mx-3 h-px bg-slate-200 dark:bg-white/[0.06] shrink-0" />
 
                     <div className={`py-3 shrink-0 ${collaPsed ? "px-2 flex flex-col items-center gap-2" : "px-3"}`}>
                         {userData ? (
@@ -417,57 +418,59 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
                                                 src={userData.avatar}
                                                 alt="Profile"
                                                 onError={() => setImageError(true)}
-                                                className="w-9 h-9 rounded-full object-cover border border-white/[0.08]"
+                                                className="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-white/[0.08]"
                                             />
                                         ) : (
-                                            <div className="flex items-center justify-center w-9 h-9 rounded-full bg-white/[0.06] border border-white/[0.08] text-slate-400">
+                                            <div className="flex items-center justify-center w-9 h-9 rounded-full bg-slate-100 border border-slate-200 text-slate-500 dark:bg-white/[0.06] dark:border-white/[0.08] dark:text-slate-400">
                                                 <User size={17} />
                                             </div>
                                         )}
                                     </div>
+                                    <ThemeToggle compact={true} align="bottom-left" />
                                     <motion.button
                                         whileHover={{ scale: 1.1 }}
                                         whileTap={{ scale: 0.9 }}
                                         title="Logout"
-                                        className="flex items-center justify-center w-8 h-8 rounded-lg border-none bg-transparent text-slate-400 cursor-pointer hover:bg-white/[0.08] hover:text-red-400 transition-colors"
+                                        className="flex items-center justify-center w-8 h-8 rounded-lg border-none bg-transparent text-slate-400 cursor-pointer hover:bg-slate-100 hover:text-red-500 dark:hover:bg-white/[0.08] dark:hover:text-red-400 transition-colors"
                                         onClick={handleLogout}
                                     >
                                         <LogOut size={16} />
                                     </motion.button>
                                 </div>
                             ) : (
-                                <div className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 hover:bg-white/[0.04] transition-all duration-200">
+                                <div className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-all duration-200">
                                     <div className="relative shrink-0">
                                         {userData?.avatar && !imageError ? (
                                             <img
                                                 src={userData.avatar}
                                                 alt="Profile"
                                                 onError={() => setImageError(true)}
-                                                className="w-9 h-9 rounded-full object-cover border border-white/[0.08]"
+                                                className="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-white/[0.08]"
                                             />
                                         ) : (
-                                            <div className="flex items-center justify-center w-9 h-9 rounded-full bg-white/[0.06] border border-white/[0.08] text-slate-400">
+                                            <div className="flex items-center justify-center w-9 h-9 rounded-full bg-slate-100 border border-slate-200 text-slate-500 dark:bg-white/[0.06] dark:border-white/[0.08] dark:text-slate-400">
                                                 <User size={17} />
                                             </div>
                                         )}
                                     </div>
 
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-[13px] font-semibold text-slate-100 truncate">
+                                        <p className="text-[13px] font-semibold text-slate-800 dark:text-slate-100 truncate">
                                             {userData?.name || "User"}
                                         </p>
                                         <p className="text-[11px] text-slate-500 mt-0.5 capitalize">
-                                            {userData?.plan || "Free"} • <span className="text-amber-400/90 font-medium">{userData?.credits !== undefined ? userData.credits : 100} credits</span>
+                                            {userData?.plan || "Free"} • <span className="text-amber-500 dark:text-amber-400/90 font-medium">{userData?.credits !== undefined ? userData.credits : 100} credits</span>
                                         </p>
                                     </div>
 
                                     <div className="flex items-center gap-1 shrink-0">
+                                        <ThemeToggle compact={true} align="bottom-left" />
                                         <motion.button
                                             whileHover={{ scale: 1.15, rotate: 12 }}
                                             whileTap={{ scale: 0.9 }}
                                             onClick={() => setShowBilling(!showBilling)}
                                             title="Tokens & Coins"
-                                            className="flex items-center justify-center w-7 h-7 rounded-lg border-none bg-transparent text-amber-400 hover:bg-white/[0.06] transition-colors cursor-pointer"
+                                            className="flex items-center justify-center w-7 h-7 rounded-lg border-none bg-transparent text-amber-500 dark:text-amber-400 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
                                         >
                                             <Coins size={15} />
                                         </motion.button>
@@ -476,7 +479,7 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
                                             whileTap={{ scale: 0.9 }}
                                             title="Logout"
                                             onClick={handleLogout}
-                                            className="flex items-center justify-center w-7 h-7 rounded-lg border-none bg-transparent text-slate-400 hover:text-red-400 hover:bg-white/[0.06] transition-colors cursor-pointer"
+                                            className="flex items-center justify-center w-7 h-7 rounded-lg border-none bg-transparent text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:text-red-400 dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
                                         >
                                             <LogOut size={15} />
                                         </motion.button>
@@ -485,17 +488,21 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
                             )
                         ) : (
                             collaPsed ? (
-                                <motion.button
-                                    whileHover={{ scale: 1.08 }}
-                                    whileTap={{ scale: 0.92 }}
-                                    title="Guest"
-                                    className="w-10 h-10 flex items-center justify-center text-slate-300 bg-white/[0.05] border border-white/[0.08] rounded-xl cursor-pointer hover:bg-white/[0.08] transition-colors"
-                                >
-                                    <User size={16} />
-                                </motion.button>
+                                <div className="flex flex-col items-center gap-2">
+                                    <ThemeToggle compact={true} align="bottom-left" />
+                                    <motion.button
+                                        whileHover={{ scale: 1.08 }}
+                                        whileTap={{ scale: 0.92 }}
+                                        title="Guest"
+                                        className="w-10 h-10 flex items-center justify-center text-slate-600 bg-slate-100 border border-slate-200 dark:text-slate-300 dark:bg-white/[0.05] dark:border-white/[0.08] rounded-xl cursor-pointer hover:bg-slate-200 dark:hover:bg-white/[0.08] transition-colors"
+                                    >
+                                        <User size={16} />
+                                    </motion.button>
+                                </div>
                             ) : (
-                                <div className="text-center py-2 text-xs text-slate-500">
-                                    Guest mode
+                                <div className="flex items-center justify-between px-2.5 py-1 text-xs text-slate-400 dark:text-slate-500">
+                                    <span>Guest mode</span>
+                                    <ThemeToggle compact={true} align="bottom-left" />
                                 </div>
                             )
                         )}

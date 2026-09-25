@@ -1,5 +1,6 @@
 import {
   Mic,
+  MicOff,
   Paperclip,
   Send,
   Loader2,
@@ -116,6 +117,120 @@ const ChatInput = ({ sidebarCollapsed }) => {
   const { messages } = useSelector((state) => state.message)
   const userData = useSelector((state) => state.user?.userData)
 
+  const [isListening, setIsListening] = useState(false)
+  const recognitionRef = useRef(null)
+  const baseTextRef = useRef("")
+
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.abort()
+        } catch { }
+      }
+    }
+  }, [])
+
+  const toggleListening = async () => {
+    const SpeechRecognition =
+      typeof window !== "undefined" &&
+      (window.SpeechRecognition || window.webkitSpeechRecognition)
+
+    if (!SpeechRecognition) {
+      alert("Voice input is not supported in this browser. Please use Google Chrome, Microsoft Edge, or Safari.")
+      return
+    }
+
+    if (isListening) {
+      try {
+        recognitionRef.current?.stop()
+      } catch { }
+      setIsListening(false)
+      return
+    }
+
+    // Explicitly prompt/verify microphone permission to prevent browser network masking
+    if (navigator?.mediaDevices?.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        stream.getTracks().forEach((track) => track.stop())
+      } catch (micErr) {
+        console.warn("Microphone access error:", micErr)
+        alert("Microphone access was denied. Please allow microphone permission in your browser to use voice input.")
+        setIsListening(false)
+        return
+      }
+    }
+
+    try {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.abort()
+        } catch { }
+      }
+
+      const recognition = new SpeechRecognition()
+      recognition.continuous = true
+      recognition.interimResults = true
+      recognition.lang = navigator.language || "en-US"
+
+      recognition.onstart = () => {
+        setIsListening(true)
+      }
+
+      recognition.onresult = (event) => {
+        let interimTranscript = ""
+        let finalTranscript = ""
+
+        for (let i = 0; i < event.results.length; i++) {
+          const result = event.results[i]
+          if (result.isFinal) {
+            finalTranscript += result[0].transcript
+          } else {
+            interimTranscript += result[0].transcript
+          }
+        }
+
+        const fullSpeech = (finalTranscript + interimTranscript).trim()
+        const prefix = baseTextRef.current
+        const combined = prefix
+          ? prefix.endsWith(" ")
+            ? prefix + fullSpeech
+            : prefix + " " + fullSpeech
+          : fullSpeech
+        setValue(combined)
+      }
+
+      recognition.onerror = (event) => {
+        console.warn("Speech recognition notice:", event.error)
+        setIsListening(false)
+
+        if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+          alert("Microphone permission was denied. Please allow microphone access in your browser settings.")
+        } else if (event.error === "network") {
+          alert(
+            "Speech recognition network error.\n\n" +
+            "Google's speech recognition server could not be reached. Common causes:\n" +
+            "1. Brave Browser: Brave blocks Google speech by default. Go to brave://settings/system and enable 'Use Google services for speech recognition'.\n" +
+            "2. Adblocker or Firewall: An adblocker (e.g. uBlock) or firewall may be blocking Google Speech API.\n" +
+            "3. Offline or network interruption."
+          )
+        }
+      }
+
+      recognition.onend = () => {
+        setIsListening(false)
+      }
+
+      recognitionRef.current = recognition
+      baseTextRef.current = value.trim() ? value.trim() + " " : ""
+      recognition.start()
+    } catch (err) {
+      console.error("Could not start voice recognition:", err)
+      setIsListening(false)
+    }
+  }
+
   useEffect(() => {
     const onInsert = (e) => {
       if (e.detail) setValue(e.detail)
@@ -148,6 +263,13 @@ const ChatInput = ({ sidebarCollapsed }) => {
   const activeAgentConfig = AGENTS.find((a) => a.id === selectedAgent) || AGENTS[0]
 
   const handleSendMessage = async () => {
+    if (isListening) {
+      try {
+        recognitionRef.current?.stop()
+      } catch { }
+      setIsListening(false)
+    }
+
     const promptText = value.trim()
     if (!promptText || loading) return
 
@@ -285,9 +407,36 @@ const ChatInput = ({ sidebarCollapsed }) => {
   }
 
   return (
-    <div className="w-full overflow-visible px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 border-t border-white/[0.06] bg-[#0d0f14] shrink-0 transition-all duration-300 relative">
+    <div className="w-full overflow-visible px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 border-t border-slate-200 dark:border-white/[0.06] bg-white/90 dark:bg-[#0d0f14] backdrop-blur-md shrink-0 transition-colors duration-300 relative">
       <div className="w-full max-w-4xl lg:max-w-5xl xl:max-w-6xl mx-auto flex flex-col gap-1.5 relative">
-        <div className="w-full flex items-center gap-2 bg-white/[0.03] border border-white/[0.07] rounded-2xl px-3 py-2 transition-all duration-300 focus-within:border-indigo-500/20 focus-within:bg-white/[0.04] relative z-20">
+        <AnimatePresence>
+          {isListening && (
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 6 }}
+              className="flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-300 text-xs w-fit mx-auto shadow-lg shadow-rose-500/10 backdrop-blur-md"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+              </span>
+              <span className="font-medium tracking-wide">Listening... Speak now</span>
+              <button
+                type="button"
+                onClick={toggleListening}
+                className="ml-1 text-[11px] underline opacity-80 hover:opacity-100 cursor-pointer text-rose-600 dark:text-rose-200"
+              >
+                Done
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className={`w-full flex items-center gap-2 rounded-2xl px-3 py-2 transition-all duration-300 relative z-20 border ${isListening
+            ? "border-rose-500/40 bg-rose-500/[0.06] dark:bg-rose-500/[0.03] ring-1 ring-rose-500/20 shadow-lg shadow-rose-500/10"
+            : "bg-slate-100/90 dark:bg-white/[0.03] border-slate-200 dark:border-white/[0.07] focus-within:border-indigo-400 dark:focus-within:border-indigo-500/20 focus-within:bg-white dark:focus-within:bg-white/[0.04] shadow-xs"
+          }`}>
 
           <div className="relative shrink-0" ref={dropdownRef}>
             <motion.button
@@ -296,13 +445,13 @@ const ChatInput = ({ sidebarCollapsed }) => {
               whileTap={{ scale: 0.97 }}
               onClick={() => setDropdownOpen((prev) => !prev)}
               className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium border transition-colors cursor-pointer select-none shrink-0 ${dropdownOpen
-                ? "bg-indigo-500/20 border-indigo-500/40 text-indigo-200 ring-1 ring-indigo-500/30"
-                : "bg-white/[0.04] border-white/[0.08] text-slate-200 hover:bg-white/[0.08] hover:border-white/[0.15]"
+                ? "bg-indigo-500/15 dark:bg-indigo-500/20 border-indigo-400 dark:border-indigo-500/40 text-indigo-700 dark:text-indigo-200 ring-1 ring-indigo-500/30"
+                : "bg-white dark:bg-white/[0.04] border-slate-200 dark:border-white/[0.08] text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/[0.08] hover:border-slate-300 dark:hover:border-white/[0.15] shadow-xs"
                 }`}
               title="Click to select AI Agent"
             >
-              <Plus size={14} className="text-indigo-400 shrink-0" />
-              <span className="text-[12.5px] font-medium text-slate-200">{activeAgentConfig.label}</span>
+              <Plus size={14} className="text-indigo-500 dark:text-indigo-400 shrink-0" />
+              <span className="text-[12.5px] font-medium text-slate-700 dark:text-slate-200">{activeAgentConfig.label}</span>
             </motion.button>
 
             <AnimatePresence>
@@ -312,13 +461,13 @@ const ChatInput = ({ sidebarCollapsed }) => {
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: 8 }}
                   transition={{ duration: 0.16, ease: "easeOut" }}
-                  className="absolute bottom-full mb-2 left-0 z-100 w-72 sm:w-100 bg-[#12141c]/95 backdrop-blur-xl border border-white/[0.12] rounded-2xl p-2 shadow-2xl shadow-black/80 flex flex-col gap-1"
+                  className="absolute bottom-full mb-2 left-0 z-100 w-72 sm:w-100 bg-white/95 dark:bg-[#12141c]/95 backdrop-blur-xl border border-slate-200 dark:border-white/[0.12] rounded-2xl p-2 shadow-2xl shadow-slate-900/10 dark:shadow-black/80 flex flex-col gap-1"
                 >
-                  <div className="px-3 py-2 border-b border-white/[0.06] flex items-center justify-between">
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  <div className="px-3 py-2 border-b border-slate-200 dark:border-white/[0.06] flex items-center justify-between">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                       Select AI Agent
                     </span>
-                    <span className="text-[10.5px] text-indigo-400 font-mono">
+                    <span className="text-[10.5px] text-indigo-600 dark:text-indigo-400 font-mono font-medium">
                       {AGENTS.length} Agents
                     </span>
                   </div>
@@ -339,8 +488,8 @@ const ChatInput = ({ sidebarCollapsed }) => {
                             setDropdownOpen(false)
                           }}
                           className={`flex items-start gap-2.5 p-2 rounded-xl text-left transition-colors cursor-pointer ${isSelected
-                            ? "bg-indigo-500/15 border border-indigo-500/30 text-slate-100"
-                            : "bg-transparent border border-transparent hover:bg-white/[0.05] text-slate-300 hover:text-white"
+                            ? "bg-indigo-500/10 dark:bg-indigo-500/15 border border-indigo-400/40 dark:border-indigo-500/30 text-indigo-950 dark:text-slate-100"
+                            : "bg-transparent border border-transparent hover:bg-slate-100 dark:hover:bg-white/[0.05] text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                             }`}
                         >
                           <div className={`w-7 h-7 rounded-lg flex items-center justify-center border shrink-0 mt-0.5 ${item.color}`}>
@@ -353,10 +502,10 @@ const ChatInput = ({ sidebarCollapsed }) => {
                                 {item.label}
                               </span>
                               {isSelected && (
-                                <Check size={13} className="text-emerald-400 shrink-0" />
+                                <Check size={13} className="text-emerald-500 dark:text-emerald-400 shrink-0" />
                               )}
                             </div>
-                            <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">
                               {item.description}
                             </p>
                           </div>
@@ -373,7 +522,7 @@ const ChatInput = ({ sidebarCollapsed }) => {
             type="button"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className="shrink-0 flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/[0.05] border border-transparent hover:border-white/[0.06] transition-colors cursor-pointer"
+            className="shrink-0 flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-white/[0.05] border border-transparent hover:border-slate-300 dark:hover:border-white/[0.06] transition-colors cursor-pointer"
             title="Attach file"
             aria-label="Attach file"
           >
@@ -384,20 +533,28 @@ const ChatInput = ({ sidebarCollapsed }) => {
             value={value}
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={activeAgentConfig?.placeholder || "Ask Anything..."}
+            placeholder={
+              isListening
+                ? "Listening to your voice... (speak now into your microphone)"
+                : (activeAgentConfig?.placeholder || "Ask Anything...")
+            }
             rows={1}
-            className="flex-1 min-w-0 bg-transparent outline-none resize-none text-[14px] text-slate-200 placeholder:text-slate-500 leading-relaxed [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="flex-1 min-w-0 bg-transparent outline-none resize-none text-[14px] text-slate-900 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 leading-relaxed [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           />
 
           <motion.button
             type="button"
+            onClick={toggleListening}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className="shrink-0 flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/[0.05] border border-transparent hover:border-white/[0.06] transition-colors cursor-pointer"
-            title="Voice input"
-            aria-label="Voice input"
+            className={`shrink-0 flex items-center justify-center w-8 h-8 rounded-lg transition-all cursor-pointer ${isListening
+                ? "bg-rose-500/20 text-rose-500 dark:text-rose-400 border border-rose-500/40 shadow-lg shadow-rose-500/20 animate-pulse"
+                : "text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-white/[0.05] border border-transparent hover:border-slate-300 dark:hover:border-white/[0.06] transition-colors"
+              }`}
+            title={isListening ? "Listening... Click to stop" : "Voice input"}
+            aria-label={isListening ? "Stop voice input" : "Start voice input"}
           >
-            <Mic size={16} />
+            {isListening ? <MicOff size={16} /> : <Mic size={16} />}
           </motion.button>
 
           <motion.button

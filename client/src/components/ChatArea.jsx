@@ -54,7 +54,7 @@ const ChatArea = ({ sidebarCollapsed, onToggleSidebar }) => {
   }, [selectedConversation?._id, dispatch])
 
   return (
-    <main className="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative w-full bg-[#0d0f14] transition-all duration-300 ease-in-out">
+    <main className="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative w-full bg-slate-50 dark:bg-[#0d0f14] transition-all duration-300 ease-in-out">
       <Nav
         sidebarCollapsed={sidebarCollapsed}
         onToggleSidebar={onToggleSidebar}

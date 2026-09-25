@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setActiveArtifact, setVisibleArtifact, clearVisibleArtifact, setArtifactOpen } from "../redux/messageSlice";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
@@ -7,6 +7,7 @@ import remarkGfm from "remark-gfm";
 import { Sparkles, Copy, Check, Brain, Loader2, Zap, Image as ImageIcon, ExternalLink, X, Play, FolderCode, FileCode, Code2, FileText, Presentation, ChevronLeft, ChevronRight, Download, Layers, List } from "lucide-react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import oneDark from "react-syntax-highlighter/dist/esm/styles/prism/one-dark.js";
+import oneLight from "react-syntax-highlighter/dist/esm/styles/prism/one-light.js";
 
 const THINKING_PHASES = [
   {
@@ -67,16 +68,16 @@ const ThinkingIndicator = () => {
   return (
     <div className="flex flex-col gap-2.5 py-1 w-full max-w-lg transition-all duration-200">
 
-      <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-indigo-500/[0.08] border border-indigo-500/20 w-fit backdrop-blur-xs">
-        <div className="relative flex items-center justify-center w-4 h-4 text-indigo-400">
-          <Brain size={13} className="animate-pulse text-indigo-400" />
+      <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-500/[0.08] border border-indigo-200 dark:border-indigo-500/20 w-fit backdrop-blur-xs">
+        <div className="relative flex items-center justify-center w-4 h-4 text-indigo-500 dark:text-indigo-400">
+          <Brain size={13} className="animate-pulse text-indigo-500 dark:text-indigo-400" />
         </div>
 
         <div className="flex items-center gap-1.5 text-xs">
-          <span className="font-semibold text-indigo-300">
+          <span className="font-semibold text-indigo-600 dark:text-indigo-300">
             {getStatusLabel()}
           </span>
-          <span className="text-[11px] font-mono text-indigo-400/70">
+          <span className="text-[11px] font-mono text-indigo-500/80 dark:text-indigo-400/70">
             ({seconds}s)
           </span>
         </div>
@@ -84,9 +85,9 @@ const ThinkingIndicator = () => {
         <span className="w-1 h-1 rounded-full bg-indigo-400/30" />
 
         <div className="flex items-center gap-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: "0ms" }} />
-          <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: "150ms" }} />
-          <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: "300ms" }} />
+          <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 dark:bg-indigo-400 animate-bounce" style={{ animationDelay: "0ms" }} />
+          <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 dark:bg-indigo-400 animate-bounce" style={{ animationDelay: "150ms" }} />
+          <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 dark:bg-indigo-400 animate-bounce" style={{ animationDelay: "300ms" }} />
         </div>
       </div>
 
@@ -99,28 +100,28 @@ const ThinkingIndicator = () => {
             <div
               key={index}
               className={`flex items-center gap-2.5 text-xs transition-all duration-300 ${isCurrent
-                ? "text-slate-200 font-medium translate-x-0.5"
+                ? "text-slate-800 dark:text-slate-200 font-medium translate-x-0.5"
                 : isDone
                   ? "text-slate-500 opacity-60"
-                  : "text-slate-600 opacity-35"
+                  : "text-slate-400 dark:text-slate-600 opacity-40"
                 }`}
             >
               <div className="shrink-0 flex items-center justify-center w-3.5 h-3.5">
                 {isDone ? (
-                  <Check size={12} className="text-emerald-400" />
+                  <Check size={12} className="text-emerald-500 dark:text-emerald-400" />
                 ) : isCurrent ? (
-                  <Loader2 size={12} className="animate-spin text-indigo-400" />
+                  <Loader2 size={12} className="animate-spin text-indigo-500 dark:text-indigo-400" />
                 ) : (
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-600" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
                 )}
               </div>
 
               <div className="flex items-baseline gap-1.5 truncate">
-                <span className={isCurrent ? "text-indigo-200 font-medium" : ""}>
+                <span className={isCurrent ? "text-indigo-600 dark:text-indigo-200 font-medium" : ""}>
                   {phase.title}
                 </span>
                 {isCurrent && (
-                  <span className="text-[11px] text-slate-400 font-normal hidden sm:inline">
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-normal hidden sm:inline">
                     — {phase.detail}
                   </span>
                 )}
@@ -201,13 +202,14 @@ const NORMALIZE_LANG = {
 
 const CodeBlock = ({ language, value }) => {
   const dispatch = useDispatch();
+  const isDark = useSelector((state) => state.theme?.isDark ?? true);
   const [copied, setCopied] = useState(false);
   const rawLang = (language || "").toLowerCase().trim();
   const highlightLang = NORMALIZE_LANG[rawLang] || rawLang || "javascript";
   const langConfig = LANGUAGE_CONFIG[rawLang] || {
     label: language ? language.toUpperCase() : "CODE",
     dot: "bg-indigo-400",
-    badge: "text-indigo-300 bg-indigo-500/10 border-indigo-500/25",
+    badge: "text-indigo-500 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/25",
   };
 
   const lineCount = (value || "").split("\n").length;
@@ -251,8 +253,8 @@ const CodeBlock = ({ language, value }) => {
   };
 
   return (
-    <div className="my-3.5 rounded-2xl overflow-hidden border border-white/[0.1] shadow-2xl bg-[#090b11] transition-all duration-200">
-      <div className="flex items-center justify-between px-3.5 py-2 bg-[#0e111a] border-b border-white/[0.08] select-none">
+    <div className="my-3.5 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/[0.1] shadow-xl bg-slate-50 dark:bg-[#090b11] transition-all duration-200">
+      <div className="flex items-center justify-between px-3.5 py-2 bg-slate-100 dark:bg-[#0e111a] border-b border-slate-200 dark:border-white/[0.08] select-none">
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5 mr-1.5 opacity-70">
             <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]/80" />
@@ -276,10 +278,10 @@ const CodeBlock = ({ language, value }) => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.94 }}
             onClick={handleOpenInMonaco}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/25 text-indigo-300 hover:text-indigo-200 transition-colors cursor-pointer text-[11.5px] font-medium"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 border border-indigo-200 dark:border-indigo-500/25 text-indigo-600 dark:text-indigo-300 hover:text-indigo-700 dark:hover:text-indigo-200 transition-colors cursor-pointer text-[11.5px] font-medium"
             title="Open and edit in Monaco Editor"
           >
-            <Code2 size={12} className="text-indigo-400" />
+            <Code2 size={12} className="text-indigo-500 dark:text-indigo-400" />
             <span className="hidden sm:inline">View Or Edit</span>
             <span className="sm:hidden">View Or Edit</span>
           </motion.button>
@@ -289,13 +291,13 @@ const CodeBlock = ({ language, value }) => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.94 }}
             onClick={handleCopy}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] hover:border-white/[0.12] text-slate-400 hover:text-slate-200 transition-colors cursor-pointer text-[11.5px] font-medium"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-white/[0.04] hover:bg-slate-100 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/[0.06] hover:border-slate-300 dark:hover:border-white/[0.12] text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-colors cursor-pointer text-[11.5px] font-medium"
             title="Copy code to clipboard"
           >
             {copied ? (
               <>
-                <Check size={12} className="text-emerald-400" />
-                <span className="text-emerald-400 font-semibold">Copied!</span>
+                <Check size={12} className="text-emerald-500 dark:text-emerald-400" />
+                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Copied!</span>
               </>
             ) : (
               <>
@@ -307,10 +309,10 @@ const CodeBlock = ({ language, value }) => {
         </div>
       </div>
 
-      <div className="overflow-x-auto text-[13px] leading-relaxed [scrollbar-width:thin] bg-[#090b11]">
+      <div className="overflow-x-auto text-[13px] leading-relaxed [scrollbar-width:thin] bg-slate-50 dark:bg-[#090b11]">
         <SyntaxHighlighter
           language={highlightLang}
-          style={oneDark}
+          style={isDark ? oneDark : oneLight}
           showLineNumbers={true}
           wrapLongLines={false}
           customStyle={{
@@ -324,10 +326,10 @@ const CodeBlock = ({ language, value }) => {
           lineNumberStyle={{
             minWidth: "2.5em",
             paddingRight: "1em",
-            color: "#64748b",
+            color: isDark ? "#64748b" : "#94a3b8",
             textAlign: "right",
             userSelect: "none",
-            borderRight: "1px solid rgba(255, 255, 255, 0.08)",
+            borderRight: isDark ? "1px solid rgba(255, 255, 255, 0.08)" : "1px solid rgba(0, 0, 0, 0.08)",
             marginRight: "1em",
           }}
           codeTagProps={{
@@ -481,30 +483,30 @@ const PresentationDeckCard = ({ data, originalContent }) => {
       : "grid-cols-1 sm:grid-cols-2";
 
   return (
-    <div className="my-4 rounded-2xl overflow-hidden border border-amber-500/25 bg-gradient-to-b from-[#13111c] via-[#0c0e17] to-[#090b12] shadow-2xl shadow-amber-950/20 not-prose">
+    <div className="my-4 rounded-2xl overflow-hidden border border-amber-300/80 dark:border-amber-500/25 bg-white dark:bg-gradient-to-b dark:from-[#13111c] dark:via-[#0c0e17] dark:to-[#090b12] shadow-xl not-prose">
       {/* Top Accent Gradient Bar */}
       <div className="h-1 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500" />
 
       {/* Presentation Header */}
-      <div className="p-4 sm:p-5 border-b border-white/[0.08] flex flex-col md:flex-row md:items-center justify-between gap-3.5 bg-white/[0.02]">
+      <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-white/[0.08] flex flex-col md:flex-row md:items-center justify-between gap-3.5 bg-slate-50/80 dark:bg-white/[0.02]">
         <div className="flex items-start gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-600/30 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0 shadow-sm mt-0.5">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-600/30 border border-amber-500/40 flex items-center justify-center text-amber-500 dark:text-amber-400 shrink-0 shadow-sm mt-0.5">
             <Presentation size={20} />
           </div>
           <div className="min-w-0 flex flex-col">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-bold text-slate-100 text-base sm:text-lg truncate tracking-tight">
+              <h3 className="font-bold text-slate-800 dark:text-slate-100 text-base sm:text-lg truncate tracking-tight">
                 {title}
               </h3>
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300">
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-500/15 border border-amber-200 dark:border-amber-500/30 text-amber-600 dark:text-amber-300">
                 {slides.length} Slides
               </span>
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/[0.05] border border-white/[0.08] text-slate-400">
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08] text-slate-600 dark:text-slate-400">
                 16:9 Widescreen
               </span>
             </div>
             {subtitle && (
-              <p className="text-xs text-slate-400 mt-0.5 truncate">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
                 {subtitle}
               </p>
             )}
@@ -513,14 +515,14 @@ const PresentationDeckCard = ({ data, originalContent }) => {
 
         {/* Header Action Buttons */}
         <div className="flex items-center gap-2 self-start md:self-auto shrink-0 flex-wrap">
-          <div className="flex items-center rounded-lg bg-white/[0.04] p-0.5 border border-white/[0.08]">
+          <div className="flex items-center rounded-lg bg-slate-100 dark:bg-white/[0.04] p-0.5 border border-slate-200 dark:border-white/[0.08]">
             <button
               type="button"
               onClick={() => setViewMode("deck")}
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                 viewMode === "deck"
-                  ? "bg-amber-500/20 text-amber-300 shadow-xs"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "bg-amber-500/20 text-amber-600 dark:text-amber-300 shadow-xs"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
               }`}
             >
               <Layers size={13} />
@@ -531,8 +533,8 @@ const PresentationDeckCard = ({ data, originalContent }) => {
               onClick={() => setViewMode("outline")}
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
                 viewMode === "outline"
-                  ? "bg-amber-500/20 text-amber-300 shadow-xs"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "bg-amber-500/20 text-amber-600 dark:text-amber-300 shadow-xs"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
               }`}
             >
               <List size={13} />
@@ -560,21 +562,21 @@ const PresentationDeckCard = ({ data, originalContent }) => {
       {viewMode === "deck" ? (
         <div className="p-4 sm:p-5 flex flex-col gap-4">
           {/* Active Slide Canvas */}
-          <div className="rounded-xl border border-white/[0.08] bg-[#0f121d] p-4 sm:p-5 flex flex-col min-h-[300px] shadow-inner relative overflow-hidden">
+          <div className="rounded-xl border border-slate-200 dark:border-white/[0.08] bg-slate-50/80 dark:bg-[#0f121d] p-4 sm:p-5 flex flex-col min-h-[300px] shadow-inner relative overflow-hidden">
             {/* Slide Category & Number Bar */}
-            <div className="flex items-center justify-between gap-2 pb-3 mb-3.5 border-b border-white/[0.06]">
+            <div className="flex items-center justify-between gap-2 pb-3 mb-3.5 border-b border-slate-200 dark:border-white/[0.06]">
               <div className="flex items-center gap-2">
                 <span className={`w-1.5 h-4 rounded-full ${currentAccent.bar}`} />
                 <span className={`text-[11px] font-bold uppercase tracking-wider ${currentAccent.text}`}>
                   {currentSlide.category || "STRATEGIC OVERVIEW"}
                 </span>
-                <span className="text-slate-600 text-xs">•</span>
-                <h4 className="text-sm sm:text-base font-bold text-white tracking-tight">
+                <span className="text-slate-400 dark:text-slate-600 text-xs">•</span>
+                <h4 className="text-sm sm:text-base font-bold text-slate-800 dark:text-white tracking-tight">
                   {currentSlide.title}
                 </h4>
               </div>
 
-              <div className="text-[11px] font-mono font-medium text-slate-400 shrink-0 bg-white/[0.05] px-2 py-0.5 rounded-md border border-white/[0.06]">
+              <div className="text-[11px] font-mono font-medium text-slate-600 dark:text-slate-400 shrink-0 bg-white dark:bg-white/[0.05] px-2 py-0.5 rounded-md border border-slate-200 dark:border-white/[0.06]">
                 Slide {activeIdx + 1} of {slides.length}
               </div>
             </div>
@@ -589,17 +591,17 @@ const PresentationDeckCard = ({ data, originalContent }) => {
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2, delay: pIdx * 0.05 }}
-                    className="flex flex-col gap-1.5 p-3 sm:p-3.5 rounded-xl bg-white/[0.025] hover:bg-white/[0.045] border border-white/[0.07] hover:border-amber-500/30 transition-all duration-200"
+                    className="flex flex-col gap-1.5 p-3 sm:p-3.5 rounded-xl bg-white dark:bg-white/[0.025] hover:bg-slate-100/80 dark:hover:bg-white/[0.045] border border-slate-200 dark:border-white/[0.07] hover:border-amber-400/40 dark:hover:border-amber-500/30 transition-all duration-200"
                   >
                     <div className="flex items-center gap-2">
                       <span className={`w-5 h-5 rounded-md flex items-center justify-center text-[10.5px] font-bold text-white shrink-0 ${currentAccent.pill}`}>
                         {numStr}
                       </span>
-                      <span className="font-semibold text-slate-100 text-xs sm:text-[13px] line-clamp-1">
+                      <span className="font-semibold text-slate-800 dark:text-slate-100 text-xs sm:text-[13px] line-clamp-1">
                         {pt.title}
                       </span>
                     </div>
-                    <p className="text-slate-300 text-xs leading-relaxed pl-7">
+                    <p className="text-slate-600 dark:text-slate-300 text-xs leading-relaxed pl-7">
                       {pt.desc}
                     </p>
                   </motion.div>
@@ -608,7 +610,7 @@ const PresentationDeckCard = ({ data, originalContent }) => {
             </div>
 
             {/* Slide Card Watermark */}
-            <div className="pt-3 mt-3 border-t border-white/[0.05] flex items-center justify-between text-[10.5px] text-slate-500 font-sans">
+            <div className="pt-3 mt-3 border-t border-slate-200 dark:border-white/[0.05] flex items-center justify-between text-[10.5px] text-slate-400 dark:text-slate-500 font-sans">
               <span>Shifra AI Executive Deck</span>
               <span>16:9 Presentation View</span>
             </div>
@@ -622,8 +624,8 @@ const PresentationDeckCard = ({ data, originalContent }) => {
               onClick={() => setActiveIdx((prev) => Math.max(0, prev - 1))}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
                 activeIdx === 0
-                  ? "opacity-35 cursor-not-allowed border-white/[0.06] text-slate-500"
-                  : "bg-white/[0.04] hover:bg-white/[0.08] border-white/[0.1] text-slate-300 hover:text-white cursor-pointer"
+                  ? "opacity-35 cursor-not-allowed border-slate-200 dark:border-white/[0.06] text-slate-400 dark:text-slate-500"
+                  : "bg-white dark:bg-white/[0.04] hover:bg-slate-100 dark:hover:bg-white/[0.08] border-slate-200 dark:border-white/[0.1] text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer"
               }`}
             >
               <ChevronLeft size={14} />
@@ -639,8 +641,8 @@ const PresentationDeckCard = ({ data, originalContent }) => {
                   onClick={() => setActiveIdx(idx)}
                   className={`h-2 rounded-full transition-all cursor-pointer ${
                     activeIdx === idx
-                      ? "w-6 bg-amber-400 shadow-xs shadow-amber-400/50"
-                      : "w-2 bg-white/20 hover:bg-white/40"
+                      ? "w-6 bg-amber-500 shadow-xs shadow-amber-500/50"
+                      : "w-2 bg-slate-300 dark:bg-white/20 hover:bg-slate-400 dark:hover:bg-white/40"
                   }`}
                   title={`Jump to slide ${idx + 1}: ${s.title}`}
                 />
@@ -653,8 +655,8 @@ const PresentationDeckCard = ({ data, originalContent }) => {
               onClick={() => setActiveIdx((prev) => Math.min(slides.length - 1, prev + 1))}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
                 activeIdx === slides.length - 1
-                  ? "opacity-35 cursor-not-allowed border-white/[0.06] text-slate-500"
-                  : "bg-white/[0.04] hover:bg-white/[0.08] border-white/[0.1] text-slate-300 hover:text-white cursor-pointer"
+                  ? "opacity-35 cursor-not-allowed border-slate-200 dark:border-white/[0.06] text-slate-400 dark:text-slate-500"
+                  : "bg-white dark:bg-white/[0.04] hover:bg-slate-100 dark:hover:bg-white/[0.08] border-slate-200 dark:border-white/[0.1] text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer"
               }`}
             >
               <span>Next</span>
@@ -665,19 +667,19 @@ const PresentationDeckCard = ({ data, originalContent }) => {
       ) : (
         /* Outline View */
         <div className="p-4 sm:p-5 flex flex-col gap-3">
-          <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
-            <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-white/[0.08]">
+            <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
               Presentation Outline ({slides.length} Slides)
             </span>
             <button
               type="button"
               onClick={handleCopyOutline}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-400 hover:text-white text-xs transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-white/[0.04] hover:bg-slate-200 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/[0.08] text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs transition-colors cursor-pointer"
             >
               {copied ? (
                 <>
-                  <Check size={12} className="text-emerald-400" />
-                  <span className="text-emerald-400">Copied!</span>
+                  <Check size={12} className="text-emerald-500 dark:text-emerald-400" />
+                  <span className="text-emerald-600 dark:text-emerald-400">Copied!</span>
                 </>
               ) : (
                 <>
@@ -692,10 +694,10 @@ const PresentationDeckCard = ({ data, originalContent }) => {
             {slides.map((s, idx) => (
               <div
                 key={idx}
-                className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] flex flex-col gap-1.5"
+                className="p-3 rounded-xl bg-white dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.06] flex flex-col gap-1.5"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-bold text-slate-100 text-xs sm:text-[13px]">
+                  <span className="font-bold text-slate-800 dark:text-slate-100 text-xs sm:text-[13px]">
                     Slide {idx + 1}: {s.title}
                   </span>
                   <button
@@ -704,16 +706,16 @@ const PresentationDeckCard = ({ data, originalContent }) => {
                       setActiveIdx(idx);
                       setViewMode("deck");
                     }}
-                    className="text-[11px] text-amber-400 hover:text-amber-300 hover:underline cursor-pointer"
+                    className="text-[11px] text-amber-500 hover:text-amber-600 dark:text-amber-400 dark:hover:text-amber-300 hover:underline cursor-pointer"
                   >
                     View Slide
                   </button>
                 </div>
-                <div className="space-y-1 pl-2 border-l border-white/[0.08] mt-1">
+                <div className="space-y-1 pl-2 border-l border-slate-200 dark:border-white/[0.08] mt-1">
                   {(s.points || []).map((pt, pIdx) => (
-                    <div key={pIdx} className="text-xs text-slate-300">
-                      <span className="font-semibold text-slate-200">{pt.title}: </span>
-                      <span className="text-slate-400">{pt.desc}</span>
+                    <div key={pIdx} className="text-xs text-slate-600 dark:text-slate-300">
+                      <span className="font-semibold text-slate-800 dark:text-slate-200">{pt.title}: </span>
+                      <span className="text-slate-500 dark:text-slate-400">{pt.desc}</span>
                     </div>
                   ))}
                 </div>
@@ -810,21 +812,21 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
       className="flex items-start gap-2.5 sm:gap-3 my-2 w-full justify-start"
     >
       <div
-        className={`w-7 h-7 sm:w-7.5 sm:h-7.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0 mt-0.5 shadow-sm transition-all duration-300 ${isThinking ? "animate-pulse ring-1 ring-indigo-500/30" : ""
+        className={`w-7 h-7 sm:w-7.5 sm:h-7.5 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5 shadow-xs transition-all duration-300 ${isThinking ? "animate-pulse ring-1 ring-indigo-500/30" : ""
           }`}
       >
-        {isThinking ? <Brain size={14} className="text-indigo-400" /> : <Sparkles size={13} className="sm:size-[14px]" />}
+        {isThinking ? <Brain size={14} className="text-indigo-600 dark:text-indigo-400" /> : <Sparkles size={13} className="sm:size-[14px]" />}
       </div>
 
-      <div className="flex-1 min-w-0 text-slate-200 text-[13.5px] sm:text-[14.5px] leading-relaxed break-words py-0.5">
+      <div className="flex-1 min-w-0 text-slate-800 dark:text-slate-200 text-[13.5px] sm:text-[14.5px] leading-relaxed break-words py-0.5">
         {isThinking ? (
           <ThinkingIndicator />
         ) : (
-          <div className="prose prose-invert max-w-none text-[13.5px] sm:text-[14.5px] leading-relaxed">
+          <div className="prose dark:prose-invert max-w-none text-[13.5px] sm:text-[14.5px] leading-relaxed text-slate-800 dark:text-slate-200">
             {Array.isArray(images) && images.length > 0 && (
               <div className="mb-3.5 not-prose">
-                <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium mb-2">
-                  <ImageIcon size={13} className="text-indigo-400" />
+                <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium mb-2">
+                  <ImageIcon size={13} className="text-indigo-500 dark:text-indigo-400" />
                   <span>Images ({images.length})</span>
                 </div>
                 <div className="flex items-center gap-2.5 overflow-x-auto pb-1.5 hide-scrollbar">
@@ -834,7 +836,7 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setLightBox(imgUrl)}
-                      className="shrink-0 w-32 h-24 sm:w-40 sm:h-28 rounded-xl overflow-hidden border border-white/[0.08] hover:border-indigo-500/50 transition-colors duration-200 group relative block bg-[#161822] cursor-pointer"
+                      className="shrink-0 w-32 h-24 sm:w-40 sm:h-28 rounded-xl overflow-hidden border border-slate-200 dark:border-white/[0.08] hover:border-indigo-400 dark:hover:border-indigo-500/50 transition-colors duration-200 group relative block bg-slate-100 dark:bg-[#161822] cursor-pointer"
                       title="Click to view full image"
                     >
                       <img
@@ -866,18 +868,18 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                       animate={{ opacity: 1, y: 0 }}
                       whileHover={{ y: -2 }}
                       transition={{ duration: 0.2 }}
-                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-linear-to-r from-indigo-950/40 via-[#111422] to-violet-950/30 border border-indigo-500/25 shadow-lg shadow-indigo-500/5 group hover:border-indigo-500/40 transition-colors duration-200"
+                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-linear-to-r from-indigo-50/80 via-white to-violet-50/80 dark:from-indigo-950/40 dark:via-[#111422] dark:to-violet-950/30 border border-indigo-200 hover:border-indigo-300 dark:border-indigo-500/25 dark:hover:border-indigo-500/40 shadow-xs dark:shadow-indigo-500/5 group transition-colors duration-200"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-500/20 to-violet-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-400 shrink-0 shadow-xs">
+                        <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-500/15 to-violet-600/25 dark:from-indigo-500/20 dark:to-violet-600/30 border border-indigo-200 dark:border-indigo-500/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 shadow-xs">
                           <FolderCode size={20} />
                         </div>
                         <div className="flex flex-col min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="font-semibold text-slate-100 text-sm truncate">
+                            <span className="font-semibold text-slate-800 dark:text-slate-100 text-sm truncate">
                               {resolvedTitle}
                             </span>
-                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 shrink-0">
+                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-500/15 border border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-300 shrink-0">
                               {filesCount} {filesCount === 1 ? "file" : "files"}
                             </span>
                           </div>
@@ -885,14 +887,14 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                             {(art.files || []).slice(0, 4).map((f, fi) => (
                               <span
                                 key={fi}
-                                className="inline-flex items-center gap-1 text-[11px] font-mono text-slate-400 bg-white/[0.04] px-2 py-0.5 rounded-md border border-white/[0.06]"
+                                className="inline-flex items-center gap-1 text-[11px] font-mono text-slate-600 dark:text-slate-400 bg-white dark:bg-white/[0.04] px-2 py-0.5 rounded-md border border-slate-200 dark:border-white/[0.06]"
                               >
-                                <FileCode size={10} className="text-indigo-400" />
+                                <FileCode size={10} className="text-indigo-500 dark:text-indigo-400" />
                                 {f.name}
                               </span>
                             ))}
                             {(art.files?.length || 0) > 4 && (
-                              <span className="text-[10px] text-slate-500">
+                              <span className="text-[10px] text-slate-400 dark:text-slate-500">
                                 +{art.files.length - 4} more
                               </span>
                             )}
@@ -931,7 +933,7 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
 
                   return (
                     <code
-                      className="px-1.5 py-0.5 rounded-md bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 font-mono text-[12.5px] font-medium"
+                      className="px-1.5 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30 font-mono text-[12.5px] font-medium"
                       {...props}
                     >
                       {children}
@@ -939,37 +941,37 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                   );
                 },
                 p({ children }) {
-                  return <p className="mb-2.5 last:mb-0 leading-relaxed text-slate-200">{children}</p>;
+                  return <p className="mb-2.5 last:mb-0 leading-relaxed text-slate-800 dark:text-slate-200">{children}</p>;
                 },
                 h1({ children }) {
-                  return <h1 className="text-lg font-bold text-slate-100 mt-3.5 mb-2 tracking-tight">{children}</h1>;
+                  return <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 mt-3.5 mb-2 tracking-tight">{children}</h1>;
                 },
                 h2({ children }) {
-                  return <h2 className="text-base font-semibold text-slate-100 mt-3 mb-1.5 tracking-tight">{children}</h2>;
+                  return <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100 mt-3 mb-1.5 tracking-tight">{children}</h2>;
                 },
                 h3({ children }) {
-                  return <h3 className="text-sm font-semibold text-slate-200 mt-2.5 mb-1">{children}</h3>;
+                  return <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mt-2.5 mb-1">{children}</h3>;
                 },
                 ul({ children }) {
-                  return <ul className="list-disc pl-5 space-y-1 mb-2.5 text-slate-200">{children}</ul>;
+                  return <ul className="list-disc pl-5 space-y-1 mb-2.5 text-slate-800 dark:text-slate-200">{children}</ul>;
                 },
                 ol({ children }) {
-                  return <ol className="list-decimal pl-5 space-y-1 mb-2.5 text-slate-200">{children}</ol>;
+                  return <ol className="list-decimal pl-5 space-y-1 mb-2.5 text-slate-800 dark:text-slate-200">{children}</ol>;
                 },
                 li({ children }) {
                   return <li className="leading-relaxed">{children}</li>;
                 },
                 blockquote({ children }) {
                   return (
-                    <blockquote className="border-l-2 border-indigo-500/50 pl-3.5 py-1.5 my-2.5 italic text-slate-300 bg-indigo-500/5 rounded-r-lg">
+                    <blockquote className="border-l-2 border-indigo-400 dark:border-indigo-500/50 pl-3.5 py-1.5 my-2.5 italic text-slate-700 dark:text-slate-300 bg-indigo-50/60 dark:bg-indigo-500/5 rounded-r-lg">
                       {children}
                     </blockquote>
                   );
                 },
                 table({ children }) {
                   return (
-                    <div className="overflow-x-auto my-3 rounded-lg border border-white/[0.08]">
-                      <table className="min-w-full divide-y divide-white/[0.08] text-xs text-left">
+                    <div className="overflow-x-auto my-3 rounded-lg border border-slate-200 dark:border-white/[0.08]">
+                      <table className="min-w-full divide-y divide-slate-200 dark:divide-white/[0.08] text-xs text-left">
                         {children}
                       </table>
                     </div>
@@ -977,14 +979,14 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                 },
                 th({ children }) {
                   return (
-                    <th className="px-3 py-2 bg-white/[0.04] font-semibold text-slate-200 uppercase tracking-wider">
+                    <th className="px-3 py-2 bg-slate-100 dark:bg-white/[0.04] font-semibold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
                       {children}
                     </th>
                   );
                 },
                 td({ children }) {
                   return (
-                    <td className="px-3 py-2 text-slate-300 border-t border-white/[0.05]">
+                    <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-t border-slate-200 dark:border-white/[0.05]">
                       {children}
                     </td>
                   );
@@ -1064,7 +1066,7 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                       href={href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-indigo-400 hover:text-indigo-300 underline underline-offset-2 transition-colors flex items-center gap-1"
+                      className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 underline underline-offset-2 transition-colors flex items-center gap-1"
                     >
                       {children}
                       <ExternalLink size={14} />
@@ -1072,7 +1074,7 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                   );
                 },
                 hr() {
-                  return <hr className="border-white/[0.08] my-3" />;
+                  return <hr className="border-slate-200 dark:border-white/[0.08] my-3" />;
                 },
                 img() {
                   return null;

@@ -77,11 +77,35 @@ const handleEditorWillMount = (monaco) => {
       'scrollbarSlider.activeBackground': '#ffffff35',
     },
   })
+
+  monaco.editor.defineTheme('shifra-light', {
+    base: 'vs',
+    inherit: true,
+    rules: [
+      { token: 'comment', foreground: '64748b', fontStyle: 'italic' },
+      { token: 'keyword', foreground: '7c3aed' },
+      { token: 'string', foreground: '059669' },
+      { token: 'number', foreground: 'd97706' },
+      { token: 'tag', foreground: '4f46e5' },
+      { token: 'attribute.name', foreground: '0284c7' },
+    ],
+    colors: {
+      'editor.background': '#ffffff',
+      'editor.foreground': '#1e293b',
+      'editor.lineHighlightBackground': '#f1f5f9',
+      'editorLineNumber.foreground': '#94a3b8',
+      'editorLineNumber.activeForeground': '#4f46e5',
+      'editorCursor.foreground': '#4f46e5',
+      'editor.selectionBackground': '#e0e7ff',
+      'editor.inactiveSelectionBackground': '#f1f5f9',
+    },
+  })
 }
 
 const Artifact = () => {
   const dispatch = useDispatch()
   const { activeArtifact, visibleArtifact, isArtifactOpen, messages } = useSelector((state) => state.message)
+  const isDark = useSelector((state) => state.theme?.isDark ?? true)
 
   const [activeTab, setActiveTab] = useState('preview')
   const [copied, setCopied] = useState(false)
@@ -264,22 +288,22 @@ const Artifact = () => {
             whileTap={{ scale: 0.96 }}
             transition={{ type: 'spring', damping: 22, stiffness: 260 }}
             onClick={handleOpenDrawer}
-            className="fixed right-0 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center gap-2 py-3.5 px-2 rounded-l-2xl bg-[#0f121d]/95 hover:bg-[#141827] border-y border-l border-indigo-500/40 hover:border-indigo-400 shadow-xl shadow-indigo-500/15 backdrop-blur-md cursor-pointer transition-colors duration-200 group select-none"
+            className="fixed right-0 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center gap-2 py-3.5 px-2 rounded-l-2xl bg-white/95 dark:bg-[#0f121d]/95 hover:bg-slate-50 dark:hover:bg-[#141827] border-y border-l border-indigo-400/50 dark:border-indigo-500/40 hover:border-indigo-500 shadow-xl shadow-indigo-500/10 backdrop-blur-md cursor-pointer transition-colors duration-200 group select-none"
             title={`Open Project: ${displayTitle}`}
           >
-            <div className="w-7 h-7 rounded-xl bg-linear-to-br from-indigo-500/25 to-violet-600/30 border border-indigo-500/50 flex items-center justify-center text-indigo-400 group-hover:text-indigo-300 group-hover:scale-105 transition-all shadow-xs">
+            <div className="w-7 h-7 rounded-xl bg-linear-to-br from-indigo-500/25 to-violet-600/30 border border-indigo-500/50 flex items-center justify-center text-indigo-500 dark:text-indigo-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 group-hover:scale-105 transition-all shadow-xs">
               <Sparkles size={13} />
             </div>
 
             <div className="flex items-center justify-center py-1">
-              <span className="[writing-mode:vertical-rl] rotate-180 text-[12.5px] font-semibold tracking-wide text-slate-200 group-hover:text-white max-h-52 truncate">
+              <span className="[writing-mode:vertical-rl] rotate-180 text-[12.5px] font-semibold tracking-wide text-slate-700 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-white max-h-52 truncate">
                 {displayTitle}
               </span>
             </div>
 
             <div className="flex flex-col items-center gap-1.5 pt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <ChevronLeft size={13} className="text-slate-400 group-hover:text-indigo-300 group-hover:-translate-x-0.5 transition-transform" />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
+              <ChevronLeft size={13} className="text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 group-hover:-translate-x-0.5 transition-transform" />
             </div>
           </motion.button>
         )}
@@ -293,26 +317,26 @@ const Artifact = () => {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: '100%', opacity: 0 }}
             transition={{ type: 'spring', damping: 28, stiffness: 240 }}
-            className={`fixed z-40 flex flex-col bg-[#0b0d13] border-l border-white/[0.08] shadow-2xl ${isFullscreen
+            className={`fixed z-40 flex flex-col bg-white dark:bg-[#0b0d13] border-l border-slate-200 dark:border-white/[0.08] shadow-2xl ${isFullscreen
               ? 'inset-0 w-full h-full'
               : 'top-0 right-0 h-full w-full sm:w-[500px] md:w-[600px] lg:w-[680px] xl:w-[760px]'
               }`}
           >
-            <div className="flex items-center justify-between px-4 py-3 bg-[#11141c] border-b border-white/[0.08] select-none">
+            <div className="flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-[#11141c] border-b border-slate-200 dark:border-white/[0.08] select-none">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-xl bg-linear-to-br from-indigo-500/20 to-violet-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-linear-to-br from-indigo-500/20 to-violet-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-500 dark:text-indigo-400 shrink-0">
                   <Sparkles size={16} />
                 </div>
                 <div className="flex flex-col min-w-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-semibold text-slate-100 truncate">
+                    <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">
                       {resolvedTitle}
                     </h3>
-                    <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 shrink-0">
+                    <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/10 dark:bg-indigo-500/15 border border-indigo-500/20 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300 shrink-0">
                       {files.length} {files.length === 1 ? 'file' : 'files'}
                     </span>
                   </div>
-                  <span className="text-[11px] text-slate-400 truncate">
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
                     {currentArtifact.type || 'Web Application'} • Live Artifact
                   </span>
                 </div>
@@ -326,7 +350,7 @@ const Artifact = () => {
                       whileHover={{ scale: 1.08 }}
                       whileTap={{ scale: 0.92 }}
                       onClick={() => setPreviewKey((prev) => prev + 1)}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-200/60 dark:bg-white/[0.03] hover:bg-slate-200 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/[0.06] transition-colors cursor-pointer"
                       title="Reload Preview"
                     >
                       <RefreshCw size={14} />
@@ -336,7 +360,7 @@ const Artifact = () => {
                       whileHover={{ scale: 1.08 }}
                       whileTap={{ scale: 0.92 }}
                       onClick={handleOpenInNewTab}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-200/60 dark:bg-white/[0.03] hover:bg-slate-200 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/[0.06] transition-colors cursor-pointer"
                       title="Open in new window"
                     >
                       <ExternalLink size={14} />
@@ -352,7 +376,7 @@ const Artifact = () => {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={handleResetCurrentFile}
-                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-colors cursor-pointer"
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-colors cursor-pointer"
                         title="Reset file to original version"
                       >
                         <RotateCcw size={12} />
@@ -365,13 +389,13 @@ const Artifact = () => {
                       whileHover={{ scale: 1.08 }}
                       whileTap={{ scale: 0.92 }}
                       onClick={handleCopyCurrentFile}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-colors cursor-pointer"
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-200/60 dark:bg-white/[0.04] hover:bg-slate-200 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/[0.06] transition-colors cursor-pointer"
                       title="Copy current file content"
                     >
                       {copied ? (
                         <>
-                          <Check size={12} className="text-emerald-400" />
-                          <span className="text-emerald-400">Copied</span>
+                          <Check size={12} className="text-emerald-500 dark:text-emerald-400" />
+                          <span className="text-emerald-600 dark:text-emerald-400">Copied</span>
                         </>
                       ) : (
                         <>
@@ -388,7 +412,7 @@ const Artifact = () => {
                   whileHover={{ scale: 1.08 }}
                   whileTap={{ scale: 0.92 }}
                   onClick={handleDownloadAll}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-200/60 dark:bg-white/[0.03] hover:bg-slate-200 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/[0.06] transition-colors cursor-pointer"
                   title="Download project files"
                 >
                   <Download size={14} />
@@ -399,7 +423,7 @@ const Artifact = () => {
                   whileHover={{ scale: 1.08 }}
                   whileTap={{ scale: 0.92 }}
                   onClick={() => setIsFullscreen((prev) => !prev)}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-200/60 dark:bg-white/[0.03] hover:bg-slate-200 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/[0.06] transition-colors cursor-pointer"
                   title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
                 >
                   {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
@@ -410,7 +434,7 @@ const Artifact = () => {
                   whileHover={{ scale: 1.08 }}
                   whileTap={{ scale: 0.92 }}
                   onClick={handleCloseDrawer}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 bg-white/[0.03] hover:bg-rose-500/10 border border-white/[0.06] transition-colors cursor-pointer ml-1"
+                  className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 bg-slate-200/60 dark:bg-white/[0.03] hover:bg-rose-50 dark:hover:bg-rose-500/10 border border-slate-200 dark:border-white/[0.06] transition-colors cursor-pointer ml-1"
                   title="Close Panel"
                 >
                   <X size={15} />
@@ -418,7 +442,7 @@ const Artifact = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between gap-1 px-3 py-2 bg-[#0e1017] border-b border-white/[0.06] overflow-x-auto [scrollbar-width:none]">
+            <div className="flex items-center justify-between gap-1 px-3 py-2 bg-slate-100 dark:bg-[#0e1017] border-b border-slate-200 dark:border-white/[0.06] overflow-x-auto [scrollbar-width:none]">
               <div className="flex items-center gap-1 min-w-0">
                 {hasHtml && (
                   <motion.button
@@ -426,11 +450,11 @@ const Artifact = () => {
                     whileTap={{ scale: 0.96 }}
                     onClick={() => setActiveTab('preview')}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer shrink-0 ${activeTab === 'preview'
-                      ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shadow-xs'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
+                      ? 'bg-indigo-500/15 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-400/40 dark:border-indigo-500/30 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-white/[0.04]'
                       }`}
                   >
-                    <Play size={12} className={activeTab === 'preview' ? 'text-indigo-400 fill-indigo-400/30' : ''} />
+                    <Play size={12} className={activeTab === 'preview' ? 'text-indigo-600 dark:text-indigo-400 fill-indigo-500/20 dark:fill-indigo-400/30' : ''} />
                     <span>Live Preview</span>
                   </motion.button>
                 )}
@@ -445,14 +469,14 @@ const Artifact = () => {
                       whileTap={{ scale: 0.96 }}
                       onClick={() => setActiveTab(file.name)}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer shrink-0 font-mono ${isSelected
-                        ? 'bg-white/[0.1] text-white border border-white/[0.15]'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
+                        ? 'bg-white dark:bg-white/[0.1] text-slate-800 dark:text-white border border-slate-300 dark:border-white/[0.15] shadow-xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-white/[0.04]'
                         }`}
                     >
-                      <FileCode size={12} className={isSelected ? 'text-indigo-400' : 'text-slate-500'} />
+                      <FileCode size={12} className={isSelected ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500'} />
                       <span>{file.name}</span>
                       {isFileEdited && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" title="Modified" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400 animate-pulse" title="Modified" />
                       )}
                     </motion.button>
                   )
@@ -460,7 +484,7 @@ const Artifact = () => {
               </div>
             </div>
 
-            <div className="flex-1 min-h-0 bg-[#08090e] relative overflow-hidden">
+            <div className="flex-1 min-h-0 bg-slate-50 dark:bg-[#08090e] relative overflow-hidden">
               {activeTab === 'preview' && hasHtml ? (
                 <div className="w-full h-full bg-white relative">
                   <iframe
@@ -472,17 +496,17 @@ const Artifact = () => {
                   />
                 </div>
               ) : (
-                <div className="w-full h-full relative bg-[#090b11]">
+                <div className="w-full h-full relative bg-white dark:bg-[#090b11]">
                   <Editor
                     height="100%"
                     language={getMonacoLanguage(currentFile?.name)}
                     value={currentCode}
-                    theme="shifra-dark"
+                    theme={isDark ? "shifra-dark" : "shifra-light"}
                     beforeMount={handleEditorWillMount}
                     onChange={handleCodeChange}
                     loading={
-                      <div className="flex items-center justify-center h-full w-full bg-[#090b11] text-slate-400 gap-2 text-xs">
-                        <Loader2 size={16} className="animate-spin text-indigo-400" />
+                      <div className="flex items-center justify-center h-full w-full bg-white dark:bg-[#090b11] text-slate-500 dark:text-slate-400 gap-2 text-xs">
+                        <Loader2 size={16} className="animate-spin text-indigo-500 dark:text-indigo-400" />
                         <span>Loading...</span>
                       </div>
                     }
