@@ -127,14 +127,14 @@ const createPdfBuffer = (docData) => {
         .font("Helvetica")
         .fillColor("#6b7280")
         .text(
-          `Created by Shifra AI  •  ${formattedTimestamp}`,
+          `Created by ShifraAI Team  •  Lead Developer: Suvojit Manna  •  ${formattedTimestamp}`,
           margin,
           footerY,
           {
             align: "center",
             width: contentWidth,
             lineBreak: false,
-          }
+          },
         );
 
       doc.page.margins.bottom = originalBottomMargin;
@@ -203,9 +203,17 @@ Topic: ${topic}
 
     const pdfBuffer = await createPdfBuffer(docData);
 
-    const rawPrompt = (state.topic || state.prompt || docData.title || "document").trim();
+    const rawPrompt = (
+      state.topic ||
+      state.prompt ||
+      docData.title ||
+      "document"
+    ).trim();
     const trimmedSlug = rawPrompt
-      .replace(/^(?:please\s+)?(?:create|generate|make|write|give\s+me)\s+(?:a\s+)?(?:pdf|document)?\s*(?:about|on|for)?\s*/i, "")
+      .replace(
+        /^(?:please\s+)?(?:create|generate|make|write|give\s+me)\s+(?:a\s+)?(?:pdf|document)?\s*(?:about|on|for)?\s*/i,
+        "",
+      )
       .trim()
       .replace(/[^\w\s-]/g, "")
       .replace(/\s+/g, "_")

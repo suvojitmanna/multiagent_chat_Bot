@@ -19,18 +19,24 @@ const cleanJson = (str) => {
 };
 
 const ACCENT_COLORS = [
-  "4F46E5", // Indigo
-  "0284C7", // Sky
-  "0D9488", // Teal
-  "D97706", // Amber
-  "7C3AED", // Violet
-  "E11D48", // Rose
+  "4F46E5",
+  "0284C7",
+  "0D9488",
+  "D97706",
+  "7C3AED",
+  "E11D48",
 ];
 
 const normalizePoint = (item, index) => {
   if (typeof item === "object" && item !== null) {
     const rawTitle = item.title || item.heading || item.label || "";
-    const rawDesc = item.desc || item.description || item.text || item.content || item.bullet || "";
+    const rawDesc =
+      item.desc ||
+      item.description ||
+      item.text ||
+      item.content ||
+      item.bullet ||
+      "";
     if (rawTitle && rawDesc) {
       return { title: rawTitle.trim(), desc: rawDesc.trim() };
     }
@@ -40,16 +46,16 @@ const normalizePoint = (item, index) => {
 
   const text = String(item || "").trim();
   if (!text) {
-    return { title: `Key Point ${index + 1}`, desc: "Important strategic milestone and key achievement." };
+    return {
+      title: `Key Point ${index + 1}`,
+      desc: "Important strategic milestone and key achievement.",
+    };
   }
 
-  // Check for colon, hyphen, or dash separator (e.g., "Captaincy: Appointed India ODI captain...")
   const splitMatch = text.match(/^([^:\-–—]{3,35})[:\-–—]\s*(.+)$/);
   if (splitMatch) {
     return { title: splitMatch[1].trim(), desc: splitMatch[2].trim() };
   }
-
-  // Check for year or date at start (e.g. "2013 Appointed..." or "2018-19 Test series...")
   const yearMatch = text.match(/^((?:19|20)\d{2}(?:-\d{2,4})?)\s+(.+)$/);
   if (yearMatch) {
     return { title: `Year ${yearMatch[1]}`, desc: yearMatch[2].trim() };
@@ -66,7 +72,7 @@ const normalizePoint = (item, index) => {
 
 const createPresentationBuffer = async (pptData) => {
   const pres = new pptxgen();
-  pres.layout = "LAYOUT_WIDE"; // Standard 13.333 x 7.5 Widescreen 16:9
+  pres.layout = "LAYOUT_WIDE";
   pres.title = pptData.title || "Presentation";
 
   const now = new Date();
@@ -80,15 +86,10 @@ const createPresentationBuffer = async (pptData) => {
   });
 
   const rawSlides = Array.isArray(pptData.slides) ? pptData.slides : [];
-  const totalSlides = rawSlides.length + 2; // Cover + Content Slides + Conclusion
-
-  // ==========================================
-  // 1. EXECUTIVE COVER SLIDE (Dark Midnight Slate)
-  // ==========================================
+  const totalSlides = rawSlides.length + 2;
   const titleSlide = pres.addSlide();
   titleSlide.background = { color: "0A0F1D" };
 
-  // Subtle top-right decorative accent
   titleSlide.addShape(pres.ShapeType.roundRect, {
     x: 8.5,
     y: -0.8,
@@ -99,7 +100,6 @@ const createPresentationBuffer = async (pptData) => {
     rectRadius: 0.5,
   });
 
-  // Presentation Badge
   titleSlide.addShape(pres.ShapeType.roundRect, {
     x: 1.2,
     y: 1.5,
@@ -110,20 +110,24 @@ const createPresentationBuffer = async (pptData) => {
     rectRadius: 0.2,
   });
 
-  titleSlide.addText(pptData.category ? pptData.category.toUpperCase() : "EXECUTIVE PRESENTATION", {
-    x: 1.2,
-    y: 1.5,
-    w: 2.9,
-    h: 0.42,
-    fontSize: 9.5,
-    bold: true,
-    color: "A5B4FC",
-    align: "center",
-    valign: "middle",
-    fontFace: "Segoe UI",
-  });
+  titleSlide.addText(
+    pptData.category
+      ? pptData.category.toUpperCase()
+      : "EXECUTIVE PRESENTATION",
+    {
+      x: 1.2,
+      y: 1.5,
+      w: 2.9,
+      h: 0.42,
+      fontSize: 9.5,
+      bold: true,
+      color: "A5B4FC",
+      align: "center",
+      valign: "middle",
+      fontFace: "Segoe UI",
+    },
+  );
 
-  // Main Title
   titleSlide.addText(pptData.title || "Executive Briefing", {
     x: 1.2,
     y: 2.15,
@@ -136,7 +140,6 @@ const createPresentationBuffer = async (pptData) => {
     valign: "top",
   });
 
-  // Subtitle
   if (pptData.subtitle) {
     titleSlide.addText(pptData.subtitle, {
       x: 1.2,
@@ -150,7 +153,6 @@ const createPresentationBuffer = async (pptData) => {
     });
   }
 
-  // Vibrant accent bar
   titleSlide.addShape(pres.ShapeType.roundRect, {
     x: 1.2,
     y: 4.7,
@@ -161,16 +163,18 @@ const createPresentationBuffer = async (pptData) => {
     rectRadius: 0.04,
   });
 
-  // Cover Footer
-  titleSlide.addText(`Created by Shifra AI  •  ${formattedTimestamp}`, {
-    x: 1.2,
-    y: 6.25,
-    w: 6.0,
-    h: 0.4,
-    fontSize: 10.5,
-    fontFace: "Segoe UI",
-    color: "64748B",
-  });
+  titleSlide.addText(
+    `Created by ShifraAI Team  •  Lead Developer: Suvojit Manna  •  ${formattedTimestamp}`,
+    {
+      x: 1.2,
+      y: 6.25,
+      w: 6.0,
+      h: 0.4,
+      fontSize: 10.5,
+      fontFace: "Segoe UI",
+      color: "64748B",
+    },
+  );
 
   titleSlide.addText("Confidential & Executive Briefing  •  16:9 Widescreen", {
     x: 7.2,
@@ -183,16 +187,12 @@ const createPresentationBuffer = async (pptData) => {
     align: "right",
   });
 
-  // ==========================================
-  // 2. CONTENT SLIDES (Executive Clean Canvas)
-  // ==========================================
   rawSlides.forEach((slideItem, index) => {
     const slide = pres.addSlide();
     slide.background = { color: "F8FAFC" };
 
     const slideAccent = ACCENT_COLORS[index % ACCENT_COLORS.length];
 
-    // Header Vertical Accent Indicator
     slide.addShape(pres.ShapeType.rect, {
       x: 0.8,
       y: 0.42,
@@ -202,7 +202,6 @@ const createPresentationBuffer = async (pptData) => {
       line: { color: slideAccent },
     });
 
-    // Category / Tracker Kicker
     const categoryText = (
       slideItem.category ||
       (slideItem.title && slideItem.title.includes("&")
@@ -221,7 +220,6 @@ const createPresentationBuffer = async (pptData) => {
       fontFace: "Segoe UI",
     });
 
-    // Slide Title
     slide.addText(slideItem.title || `Slide ${index + 1}`, {
       x: 1.05,
       y: 0.62,
@@ -233,7 +231,6 @@ const createPresentationBuffer = async (pptData) => {
       color: "0F172A",
     });
 
-    // Header Divider Line
     slide.addShape(pres.ShapeType.line, {
       x: 0.8,
       y: 1.25,
@@ -242,21 +239,15 @@ const createPresentationBuffer = async (pptData) => {
       line: { color: "E2E8F0", width: 1 },
     });
 
-    // Raw bullet/points parsing
     const rawPoints = Array.isArray(slideItem.points)
       ? slideItem.points
       : Array.isArray(slideItem.bullets)
-      ? slideItem.bullets
-      : [];
+        ? slideItem.bullets
+        : [];
 
     const normalized = rawPoints.map((pt, pIdx) => normalizePoint(pt, pIdx));
     const pointCount = normalized.length;
-
-    // ------------------------------------------
-    // DYNAMIC LAYOUT BASED ON POINT COUNT
-    // ------------------------------------------
     if (pointCount === 4) {
-      // 2x2 Symmetrical Card Grid (Most popular, perfectly fills widescreen slide!)
       const gridPositions = [
         { x: 0.8, y: 1.5, w: 5.7, h: 2.38 },
         { x: 6.83, y: 1.5, w: 5.7, h: 2.38 },
@@ -268,7 +259,6 @@ const createPresentationBuffer = async (pptData) => {
         const pos = gridPositions[pIdx];
         const cardAccent = ACCENT_COLORS[(index + pIdx) % ACCENT_COLORS.length];
 
-        // Card Container
         slide.addShape(pres.ShapeType.roundRect, {
           x: pos.x,
           y: pos.y,
@@ -287,7 +277,6 @@ const createPresentationBuffer = async (pptData) => {
           },
         });
 
-        // Top Accent Stripe
         slide.addShape(pres.ShapeType.roundRect, {
           x: pos.x,
           y: pos.y,
@@ -298,7 +287,6 @@ const createPresentationBuffer = async (pptData) => {
           rectRadius: 0.03,
         });
 
-        // Number Badge
         const numStr = `0${pIdx + 1}`;
         slide.addShape(pres.ShapeType.roundRect, {
           x: pos.x + 0.3,
@@ -321,7 +309,6 @@ const createPresentationBuffer = async (pptData) => {
           fontFace: "Segoe UI",
         });
 
-        // Card Title
         slide.addText(pt.title, {
           x: pos.x + 0.98,
           y: pos.y + 0.26,
@@ -334,7 +321,6 @@ const createPresentationBuffer = async (pptData) => {
           fontFace: "Segoe UI",
         });
 
-        // Card Description
         slide.addText(pt.desc, {
           x: pos.x + 0.3,
           y: pos.y + 0.78,
@@ -348,7 +334,6 @@ const createPresentationBuffer = async (pptData) => {
         });
       });
     } else if (pointCount === 3) {
-      // 3-Column Executive Pillars
       const colPositions = [
         { x: 0.8, y: 1.5, w: 3.7, h: 4.95 },
         { x: 4.81, y: 1.5, w: 3.7, h: 4.95 },
@@ -434,7 +419,6 @@ const createPresentationBuffer = async (pptData) => {
         });
       });
     } else if (pointCount === 2) {
-      // 2 Comparative Executive Columns
       const colPositions = [
         { x: 0.8, y: 1.5, w: 5.7, h: 4.95 },
         { x: 6.83, y: 1.5, w: 5.7, h: 4.95 },
@@ -519,7 +503,6 @@ const createPresentationBuffer = async (pptData) => {
         });
       });
     } else {
-      // 5+ Points: 2-Column Multi-Row Grid
       const rows = Math.ceil(pointCount / 2);
       const rowHeight = Math.min(1.55, 4.95 / rows - 0.15);
 
@@ -595,7 +578,6 @@ const createPresentationBuffer = async (pptData) => {
       });
     }
 
-    // Slide Footer
     slide.addShape(pres.ShapeType.line, {
       x: 0.8,
       y: 6.72,
@@ -604,15 +586,18 @@ const createPresentationBuffer = async (pptData) => {
       line: { color: "E2E8F0", width: 0.75 },
     });
 
-    slide.addText(`Shifra AI Presentation  •  ${pptData.title || "Executive Deck"}`, {
-      x: 0.8,
-      y: 6.82,
-      w: 7.0,
-      h: 0.35,
-      fontSize: 9.5,
-      fontFace: "Segoe UI",
-      color: "94A3B8",
-    });
+    slide.addText(
+      `Shifra AI Presentation  •  ${pptData.title || "Executive Deck"}`,
+      {
+        x: 0.8,
+        y: 6.82,
+        w: 7.0,
+        h: 0.35,
+        fontSize: 9.5,
+        fontFace: "Segoe UI",
+        color: "94A3B8",
+      },
+    );
 
     slide.addText(`Slide ${index + 2} of ${totalSlides}`, {
       x: 8.53,
@@ -627,9 +612,6 @@ const createPresentationBuffer = async (pptData) => {
     });
   });
 
-  // ==========================================
-  // 3. CONCLUSION SLIDE (Executive Dark Theme)
-  // ==========================================
   const endSlide = pres.addSlide();
   endSlide.background = { color: "0A0F1D" };
 
@@ -679,10 +661,9 @@ const createPresentationBuffer = async (pptData) => {
       fontFace: "Segoe UI",
       color: "94A3B8",
       align: "center",
-    }
+    },
   );
 
-  // 3 Takeaway Cards
   const summaryCards = [
     {
       title: "Strategic Vision",
@@ -746,16 +727,19 @@ const createPresentationBuffer = async (pptData) => {
     });
   });
 
-  endSlide.addText(`Created by Shifra AI  •  ${formattedTimestamp}`, {
-    x: 1.0,
-    y: 6.55,
-    w: 11.33,
-    h: 0.4,
-    fontSize: 10.5,
-    fontFace: "Segoe UI",
-    color: "64748B",
-    align: "center",
-  });
+  endSlide.addText(
+    `Created by ShifraAI Team  •  Lead Developer: Suvojit Manna  •  ${formattedTimestamp}`,
+    {
+      x: 1.0,
+      y: 6.55,
+      w: 11.33,
+      h: 0.4,
+      fontSize: 10.5,
+      fontFace: "Segoe UI",
+      color: "64748B",
+      align: "center",
+    },
+  );
 
   const buffer = await pres.write({ outputType: "nodebuffer" });
   return buffer;
@@ -822,7 +806,10 @@ Instructions:
     try {
       pptData = JSON.parse(cleaned);
     } catch (parseErr) {
-      console.warn("[PPT Agent] JSON parse failed, using fallback data:", parseErr.message);
+      console.warn(
+        "[PPT Agent] JSON parse failed, using fallback data:",
+        parseErr.message,
+      );
       pptData = {
         title: topic,
         subtitle: "Key Highlights & Strategic Analysis",
@@ -874,9 +861,17 @@ Instructions:
 
     const pptBuffer = await createPresentationBuffer(pptData);
 
-    const rawPrompt = (state.topic || state.prompt || pptData.title || "presentation").trim();
+    const rawPrompt = (
+      state.topic ||
+      state.prompt ||
+      pptData.title ||
+      "presentation"
+    ).trim();
     const trimmedSlug = rawPrompt
-      .replace(/^(?:please\s+)?(?:create|generate|make|write|give\s+me)\s+(?:a\s+)?(?:ppt|presentation|slides|pptx)?\s*(?:about|on|for)?\s*/i, "")
+      .replace(
+        /^(?:please\s+)?(?:create|generate|make|write|give\s+me)\s+(?:a\s+)?(?:ppt|presentation|slides|pptx)?\s*(?:about|on|for)?\s*/i,
+        "",
+      )
       .trim()
       .replace(/[^\w\s-]/g, "")
       .replace(/\s+/g, "_")
@@ -916,7 +911,11 @@ Instructions:
     const slidesList = Array.isArray(pptData.slides)
       ? pptData.slides
           .map((s, i) => {
-            const rawPts = Array.isArray(s.points) ? s.points : Array.isArray(s.bullets) ? s.bullets : [];
+            const rawPts = Array.isArray(s.points)
+              ? s.points
+              : Array.isArray(s.bullets)
+                ? s.bullets
+                : [];
             const ptsText = rawPts
               .map((pt, pIdx) => {
                 const norm = normalizePoint(pt, pIdx);

@@ -12,7 +12,7 @@ import ChatArea from '../components/ChatArea'
 import Artifact from '../components/Artifact'
 
 const Home = () => {
-    const { userData } = useSelector((state) => state.user)
+    const userData = useSelector((state) => state.user?.userData)
     const dispatch = useDispatch()
     const [loginLoading, setLoginLoading] = useState(false)
     const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {

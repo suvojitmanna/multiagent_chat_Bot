@@ -192,3 +192,97 @@ export const getUserById = async (req, res) => {
     });
   }
 };
+
+export const deductCredits = async (req, res) => {
+  try {
+    const userId = req.body.userId || req.headers["x-user-id"];
+    const agent = req.body.agent;
+
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User ID is required" });
+    }
+
+    const COST = {
+      auto: 1,
+      chat: 1,
+      search: 5,
+      coding: 10,
+      pdf: 10,
+      ppt: 10,
+      image: 10,
+    };
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    if (user.credits === undefined || user.credits === null) {
+      user.credits = 100;
+    }
+    if (user.totalCredits === undefined || user.totalCredits === null) {
+      user.totalCredits = 100;
+    }
+
+    let requiredCredits = 1;
+    if (req.body.credits !== undefined) {
+      requiredCredits = Number(req.body.credits);
+    } else if (agent) {
+      const normalizedAgent = String(agent).toLowerCase().trim();
+      requiredCredits =
+        COST[normalizedAgent] !== undefined ? COST[normalizedAgent] : 1;
+    }
+
+    if (user.credits < requiredCredits) {
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient credits",
+        credits: user.credits,
+        requiredCredits,
+      });
+    }
+
+    user.credits -= requiredCredits;
+    await user.save();
+
+    const sessionId =
+      req.cookies?.session || req.cookies?.sessionId || req.body.sessionId;
+    if (sessionId) {
+      await redis.set(
+        `session-${sessionId}`,
+        JSON.stringify({
+          userId: user._id,
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          avatar: user.avatar,
+          plan: user.plan || "free",
+          credits: user.credits,
+          totalCredits: user.totalCredits,
+          planExpiresAt: user.planExpiresAt,
+        }),
+        "EX",
+        7 * 24 * 60 * 60,
+      );
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Credits deducted successfully",
+      credits: user.credits,
+      requiredCredits,
+      user,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Deduct credits error",
+      error: error.message,
+    });
+  }
+};

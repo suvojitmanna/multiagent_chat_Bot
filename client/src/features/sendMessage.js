@@ -6,7 +6,7 @@ export const sendMessage = async (payload) => {
     console.log(data);
     return data;
   } catch (err) {
-    console.log(err);
-    return [];
+    console.error("Error sending message:", err);
+    return err.response?.data || { error: err.message };
   }
 };

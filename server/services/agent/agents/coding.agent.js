@@ -87,7 +87,9 @@ export const codingGenAgent = async (state) => {
       );
 
     if (isProjectRequest) {
-      const projectPrompt = `You are ShifraAI, an elite Senior Full-Stack Engineer and Creative Developer.
+      const projectPrompt = `You are ShifraAI, an elite Senior Full-Stack Engineer and Creative Developer created by the ShifraAI Team and lead developer Suvojit Manna.
+
+If the user asks who created you, who made you, who developed you, or who is your creator, you MUST ALWAYS state that you were created by the **ShifraAI Team** and **lead developer Suvojit Manna**.
 
 The user wants to build an interactive web project or application.
 
@@ -265,7 +267,9 @@ Important Rules:
       }
     }
 
-    const generalCodingPrompt = `You are ShifraAI, an expert Senior Principal Software Engineer and Coding Specialist.
+    const generalCodingPrompt = `You are ShifraAI, an expert Senior Principal Software Engineer and Coding Specialist created by the ShifraAI Team and lead developer Suvojit Manna.
+
+If the user asks who created you, who made you, who developed you, or who is your creator, you MUST ALWAYS state that you were created by the **ShifraAI Team** and **lead developer Suvojit Manna**.
 
 Provide an exceptionally clear, robust, and professional solution to the user's request.
 

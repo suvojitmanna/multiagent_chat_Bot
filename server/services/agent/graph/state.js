@@ -10,4 +10,5 @@ export const agentState = Annotation.Root({
   artifacts: Annotation(),
   pdfUrl: Annotation(),
   pptUrl: Annotation(),
+  file: Annotation(),
 });

@@ -8,7 +8,7 @@ import { setUserdata } from '../redux/userSlice.js'
 
 const BillingDrawer = ({ open, onClose }) => {
   const dispatch = useDispatch()
-  const { userData } = useSelector((state) => state.user)
+  const userData = useSelector((state) => state.user?.userData)
   const [loadingPlan, setLoadingPlan] = useState(null)
 
   const handleUpgrade = async (plan) => {

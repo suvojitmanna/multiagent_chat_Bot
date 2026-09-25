@@ -29,7 +29,7 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
 
     const { conversations, selectedConversation } = useSelector((state) => state.conversation)
     const conversationList = Array.isArray(conversations) ? conversations : []
-    const { userData } = useSelector((state) => state.user)
+    const userData = useSelector((state) => state.user?.userData)
 
     const [editingId, setEditingId] = useState(null)
     const [editTitle, setEditTitle] = useState("")
@@ -457,7 +457,7 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
                                             {userData?.name || "User"}
                                         </p>
                                         <p className="text-[11px] text-slate-500 mt-0.5 capitalize">
-                                            {userData?.plan || "Free"} Plan
+                                            {userData?.plan || "Free"} • <span className="text-amber-400/90 font-medium">{userData?.credits !== undefined ? userData.credits : 100} credits</span>
                                         </p>
                                     </div>
 

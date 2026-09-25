@@ -21,7 +21,8 @@ import { getMessages } from '../features/getMessages'
 import { setMessages, setActiveArtifact } from '../redux/messageSlice'
 import { createConversation } from '../features/createConverSation'
 import { addConversation, setSelectedConversation, updateConversationTitle } from '../redux/conversationSlice'
-import { updateConversation as updateConversationApi } from '../features/updateConversation'
+import { updateCredits, setUserdata } from '../redux/userSlice'
+import getCurrentUser from '../features/getCurrentUser'
 
 const AGENTS = [
   {
@@ -93,6 +94,16 @@ const trimPromptToTitle = (text) => {
   return formatted.slice(0, 30).trim() + "..."
 }
 
+const AGENT_COSTS = {
+  auto: 1,
+  chat: 1,
+  search: 5,
+  coding: 10,
+  pdf: 10,
+  ppt: 10,
+  image: 10,
+}
+
 const ChatInput = ({ sidebarCollapsed }) => {
   const [value, setValue] = useState("")
   const [loading, setLoading] = useState(false)
@@ -103,6 +114,7 @@ const ChatInput = ({ sidebarCollapsed }) => {
   const dispatch = useDispatch()
   const { selectedConversation } = useSelector((state) => state.conversation)
   const { messages } = useSelector((state) => state.message)
+  const userData = useSelector((state) => state.user?.userData)
 
   useEffect(() => {
     const onInsert = (e) => {
@@ -172,6 +184,37 @@ const ChatInput = ({ sidebarCollapsed }) => {
       console.log(`Sending message with Agent: [${selectedAgent}]`, payload)
       const resData = await sendMessage(payload)
 
+      if (resData && typeof resData.credits === 'number') {
+        dispatch(updateCredits(resData.credits))
+      }
+
+      // Live-sync fresh user data immediately from /api/me without waiting or requiring a page refresh
+      getCurrentUser().then((freshUser) => {
+        if (freshUser) {
+          dispatch(setUserdata(freshUser))
+        }
+      }).catch((err) => {
+        console.warn("Failed to live-sync user credits:", err)
+      })
+
+      if (resData?.error === "Insufficient credits") {
+        getCurrentUser().then((freshUser) => {
+          if (freshUser) dispatch(setUserdata(freshUser))
+        }).catch(() => { })
+        dispatch(
+          setMessages([
+            ...currentList,
+            pendingUserMsg,
+            {
+              role: "assistant",
+              content: `⚠️ **${resData.message || "Insufficient credits. Please upgrade your plan in Billing & Subscription to continue."}**`,
+              isThinking: false,
+            },
+          ])
+        )
+        return
+      }
+
       if (resData?.artifacts && Array.isArray(resData.artifacts) && resData.artifacts.length > 0) {
         dispatch(setActiveArtifact(resData.artifacts[0]))
       }
@@ -213,6 +256,9 @@ const ChatInput = ({ sidebarCollapsed }) => {
       }
     } catch (error) {
       console.error("Error sending message:", error)
+      getCurrentUser().then((freshUser) => {
+        if (freshUser) dispatch(setUserdata(freshUser))
+      }).catch(() => { })
       dispatch(
         setMessages([
           ...currentList,

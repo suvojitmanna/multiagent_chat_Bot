@@ -10,9 +10,22 @@ export const router = async (state) => {
   }
 
   const promptText = (state.prompt || "").toLowerCase();
+
+  if (
+    /\b(who\s+(created|made|built|developed|programmed)\s+you|who\s+are\s+you|who\s+is\s+your\s+(creator|developer|maker|owner|author|founder)|tell\s+me\s+about\s+your\s+creator)\b/i.test(
+      promptText,
+    )
+  ) {
+    console.log("--> Selected Agent (Identity): chat");
+    return {
+      ...state,
+      agent: "chat",
+    };
+  }
+
   if (
     /\b(generate|create|make|draw|paint|render|design)\b.*\b(image|picture|photo|wallpaper|artwork|art|illustration|drawing|portrait|sketch|avatar)\b/i.test(
-      promptText
+      promptText,
     ) ||
     /^(draw|paint|generate image|create image|ai image)\b/i.test(promptText)
   ) {
