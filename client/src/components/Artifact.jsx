@@ -437,8 +437,8 @@ const Artifact = () => {
                     {isImageArtifact
                       ? `${Math.round(zoom * 100)}% zoom • Interactive Viewer`
                       : isPdfArtifact
-                      ? 'Custom Vector DB • Indexed Document'
-                      : `${currentArtifact.type || 'Web Application'} • Live Artifact`}
+                        ? 'Custom Vector DB • Indexed Document'
+                        : `${currentArtifact.type || 'Web Application'} • Live Artifact`}
                   </span>
                 </div>
               </div>
@@ -618,17 +618,6 @@ const Artifact = () => {
                 </motion.button>
               </div>
             </div>
-
-            {isImageArtifact && (
-              <div className="flex items-center justify-between px-4 py-2 bg-slate-100 dark:bg-[#0e1017] border-b border-slate-200 dark:border-white/[0.06] text-xs text-slate-500 dark:text-slate-400">
-                <span className="font-mono text-[11px] truncate max-w-md">
-                  {resolvedTitle}
-                </span>
-                <span className="text-[11px] bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 px-2 py-0.5 rounded-full font-medium">
-                  {Math.round(zoom * 100)}% zoom
-                </span>
-              </div>
-            )}
 
             {isPdfArtifact && (
               <div className="flex items-center justify-between px-4 py-2 bg-slate-100 dark:bg-[#0e1017] border-b border-slate-200 dark:border-white/[0.06] text-xs text-slate-500 dark:text-slate-400">

@@ -1,5 +1,10 @@
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const DEFAULT_VECTORS_DIR = path.resolve(__dirname, "..", "data", "vectors");
+
 export function cosineSimilarity(a, b) {
   if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) {
     return 0;
@@ -23,7 +28,7 @@ export function cosineSimilarity(a, b) {
 }
 export class CustomVectorDB {
   constructor(storageDir = null) {
-    this.storageDir = storageDir || path.resolve(process.cwd(), "data", "vectors");
+    this.storageDir = storageDir || DEFAULT_VECTORS_DIR;
     this.records = new Map();
     this.documents = new Map();
     this.initialized = false;
@@ -237,6 +242,26 @@ export class CustomVectorDB {
     return scoredResults.slice(0, topK);
   }
 
+
+  async clearAll() {
+    const count = this.records.size;
+    this.records.clear();
+    this.documents.clear();
+    try {
+      if (fs.existsSync(this.storageDir)) {
+        const files = await fs.promises.readdir(this.storageDir);
+        for (const file of files) {
+          if (file.endsWith(".json")) {
+            await fs.promises.unlink(path.join(this.storageDir, file)).catch(() => {});
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("[CustomVectorDB] clearAll error:", e.message);
+    }
+    console.log(`[CustomVectorDB] Cleared all ${count} vectors from memory and disk.`);
+    return count;
+  }
 
   getStats() {
     return {

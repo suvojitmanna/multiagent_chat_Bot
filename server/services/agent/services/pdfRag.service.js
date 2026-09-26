@@ -8,7 +8,11 @@ import { processPdfIntoChunks } from "../utils/pdfProcessor.js";
 import { embedDocuments, embedQuery } from "../utils/embeddings.js";
 import { safeRedis } from "../utils/redisClient.js";
 import { getGemini } from "../config/model.js";
-import { HumanMessage, SystemMessage, AIMessage } from "@langchain/core/messages";
+import {
+  HumanMessage,
+  SystemMessage,
+  AIMessage,
+} from "@langchain/core/messages";
 
 class PdfRagService {
   async processUploadedPdf({ filePath, originalName, fileSize, userId }) {
@@ -43,13 +47,19 @@ class PdfRagService {
       });
       await Document.updateOne({ documentId }, { status: "extracting" });
 
-      const { numPages, chunks } = await processPdfIntoChunks(buffer, documentId, {
-        filename: originalName,
-        userId,
-      });
+      const { numPages, chunks } = await processPdfIntoChunks(
+        buffer,
+        documentId,
+        {
+          filename: originalName,
+          userId,
+        },
+      );
 
       if (chunks.length === 0) {
-        throw new Error("No readable text chunks could be extracted from this PDF.");
+        throw new Error(
+          "No readable text chunks could be extracted from this PDF.",
+        );
       }
 
       await safeRedis.setPdfStatus(documentId, {
@@ -59,10 +69,13 @@ class PdfRagService {
         filename: originalName,
         totalChunks: chunks.length,
       });
-      await Document.updateOne({ documentId }, { status: "embedding", pageCount: numPages, chunkCount: chunks.length });
+      await Document.updateOne(
+        { documentId },
+        { status: "embedding", pageCount: numPages, chunkCount: chunks.length },
+      );
 
       const chunkTexts = chunks.map((c) => c.text);
-      const embeddings = await embedDocuments(chunkTexts, 8);
+      const embeddings = await embedDocuments(chunkTexts, 16);
 
       const recordsToInsert = chunks.map((chunk, idx) => ({
         id: chunk.id,
@@ -81,7 +94,7 @@ class PdfRagService {
           status: "ready",
           pageCount: numPages,
           chunkCount: recordsToInsert.length,
-        }
+        },
       );
 
       await safeRedis.setPdfStatus(documentId, {
@@ -94,7 +107,7 @@ class PdfRagService {
       });
 
       console.log(
-        `[PdfRagService] Document ${documentId} processed successfully: ${numPages} pages, ${recordsToInsert.length} vectors stored in Custom Vector DB.`
+        `[PdfRagService] Document ${documentId} processed successfully: ${numPages} pages, ${recordsToInsert.length} vectors stored in Custom Vector DB.`,
       );
 
       return {
@@ -106,14 +119,17 @@ class PdfRagService {
         status: "ready",
       };
     } catch (err) {
-      console.error(`[PdfRagService] Error processing document ${documentId}:`, err);
+      console.error(
+        `[PdfRagService] Error processing document ${documentId}:`,
+        err,
+      );
 
       await Document.updateOne(
         { documentId },
         {
           status: "error",
           error: err.message,
-        }
+        },
       ).catch(() => {});
 
       await safeRedis.setPdfStatus(documentId, {
@@ -131,7 +147,14 @@ class PdfRagService {
     }
   }
 
-  async queryPdfRag({ userId, documentId, conversationId, question, topK = 5, minScore = 0.25 }) {
+  async queryPdfRag({
+    userId,
+    documentId,
+    conversationId,
+    question,
+    topK = 5,
+    minScore = 0.25,
+  }) {
     if (!documentId) {
       throw new Error("documentId is required.");
     }
@@ -144,14 +167,21 @@ class PdfRagService {
 
     const doc = await Document.findOne({ documentId, userId });
     if (!doc) {
-      throw new Error("Document not found or access denied. You must own the requested document.");
+      throw new Error(
+        "Document not found or access denied. You must own the requested document.",
+      );
     }
 
     if (doc.status !== "ready") {
-      throw new Error(`Document is not ready yet. Current status: ${doc.status}`);
+      throw new Error(
+        `Document is not ready yet. Current status: ${doc.status}`,
+      );
     }
 
-    const cachedResult = await safeRedis.getCachedRagAnswer(documentId, trimmedQuestion);
+    const cachedResult = await safeRedis.getCachedRagAnswer(
+      documentId,
+      trimmedQuestion,
+    );
     if (cachedResult) {
       return {
         answer: cachedResult.answer,
@@ -161,7 +191,11 @@ class PdfRagService {
       };
     }
 
-    const recentHistory = await safeRedis.getChatHistory(userId, effectiveConvId, 6);
+    const recentHistory = await safeRedis.getChatHistory(
+      userId,
+      effectiveConvId,
+      6,
+    );
 
     const queryEmbedding = await embedQuery(trimmedQuestion);
 
@@ -175,7 +209,9 @@ class PdfRagService {
     if (pageMatch && pageMatch[1]) {
       const targetPage = parseInt(pageMatch[1], 10);
       const allDocChunks = customVectorDB.getByDocumentId(documentId);
-      pageChunks = allDocChunks.filter((c) => Number(c.pageNumber) === targetPage);
+      pageChunks = allDocChunks.filter(
+        (c) => Number(c.pageNumber) === targetPage,
+      );
     }
 
     let relevantChunks = customVectorDB.search({
@@ -201,7 +237,16 @@ class PdfRagService {
     }
 
     if (relevantChunks.length === 0) {
-      const fallbackAnswer = "I couldn't find this information in the uploaded PDF.";
+      const fallbackAnswer =
+        "I couldn't find this information in the uploaded PDF.";
+      try {
+        await customVectorDB.deleteByDocumentId(documentId);
+      } catch (cleanErr) {
+        console.warn(
+          `[CustomVectorDB] Error removing vectors on fallback:`,
+          cleanErr.message,
+        );
+      }
       return {
         answer: fallbackAnswer,
         sources: [],
@@ -212,7 +257,7 @@ class PdfRagService {
     const contextText = relevantChunks
       .map(
         (chunk, idx) =>
-          `[Source ${idx + 1} - Page ${chunk.pageNumber} (Relevance: ${(chunk.score * 100).toFixed(1)}%)]:\n${chunk.text}`
+          `[Source ${idx + 1} - Page ${chunk.pageNumber} (Relevance: ${(chunk.score * 100).toFixed(1)}%)]:\n${chunk.text}`,
       )
       .join("\n\n---\n\n");
 
@@ -256,17 +301,41 @@ ${trimmedQuestion}`;
 
     const llm = getGemini();
     const response = await llm.invoke(messages);
-    const answer = typeof response?.content === "string" ? response.content.trim() : String(response?.content || "");
+    let answer = "";
+    if (typeof response?.content === "string") {
+      answer = response.content.trim();
+    } else if (Array.isArray(response?.content)) {
+      answer = response.content
+        .map((part) => (typeof part === "string" ? part : part?.text || ""))
+        .join("")
+        .trim();
+    } else {
+      answer = String(response?.content || "").trim();
+    }
 
     const sources = relevantChunks.map((chunk) => ({
       pageNumber: chunk.pageNumber,
       score: chunk.score,
-      text: chunk.text.length > 200 ? `${chunk.text.slice(0, 197)}...` : chunk.text,
+      text:
+        chunk.text.length > 200 ? `${chunk.text.slice(0, 197)}...` : chunk.text,
     }));
 
-    await safeRedis.appendChatMessage(userId, effectiveConvId, "user", trimmedQuestion);
-    await safeRedis.appendChatMessage(userId, effectiveConvId, "assistant", answer);
-    await safeRedis.setCachedRagAnswer(documentId, trimmedQuestion, { answer, sources });
+    await safeRedis.appendChatMessage(
+      userId,
+      effectiveConvId,
+      "user",
+      trimmedQuestion,
+    );
+    await safeRedis.appendChatMessage(
+      userId,
+      effectiveConvId,
+      "assistant",
+      answer,
+    );
+    await safeRedis.setCachedRagAnswer(documentId, trimmedQuestion, {
+      answer,
+      sources,
+    });
     try {
       await PdfConversation.findOneAndUpdate(
         { conversationId: effectiveConvId },
@@ -284,10 +353,22 @@ ${trimmedQuestion}`;
             ],
           },
         },
-        { upsert: true, returnDocument: "after" }
+        { upsert: true, returnDocument: "after" },
       );
     } catch (dbErr) {
-      console.warn("[PdfRagService] Could not persist message to MongoDB:", dbErr.message);
+      console.warn(
+        "[PdfRagService] Could not persist message to MongoDB:",
+        dbErr.message,
+      );
+    }
+
+    try {
+      const deletedCount = await customVectorDB.deleteByDocumentId(documentId);
+    } catch (cleanErr) {
+      console.warn(
+        `[CustomVectorDB] Cleanup error after answer generation:`,
+        cleanErr.message,
+      );
     }
 
     return {
@@ -345,7 +426,11 @@ ${trimmedQuestion}`;
       return conv.messages || [];
     }
 
-    const redisHistory = await safeRedis.getChatHistory(userId, conversationId, 50);
+    const redisHistory = await safeRedis.getChatHistory(
+      userId,
+      conversationId,
+      50,
+    );
     return redisHistory || [];
   }
 

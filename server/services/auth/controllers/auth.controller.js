@@ -28,7 +28,6 @@ async function verifyGoogleToken(token) {
     }
   }
 
-  // Fallback to Google OAuth2 userinfo endpoint (handles OAuth2 access tokens)
   try {
     const userinfoResponse = await fetch(
       "https://www.googleapis.com/oauth2/v3/userinfo",
@@ -52,7 +51,6 @@ async function verifyGoogleToken(token) {
     console.warn("Google userinfo endpoint check failed:", e.message);
   }
 
-  // Final fallback to tokeninfo in case token wasn't detected as JWT
   if (!isJwt) {
     try {
       const fallbackResponse = await fetch(
@@ -68,7 +66,6 @@ async function verifyGoogleToken(token) {
         };
       }
     } catch (e) {
-      // Ignore
     }
   }
 
@@ -86,7 +83,6 @@ export const login = async (req, res) => {
 
     const decoded = await verifyGoogleToken(token);
 
-    // Look up user by googleId OR email to prevent duplicate key crashes
     let user = await User.findOne({
       $or: [
         { googleId: decoded.googleId },

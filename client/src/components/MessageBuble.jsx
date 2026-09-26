@@ -496,8 +496,8 @@ const PresentationDeckCard = ({ data, originalContent }) => {
     pointCount <= 2
       ? "grid-cols-1 sm:grid-cols-2"
       : pointCount === 3
-      ? "grid-cols-1 sm:grid-cols-3"
-      : "grid-cols-1 sm:grid-cols-2";
+        ? "grid-cols-1 sm:grid-cols-3"
+        : "grid-cols-1 sm:grid-cols-2";
 
   return (
     <div className="my-4 rounded-2xl overflow-hidden border border-amber-300/80 dark:border-amber-500/25 bg-white dark:bg-gradient-to-b dark:from-[#13111c] dark:via-[#0c0e17] dark:to-[#090b12] shadow-xl not-prose">
@@ -534,11 +534,10 @@ const PresentationDeckCard = ({ data, originalContent }) => {
             <button
               type="button"
               onClick={() => setViewMode("deck")}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
-                viewMode === "deck"
-                  ? "bg-amber-500/20 text-amber-600 dark:text-amber-300 shadow-xs"
-                  : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
-              }`}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${viewMode === "deck"
+                ? "bg-amber-500/20 text-amber-600 dark:text-amber-300 shadow-xs"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                }`}
             >
               <Layers size={13} />
               <span>Slide Deck</span>
@@ -546,11 +545,10 @@ const PresentationDeckCard = ({ data, originalContent }) => {
             <button
               type="button"
               onClick={() => setViewMode("outline")}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
-                viewMode === "outline"
-                  ? "bg-amber-500/20 text-amber-600 dark:text-amber-300 shadow-xs"
-                  : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
-              }`}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${viewMode === "outline"
+                ? "bg-amber-500/20 text-amber-600 dark:text-amber-300 shadow-xs"
+                : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                }`}
             >
               <List size={13} />
               <span>Outline</span>
@@ -632,11 +630,10 @@ const PresentationDeckCard = ({ data, originalContent }) => {
               type="button"
               disabled={activeIdx === 0}
               onClick={() => setActiveIdx((prev) => Math.max(0, prev - 1))}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
-                activeIdx === 0
-                  ? "opacity-35 cursor-not-allowed border-slate-200 dark:border-white/[0.06] text-slate-400 dark:text-slate-500"
-                  : "bg-white dark:bg-white/[0.04] hover:bg-slate-100 dark:hover:bg-white/[0.08] border-slate-200 dark:border-white/[0.1] text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer"
-              }`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${activeIdx === 0
+                ? "opacity-35 cursor-not-allowed border-slate-200 dark:border-white/[0.06] text-slate-400 dark:text-slate-500"
+                : "bg-white dark:bg-white/[0.04] hover:bg-slate-100 dark:hover:bg-white/[0.08] border-slate-200 dark:border-white/[0.1] text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer"
+                }`}
             >
               <ChevronLeft size={14} />
               <span>Previous</span>
@@ -648,11 +645,10 @@ const PresentationDeckCard = ({ data, originalContent }) => {
                   key={idx}
                   type="button"
                   onClick={() => setActiveIdx(idx)}
-                  className={`h-2 rounded-full transition-all cursor-pointer ${
-                    activeIdx === idx
-                      ? "w-6 bg-amber-500 shadow-xs shadow-amber-500/50"
-                      : "w-2 bg-slate-300 dark:bg-white/20 hover:bg-slate-400 dark:hover:bg-white/40"
-                  }`}
+                  className={`h-2 rounded-full transition-all cursor-pointer ${activeIdx === idx
+                    ? "w-6 bg-amber-500 shadow-xs shadow-amber-500/50"
+                    : "w-2 bg-slate-300 dark:bg-white/20 hover:bg-slate-400 dark:hover:bg-white/40"
+                    }`}
                   title={`Jump to slide ${idx + 1}: ${s.title}`}
                 />
               ))}
@@ -662,11 +658,10 @@ const PresentationDeckCard = ({ data, originalContent }) => {
               type="button"
               disabled={activeIdx === slides.length - 1}
               onClick={() => setActiveIdx((prev) => Math.min(slides.length - 1, prev + 1))}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
-                activeIdx === slides.length - 1
-                  ? "opacity-35 cursor-not-allowed border-slate-200 dark:border-white/[0.06] text-slate-400 dark:text-slate-500"
-                  : "bg-white dark:bg-white/[0.04] hover:bg-slate-100 dark:hover:bg-white/[0.08] border-slate-200 dark:border-white/[0.1] text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer"
-              }`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${activeIdx === slides.length - 1
+                ? "opacity-35 cursor-not-allowed border-slate-200 dark:border-white/[0.06] text-slate-400 dark:text-slate-500"
+                : "bg-white dark:bg-white/[0.04] hover:bg-slate-100 dark:hover:bg-white/[0.08] border-slate-200 dark:border-white/[0.1] text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer"
+                }`}
             >
               <span>Next</span>
               <ChevronRight size={14} />
@@ -803,16 +798,19 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
 
   if (isUser) {
     const pdfMatch = typeof content === "string" ? content.match(/📄\s*\*\*\[PDF:\s*([^\]]+)\]\*\*/) : null;
-    const imageMatch = typeof content === "string" ? content.match(/🖼️\s*\*\*\[Image:\s*([^\]]+)\]\*\*/) : null;
+    const imageMatch = typeof content === "string" ? content.match(/🖼️\s*\*\*\[(?:Images?):\s*([^\]]+)\]\*\*/) : null;
     const detectedPdfName = pdfMatch ? pdfMatch[1].trim() : (props?.pdf?.name || null);
-    const detectedImageName = imageMatch ? imageMatch[1].trim() : (props?.image?.name || null);
+    const detectedImageNames = imageMatch
+      ? imageMatch[1].split(",").map((s) => s.trim()).filter(Boolean)
+      : (props?.image?.name ? [props.image.name] : []);
+    const detectedImageName = detectedImageNames.length > 0 ? detectedImageNames[0] : null;
 
     let cleanUserText = displayText;
     if (pdfMatch) {
       cleanUserText = cleanUserText.replace(/📄\s*\*\*\[PDF:\s*([^\]]+)\]\*\*\s*/g, "").trim();
     }
     if (imageMatch) {
-      cleanUserText = cleanUserText.replace(/🖼️\s*\*\*\[Image:\s*([^\]]+)\]\*\*\s*/g, "").trim();
+      cleanUserText = cleanUserText.replace(/🖼️\s*\*\*\[(?:Images?):\s*([^\]]+)\]\*\*\s*/g, "").trim();
     }
 
     const resolvedPdfUrl =
@@ -820,11 +818,20 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
       (detectedPdfName && typeof window !== "undefined" && window.__pdfBlobCache?.get(detectedPdfName)) ||
       null;
 
-    const resolvedImages = (Array.isArray(images) && images.length > 0)
+    let resolvedImages = (Array.isArray(images) && images.length > 0)
       ? images
-      : (detectedImageName && typeof window !== "undefined" && window.__imageBlobCache?.has(detectedImageName))
-        ? [window.__imageBlobCache.get(detectedImageName)]
-        : (props?.imageUrl ? [props.imageUrl] : []);
+      : [];
+    if (resolvedImages.length === 0 && detectedImageNames.length > 0 && typeof window !== "undefined") {
+      const fromCache = detectedImageNames
+        .map((name) => window.__imageBlobCache?.get(name))
+        .filter(Boolean);
+      if (fromCache.length > 0) {
+        resolvedImages = fromCache;
+      }
+    }
+    if (resolvedImages.length === 0 && props?.imageUrl) {
+      resolvedImages = [props.imageUrl];
+    }
 
     return (
       <motion.div
@@ -836,48 +843,51 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
         <div className="max-w-[85%] sm:max-w-[78%] md:max-w-[72%] px-4 py-3 rounded-2xl rounded-tr-sm bg-linear-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/15 text-[13.5px] sm:text-[14px] leading-relaxed break-words flex flex-col gap-2.5">
           {resolvedImages.length > 0 && (
             <div className="flex flex-wrap gap-2.5 not-prose">
-              {resolvedImages.map((imgUrl, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => dispatch(setActiveArtifact({
-                    type: 'image',
-                    title: detectedImageName || 'Attached Image',
-                    imageUrl: imgUrl
-                  }))}
-                  className="group relative rounded-xl overflow-hidden border border-white/30 hover:border-white/80 shadow-md hover:shadow-lg cursor-pointer transition-all bg-black/20"
-                  title="Click to show image in Artifact panel"
-                >
-                  <div className="w-28 h-28 sm:w-32 sm:h-32 overflow-hidden relative bg-indigo-950/50 flex items-center justify-center">
-                    <ImageIcon size={28} className="text-white/30 absolute pointer-events-none" />
-                    <img
-                      src={imgUrl}
-                      alt={detectedImageName || "Attached visual"}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 relative z-1"
-                      onError={(e) => {
-                        if (detectedImageName && typeof window !== "undefined" && window.__imageBlobCache?.has(detectedImageName)) {
-                          const cached = window.__imageBlobCache.get(detectedImageName);
-                          if (cached && cached !== e.target.src) {
-                            e.target.src = cached;
-                            return;
+              {resolvedImages.map((imgUrl, idx) => {
+                const thisImgName = detectedImageNames[idx] || (detectedImageNames.length === 1 ? detectedImageNames[0] : `Image ${idx + 1}`);
+                return (
+                  <div
+                    key={idx}
+                    onClick={() => dispatch(setActiveArtifact({
+                      type: 'image',
+                      title: thisImgName,
+                      imageUrl: imgUrl
+                    }))}
+                    className="group relative rounded-xl overflow-hidden border border-white/30 hover:border-white/80 shadow-md hover:shadow-lg cursor-pointer transition-all bg-black/20"
+                    title="Click to show image in Artifact panel"
+                  >
+                    <div className="w-28 h-28 sm:w-32 sm:h-32 overflow-hidden relative bg-indigo-950/50 flex items-center justify-center">
+                      <ImageIcon size={28} className="text-white/30 absolute pointer-events-none" />
+                      <img
+                        src={imgUrl}
+                        alt={thisImgName}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 relative z-1"
+                        onError={(e) => {
+                          if (thisImgName && typeof window !== "undefined" && window.__imageBlobCache?.has(thisImgName)) {
+                            const cached = window.__imageBlobCache.get(thisImgName);
+                            if (cached && cached !== e.target.src) {
+                              e.target.src = cached;
+                              return;
+                            }
                           }
-                        }
-                        e.target.style.display = 'none';
-                      }}
-                    />
-                  </div>
-                  <div className="absolute inset-0 bg-linear-to-t from-black/75 via-black/20 to-transparent opacity-90 group-hover:opacity-100 flex flex-col justify-end p-2 transition-opacity">
-                    <div className="flex items-center justify-between gap-1">
-                      <span className="text-[10px] font-semibold text-white/90 truncate max-w-[80px]">
-                        {detectedImageName || 'Image'}
-                      </span>
-                      <span className="flex items-center gap-1 text-[10px] font-medium text-white bg-white/20 group-hover:bg-indigo-500/80 px-1.5 py-0.5 rounded-md backdrop-blur-xs transition-colors">
-                        <Sparkles size={10} className="text-amber-300" />
-                        <span>Artifact</span>
-                      </span>
+                          e.target.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                    <div className="absolute inset-0 bg-linear-to-t from-black/75 via-black/20 to-transparent opacity-90 group-hover:opacity-100 flex flex-col justify-end p-2 transition-opacity">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-[10px] font-semibold text-white/90 truncate max-w-[80px]">
+                          {thisImgName}
+                        </span>
+                        <span className="flex items-center gap-1 text-[10px] font-medium text-white bg-white/20 group-hover:bg-indigo-500/80 px-1.5 py-0.5 rounded-md backdrop-blur-xs transition-colors">
+                          <Sparkles size={10} className="text-amber-300" />
+                          <span>Artifact</span>
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -1017,60 +1027,60 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                     const filesCount = art.files?.length || 0;
                     const resolvedTitle = getArtifactTitle(art, content);
                     return (
-                    <motion.div
-                      key={art.id || idx}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      whileHover={{ y: -2 }}
-                      transition={{ duration: 0.2 }}
-                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-linear-to-r from-indigo-50/80 via-white to-violet-50/80 dark:from-indigo-950/40 dark:via-[#111422] dark:to-violet-950/30 border border-indigo-200 hover:border-indigo-300 dark:border-indigo-500/25 dark:hover:border-indigo-500/40 shadow-xs dark:shadow-indigo-500/5 group transition-colors duration-200"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-500/15 to-violet-600/25 dark:from-indigo-500/20 dark:to-violet-600/30 border border-indigo-200 dark:border-indigo-500/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 shadow-xs">
-                          <FolderCode size={20} />
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-slate-800 dark:text-slate-100 text-sm truncate">
-                              {resolvedTitle}
-                            </span>
-                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-500/15 border border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-300 shrink-0">
-                              {filesCount} {filesCount === 1 ? "file" : "files"}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1.5 mt-1 overflow-x-auto [scrollbar-width:none]">
-                            {(art.files || []).slice(0, 4).map((f, fi) => (
-                              <span
-                                key={fi}
-                                className="inline-flex items-center gap-1 text-[11px] font-mono text-slate-600 dark:text-slate-400 bg-white dark:bg-white/[0.04] px-2 py-0.5 rounded-md border border-slate-200 dark:border-white/[0.06]"
-                              >
-                                <FileCode size={10} className="text-indigo-500 dark:text-indigo-400" />
-                                {f.name}
-                              </span>
-                            ))}
-                            {(art.files?.length || 0) > 4 && (
-                              <span className="text-[10px] text-slate-400 dark:text-slate-500">
-                                +{art.files.length - 4} more
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      <motion.button
-                        type="button"
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.96 }}
-                        onClick={() => dispatch(setActiveArtifact({ ...art, title: resolvedTitle }))}
-                        className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-white bg-linear-to-r from-indigo-500 to-violet-600 hover:from-indigo-400 hover:to-violet-500 border border-indigo-400/30 shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all duration-150 cursor-pointer shrink-0 self-stretch sm:self-auto justify-center"
+                      <motion.div
+                        key={art.id || idx}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        whileHover={{ y: -2 }}
+                        transition={{ duration: 0.2 }}
+                        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-linear-to-r from-indigo-50/80 via-white to-violet-50/80 dark:from-indigo-950/40 dark:via-[#111422] dark:to-violet-950/30 border border-indigo-200 hover:border-indigo-300 dark:border-indigo-500/25 dark:hover:border-indigo-500/40 shadow-xs dark:shadow-indigo-500/5 group transition-colors duration-200"
                       >
-                        <Play size={13} className="fill-white" />
-                        <span>Open & Preview</span>
-                      </motion.button>
-                    </motion.div>
-                  );
-                })}
-              </div>
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-500/15 to-violet-600/25 dark:from-indigo-500/20 dark:to-violet-600/30 border border-indigo-200 dark:border-indigo-500/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 shadow-xs">
+                            <FolderCode size={20} />
+                          </div>
+                          <div className="flex flex-col min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-slate-800 dark:text-slate-100 text-sm truncate">
+                                {resolvedTitle}
+                              </span>
+                              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-500/15 border border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-300 shrink-0">
+                                {filesCount} {filesCount === 1 ? "file" : "files"}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5 mt-1 overflow-x-auto [scrollbar-width:none]">
+                              {(art.files || []).slice(0, 4).map((f, fi) => (
+                                <span
+                                  key={fi}
+                                  className="inline-flex items-center gap-1 text-[11px] font-mono text-slate-600 dark:text-slate-400 bg-white dark:bg-white/[0.04] px-2 py-0.5 rounded-md border border-slate-200 dark:border-white/[0.06]"
+                                >
+                                  <FileCode size={10} className="text-indigo-500 dark:text-indigo-400" />
+                                  {f.name}
+                                </span>
+                              ))}
+                              {(art.files?.length || 0) > 4 && (
+                                <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                                  +{art.files.length - 4} more
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <motion.button
+                          type="button"
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.96 }}
+                          onClick={() => dispatch(setActiveArtifact({ ...art, title: resolvedTitle }))}
+                          className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-white bg-linear-to-r from-indigo-500 to-violet-600 hover:from-indigo-400 hover:to-violet-500 border border-indigo-400/30 shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all duration-150 cursor-pointer shrink-0 self-stretch sm:self-auto justify-center"
+                        >
+                          <Play size={13} className="fill-white" />
+                          <span>Open & Preview</span>
+                        </motion.button>
+                      </motion.div>
+                    );
+                  })}
+                </div>
               );
             })()}
             {pptData ? (
@@ -1079,167 +1089,166 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
-                code({ node, inline, className, children, ...props }) {
-                  const match = /language-(\w+)/.exec(className || "");
-                  const codeString = String(children).replace(/\n$/, "");
+                  code({ node, inline, className, children, ...props }) {
+                    const match = /language-(\w+)/.exec(className || "");
+                    const codeString = String(children).replace(/\n$/, "");
 
-                  if (!inline && (match || codeString.includes("\n"))) {
-                    return <CodeBlock language={match ? match[1] : ""} value={codeString} />;
-                  }
-
-                  return (
-                    <code
-                      className="px-1.5 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30 font-mono text-[12.5px] font-medium"
-                      {...props}
-                    >
-                      {children}
-                    </code>
-                  );
-                },
-                p({ children }) {
-                  return <p className="mb-2.5 last:mb-0 leading-relaxed text-slate-800 dark:text-slate-200">{children}</p>;
-                },
-                h1({ children }) {
-                  return <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 mt-3.5 mb-2 tracking-tight">{children}</h1>;
-                },
-                h2({ children }) {
-                  return <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100 mt-3 mb-1.5 tracking-tight">{children}</h2>;
-                },
-                h3({ children }) {
-                  return <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mt-2.5 mb-1">{children}</h3>;
-                },
-                ul({ children }) {
-                  return <ul className="list-disc pl-5 space-y-1 mb-2.5 text-slate-800 dark:text-slate-200">{children}</ul>;
-                },
-                ol({ children }) {
-                  return <ol className="list-decimal pl-5 space-y-1 mb-2.5 text-slate-800 dark:text-slate-200">{children}</ol>;
-                },
-                li({ children }) {
-                  return <li className="leading-relaxed">{children}</li>;
-                },
-                blockquote({ children }) {
-                  return (
-                    <blockquote className="border-l-2 border-indigo-400 dark:border-indigo-500/50 pl-3.5 py-1.5 my-2.5 italic text-slate-700 dark:text-slate-300 bg-indigo-50/60 dark:bg-indigo-500/5 rounded-r-lg">
-                      {children}
-                    </blockquote>
-                  );
-                },
-                table({ children }) {
-                  return (
-                    <div className="overflow-x-auto my-3 rounded-lg border border-slate-200 dark:border-white/[0.08]">
-                      <table className="min-w-full divide-y divide-slate-200 dark:divide-white/[0.08] text-xs text-left">
-                        {children}
-                      </table>
-                    </div>
-                  );
-                },
-                th({ children }) {
-                  return (
-                    <th className="px-3 py-2 bg-slate-100 dark:bg-white/[0.04] font-semibold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                      {children}
-                    </th>
-                  );
-                },
-                td({ children }) {
-                  return (
-                    <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-t border-slate-200 dark:border-white/[0.05]">
-                      {children}
-                    </td>
-                  );
-                },
-                a({ href, children }) {
-                  const isPdf = href && (href.endsWith(".pdf") || href.includes("download-pdf"));
-                  const isPpt =
-                    href &&
-                    (href.endsWith(".pptx") ||
-                      href.endsWith(".ppt") ||
-                      href.includes("download-ppt") ||
-                      href.includes("download-pptx"));
-                  const isDownload =
-                    isPdf ||
-                    isPpt ||
-                    (href &&
-                      (href.includes("download") ||
-                        (typeof children === "string" &&
-                          children.toLowerCase().includes("download"))));
-
-                  if (isDownload) {
-                    let finalUrl = href;
-                    let downloadFilename = isPpt ? "presentation.pptx" : "document.pdf";
-                    try {
-                      const parsed = new URL(href, window.location.origin);
-                      const queryFilename = parsed.searchParams.get("filename");
-                      if (queryFilename) {
-                        downloadFilename = queryFilename;
-                      } else {
-                        const pathEnd = parsed.pathname.split("/").pop();
-                        if (
-                          pathEnd &&
-                          (pathEnd.endsWith(".pdf") ||
-                            pathEnd.endsWith(".pptx") ||
-                            pathEnd.endsWith(".ppt"))
-                        ) {
-                          downloadFilename = decodeURIComponent(pathEnd);
-                        }
-                      }
-                    } catch (e) {
-                      const lastPart = href.split("/").pop()?.split("?")[0];
-                      if (
-                        lastPart &&
-                        (lastPart.endsWith(".pdf") ||
-                          lastPart.endsWith(".pptx") ||
-                          lastPart.endsWith(".ppt"))
-                      ) {
-                        downloadFilename = decodeURIComponent(lastPart);
-                      }
-                    }
-
-                    if (href.includes("res.cloudinary.com") && href.includes("/raw/upload/")) {
-                      const proxyBase = import.meta.env.VITE_AGENT_URL || import.meta.env.VITE_SERVER_URL || "";
-                      finalUrl = `${proxyBase}/proxy-pdf?url=${encodeURIComponent(href)}&filename=${encodeURIComponent(downloadFilename)}`;
+                    if (!inline && (match || codeString.includes("\n"))) {
+                      return <CodeBlock language={match ? match[1] : ""} value={codeString} />;
                     }
 
                     return (
-                      <motion.a
-                        href={finalUrl}
-                        download={downloadFilename}
-                        target="_self"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className={`inline-flex items-center gap-2 px-4 py-2.5 my-2 rounded-xl text-white font-semibold text-xs shadow-lg transition-all not-prose no-underline cursor-pointer select-none ${
-                          isPpt
+                      <code
+                        className="px-1.5 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30 font-mono text-[12.5px] font-medium"
+                        {...props}
+                      >
+                        {children}
+                      </code>
+                    );
+                  },
+                  p({ children }) {
+                    return <p className="mb-2.5 last:mb-0 leading-relaxed text-slate-800 dark:text-slate-200">{children}</p>;
+                  },
+                  h1({ children }) {
+                    return <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 mt-3.5 mb-2 tracking-tight">{children}</h1>;
+                  },
+                  h2({ children }) {
+                    return <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100 mt-3 mb-1.5 tracking-tight">{children}</h2>;
+                  },
+                  h3({ children }) {
+                    return <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mt-2.5 mb-1">{children}</h3>;
+                  },
+                  ul({ children }) {
+                    return <ul className="list-disc pl-5 space-y-1 mb-2.5 text-slate-800 dark:text-slate-200">{children}</ul>;
+                  },
+                  ol({ children }) {
+                    return <ol className="list-decimal pl-5 space-y-1 mb-2.5 text-slate-800 dark:text-slate-200">{children}</ol>;
+                  },
+                  li({ children }) {
+                    return <li className="leading-relaxed">{children}</li>;
+                  },
+                  blockquote({ children }) {
+                    return (
+                      <blockquote className="border-l-2 border-indigo-400 dark:border-indigo-500/50 pl-3.5 py-1.5 my-2.5 italic text-slate-700 dark:text-slate-300 bg-indigo-50/60 dark:bg-indigo-500/5 rounded-r-lg">
+                        {children}
+                      </blockquote>
+                    );
+                  },
+                  table({ children }) {
+                    return (
+                      <div className="overflow-x-auto my-3 rounded-lg border border-slate-200 dark:border-white/[0.08]">
+                        <table className="min-w-full divide-y divide-slate-200 dark:divide-white/[0.08] text-xs text-left">
+                          {children}
+                        </table>
+                      </div>
+                    );
+                  },
+                  th({ children }) {
+                    return (
+                      <th className="px-3 py-2 bg-slate-100 dark:bg-white/[0.04] font-semibold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                        {children}
+                      </th>
+                    );
+                  },
+                  td({ children }) {
+                    return (
+                      <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-t border-slate-200 dark:border-white/[0.05]">
+                        {children}
+                      </td>
+                    );
+                  },
+                  a({ href, children }) {
+                    const isPdf = href && (href.endsWith(".pdf") || href.includes("download-pdf"));
+                    const isPpt =
+                      href &&
+                      (href.endsWith(".pptx") ||
+                        href.endsWith(".ppt") ||
+                        href.includes("download-ppt") ||
+                        href.includes("download-pptx"));
+                    const isDownload =
+                      isPdf ||
+                      isPpt ||
+                      (href &&
+                        (href.includes("download") ||
+                          (typeof children === "string" &&
+                            children.toLowerCase().includes("download"))));
+
+                    if (isDownload) {
+                      let finalUrl = href;
+                      let downloadFilename = isPpt ? "presentation.pptx" : "document.pdf";
+                      try {
+                        const parsed = new URL(href, window.location.origin);
+                        const queryFilename = parsed.searchParams.get("filename");
+                        if (queryFilename) {
+                          downloadFilename = queryFilename;
+                        } else {
+                          const pathEnd = parsed.pathname.split("/").pop();
+                          if (
+                            pathEnd &&
+                            (pathEnd.endsWith(".pdf") ||
+                              pathEnd.endsWith(".pptx") ||
+                              pathEnd.endsWith(".ppt"))
+                          ) {
+                            downloadFilename = decodeURIComponent(pathEnd);
+                          }
+                        }
+                      } catch (e) {
+                        const lastPart = href.split("/").pop()?.split("?")[0];
+                        if (
+                          lastPart &&
+                          (lastPart.endsWith(".pdf") ||
+                            lastPart.endsWith(".pptx") ||
+                            lastPart.endsWith(".ppt"))
+                        ) {
+                          downloadFilename = decodeURIComponent(lastPart);
+                        }
+                      }
+
+                      if (href.includes("res.cloudinary.com") && href.includes("/raw/upload/")) {
+                        const proxyBase = import.meta.env.VITE_AGENT_URL || import.meta.env.VITE_SERVER_URL || "";
+                        finalUrl = `${proxyBase}/proxy-pdf?url=${encodeURIComponent(href)}&filename=${encodeURIComponent(downloadFilename)}`;
+                      }
+
+                      return (
+                        <motion.a
+                          href={finalUrl}
+                          download={downloadFilename}
+                          target="_self"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className={`inline-flex items-center gap-2 px-4 py-2.5 my-2 rounded-xl text-white font-semibold text-xs shadow-lg transition-all not-prose no-underline cursor-pointer select-none ${isPpt
                             ? "bg-linear-to-r from-amber-600 via-orange-600 to-rose-600 hover:from-amber-500 hover:to-rose-500 shadow-orange-500/25"
                             : "bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-indigo-500/25"
-                        }`}
-                      >
-                        {isPpt ? <Presentation size={15} /> : <FileText size={15} />}
-                        <span>{children}</span>
-                      </motion.a>
-                    );
-                  }
+                            }`}
+                        >
+                          {isPpt ? <Presentation size={15} /> : <FileText size={15} />}
+                          <span>{children}</span>
+                        </motion.a>
+                      );
+                    }
 
-                  return (
-                    <a
-                      href={href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 underline underline-offset-2 transition-colors flex items-center gap-1"
-                    >
-                      {children}
-                      <ExternalLink size={14} />
-                    </a>
-                  );
-                },
-                hr() {
-                  return <hr className="border-slate-200 dark:border-white/[0.08] my-3" />;
-                },
-                img() {
-                  return null;
-                },
-              }}
-            >
-              {displayText}
-            </ReactMarkdown>
+                    return (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 underline underline-offset-2 transition-colors flex items-center gap-1"
+                      >
+                        {children}
+                        <ExternalLink size={14} />
+                      </a>
+                    );
+                  },
+                  hr() {
+                    return <hr className="border-slate-200 dark:border-white/[0.08] my-3" />;
+                  },
+                  img() {
+                    return null;
+                  },
+                }}
+              >
+                {displayText}
+              </ReactMarkdown>
             )}
           </div>
         )}
