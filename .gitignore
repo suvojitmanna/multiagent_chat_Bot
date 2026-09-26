@@ -3,7 +3,7 @@ node_modules/
 /.pnp
 .pnp.js
 
-# Environment variables & secrets
+# Environment variables
 .env
 .env.local
 .env.development.local
@@ -13,7 +13,7 @@ node_modules/
 !.env.example
 
 # Logs
-logs
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -21,7 +21,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Build outputs & caches
+# Build outputs
 dist/
 build/
 out/
@@ -30,11 +30,11 @@ out/
 .parcel-cache/
 .turbo/
 
-# Testing & coverage
+# Testing
 coverage/
 .nyc_output/
 
-# IDE & Editor files
+# IDE
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -47,12 +47,15 @@ coverage/
 *.sln
 *.sw?
 
-# Data
-data/
+# Generated data/files
+server/services/agent/data/vectors/*
+!server/services/agent/data/vectors/.gitkeep
 
-# Public temporary files
-public/temp/
+server/services/agent/public/ppts/*
+!server/services/agent/public/ppts/.gitkeep
 
-# Uploaded files
-uploads/
-public/uploads/
+server/services/agent/public/temp/*
+!server/services/agent/public/temp/.gitkeep
+
+server/services/agent/uploads/*
+!server/services/agent/uploads/.gitkeep

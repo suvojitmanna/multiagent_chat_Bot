@@ -727,16 +727,19 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
 
   useEffect(() => {
     const el = artifactCardRef.current;
-    if (!el || !Array.isArray(artifacts) || artifacts.length === 0) return;
+    const validArts = (Array.isArray(artifacts) ? artifacts : []).filter(
+      (a) => Array.isArray(a?.files) && a.files.length > 0
+    );
+    if (!el || validArts.length === 0) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          const firstArt = artifacts[0];
+          const firstArt = validArts[0];
           const resolvedTitle = getArtifactTitle(firstArt, content);
           dispatch(setVisibleArtifact({ ...firstArt, title: resolvedTitle }));
         } else {
-          dispatch(clearVisibleArtifact(artifacts[0]?.id));
+          dispatch(clearVisibleArtifact(validArts[0]?.id));
         }
       },
       {
@@ -747,7 +750,7 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
     observer.observe(el);
     return () => {
       observer.disconnect();
-      dispatch(clearVisibleArtifact(artifacts[0]?.id));
+      dispatch(clearVisibleArtifact(validArts[0]?.id));
     };
   }, [artifacts, content, dispatch]);
 
@@ -906,12 +909,18 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                 </div>
               </div>
             )}
-            {Array.isArray(artifacts) && artifacts.length > 0 && (
-              <div ref={artifactCardRef} className="mb-4 flex flex-col gap-2.5 not-prose">
-                {artifacts.map((art, idx) => {
-                  const filesCount = art.files?.length || 0;
-                  const resolvedTitle = getArtifactTitle(art, content);
-                  return (
+            {(() => {
+              const codeArtifacts = (Array.isArray(artifacts) ? artifacts : []).filter(
+                (art) => Array.isArray(art?.files) && art.files.length > 0
+              );
+              if (codeArtifacts.length === 0) return null;
+
+              return (
+                <div ref={artifactCardRef} className="mb-4 flex flex-col gap-2.5 not-prose">
+                  {codeArtifacts.map((art, idx) => {
+                    const filesCount = art.files?.length || 0;
+                    const resolvedTitle = getArtifactTitle(art, content);
+                    return (
                     <motion.div
                       key={art.id || idx}
                       initial={{ opacity: 0, y: 8 }}
@@ -966,7 +975,8 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                   );
                 })}
               </div>
-            )}
+              );
+            })()}
             {pptData ? (
               <PresentationDeckCard data={pptData} originalContent={displayText} />
             ) : (

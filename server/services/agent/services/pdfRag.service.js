@@ -164,12 +164,43 @@ class PdfRagService {
     const recentHistory = await safeRedis.getChatHistory(userId, effectiveConvId, 6);
 
     const queryEmbedding = await embedQuery(trimmedQuestion);
-    const relevantChunks = customVectorDB.search({
+
+    // Direct page matching if user specifies a page (e.g. "Summarize page 1 for me")
+    const pageMatch =
+      trimmedQuestion.match(/\bpage\s*(\d+)\b/i) ||
+      (trimmedQuestion.match(/\b(first|1st)\s+page\b/i) ? [, "1"] : null) ||
+      (trimmedQuestion.match(/\b(second|2nd)\s+page\b/i) ? [, "2"] : null) ||
+      (trimmedQuestion.match(/\b(third|3rd)\s+page\b/i) ? [, "3"] : null);
+
+    let pageChunks = [];
+    if (pageMatch && pageMatch[1]) {
+      const targetPage = parseInt(pageMatch[1], 10);
+      const allDocChunks = customVectorDB.getByDocumentId(documentId);
+      pageChunks = allDocChunks.filter((c) => Number(c.pageNumber) === targetPage);
+    }
+
+    let relevantChunks = customVectorDB.search({
       queryEmbedding,
       documentId,
       topK: Number(topK) || 5,
-      minScore: Number(minScore) || 0.2,
+      minScore: 0.15,
     });
+
+    if (pageChunks.length > 0) {
+      const existingIds = new Set(pageChunks.map((c) => c.id));
+      relevantChunks = [
+        ...pageChunks.map((c) => ({ ...c, score: 1.0 })),
+        ...relevantChunks.filter((c) => !existingIds.has(c.id)),
+      ].slice(0, 8);
+    } else if (relevantChunks.length === 0) {
+      // Fallback search with no score threshold to guarantee best matching chunks are retrieved
+      relevantChunks = customVectorDB.search({
+        queryEmbedding,
+        documentId,
+        topK: Number(topK) || 5,
+        minScore: 0.0,
+      });
+    }
 
     console.log(
       `[PdfRagService] Custom vector search retrieved ${relevantChunks.length} chunks for document ${documentId} (top score: ${relevantChunks[0]?.score || 0})`
