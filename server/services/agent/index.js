@@ -5,6 +5,8 @@ import fs from "fs";
 import axios from "axios";
 import connectDb from "./config/db.js";
 import router from "./routes/agent.route.js";
+import pdfRagRoutes from "./routes/pdfRag.route.js";
+import { customVectorDB } from "./utils/vectorStore.js";
 import { getCloudinaryDownloadUrl } from "./config/cloudinary.js";
 
 const port = process.env.PORT || 8003;
@@ -23,9 +25,16 @@ if (!fs.existsSync(pptsDir)) {
 app.use(express.json());
 
 app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+  }
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-user-id");
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
   next();
 });
 
@@ -88,6 +97,9 @@ app.get("/proxy-pdf", async (req, res) => {
   }
 });
 
+app.use("/pdf", pdfRagRoutes);
+app.use("/api/pdf", pdfRagRoutes);
+
 app.use("/", router);
 
 app.get("/", (req, res) => {
@@ -98,7 +110,8 @@ app.get("/agent", (req, res) => {
   res.json({ status: "ok", service: "agent" });
 });
 
-app.listen(port, () => {
+app.listen(port, async () => {
   console.log(`agent service is running on port ${port}`);
-  connectDb();
+  await connectDb();
+  await customVectorDB.init();
 });

@@ -5,8 +5,9 @@ import { addMessage } from "../config/memory.js";
 export const agent = async (req, res) => {
   try {
     const { prompt, conversationId, agent } = req.body;
-    if (!prompt) {
-      return res.status(400).json({ error: "Prompt is required" });
+    const file = req.file;
+    if (!prompt && !file) {
+      return res.status(400).json({ error: "Prompt or file is required" });
     }
 
     const userId = req.headers["x-user-id"];
@@ -19,8 +20,10 @@ export const agent = async (req, res) => {
       search: 5,
       coding: 10,
       pdf: 10,
+      pdfrag: 10,
       ppt: 10,
       image: 10,
+      imageanalyzer: 10,
     };
     const normalizedAgent = String(agent || "auto")
       .toLowerCase()
@@ -69,6 +72,9 @@ export const agent = async (req, res) => {
       prompt,
       conversationId,
       agent,
+      file,
+      userId,
+      documentId: req.body?.documentId,
     });
 
     const response =

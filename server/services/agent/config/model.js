@@ -41,13 +41,32 @@ export const getGemini = () => {
   }
   return geminiInstance;
 };
+let openRouterInstance = null;
+export const getOpenRouter = () => {
+  if (!openRouterInstance) {
+    const rawKey = process.env.OPENROUTER_API_KEY || "";
+    const apiKey = rawKey.trim().replace(/^["']|["']$/g, "").trim();
+    if (!apiKey) {
+      throw new Error(
+        "OpenRouter API key not found. Please set OPENROUTER_API_KEY in server/services/agent/.env"
+      );
+    }
+    openRouterInstance = new ChatOpenRouter({
+      apiKey,
+      model: process.env.OPENROUTER_MODEL || "deepseek/deepseek-chat",
+      temperature: 0.2,
+      maxTokens: parseInt(process.env.OPENROUTER_MAX_TOKENS || "4096", 10),
+    });
+  }
+  return openRouterInstance;
+};
 
-export const openRouter = new ChatOpenRouter({
-  apiKey: process.env.OPENROUTER_API_KEY?.trim()?.replace(/^"|"$/g, ""),
-  model: process.env.OPENROUTER_MODEL || "deepseek/deepseek-chat",
-  temperature: 0.2,
-  maxTokens: parseInt(process.env.OPENROUTER_MAX_TOKENS || "4096", 10),
-});
+export const openRouter = new Proxy(
+  {},
+  {
+    get: (_, prop) => getOpenRouter()[prop],
+  }
+);
 
 export const getModel = (param = {}) => {
   const agent = typeof param === "string" ? param : param?.agent;
@@ -63,6 +82,10 @@ export const getModel = (param = {}) => {
       return getGroq();
     case "coding":
       return openRouter;
+    case "imageAnalyzer":
+      return gemini;
+    case "pdfRag":
+      return getGroq();
     default:
       return getGroq();
   }

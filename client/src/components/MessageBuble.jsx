@@ -720,7 +720,7 @@ const PresentationDeckCard = ({ data, originalContent }) => {
   );
 };
 
-const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking = false, sidebarCollapsed = false }) => {
+const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking = false, sidebarCollapsed = false, ...props }) => {
   const dispatch = useDispatch();
   const [lightBox, setLightBox] = useState(null);
   const artifactCardRef = useRef(null);
@@ -782,6 +782,12 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
   const pptData = useMemo(() => parsePresentationData(displayText), [displayText]);
 
   if (isUser) {
+    const pdfMatch = typeof content === "string" ? content.match(/📄\s*\*\*\[PDF:\s*([^\]]+)\]\*\*/) : null;
+    const detectedPdfName = pdfMatch ? pdfMatch[1].trim() : (props?.pdf?.name || null);
+    const cleanUserText = detectedPdfName
+      ? content.replace(/📄\s*\*\*\[PDF:\s*([^\]]+)\]\*\*\s*/, "").trim()
+      : displayText;
+
     return (
       <motion.div
         initial={{ opacity: 0, y: 10, scale: 0.98 }}
@@ -789,8 +795,56 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
         transition={{ duration: 0.22, ease: "easeOut" }}
         className="flex items-start my-1.5 w-full justify-end"
       >
-        <div className="max-w-[85%] sm:max-w-[78%] md:max-w-[72%] px-4 py-2.5 rounded-2xl rounded-tr-sm bg-linear-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/15 text-[13.5px] sm:text-[14px] leading-relaxed whitespace-pre-wrap break-words">
-          {displayText}
+        <div className="max-w-[85%] sm:max-w-[78%] md:max-w-[72%] px-4 py-2.5 rounded-2xl rounded-tr-sm bg-linear-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/15 text-[13.5px] sm:text-[14px] leading-relaxed break-words flex flex-col gap-2">
+          {Array.isArray(images) && images.length > 0 && (
+            <div className="flex flex-wrap gap-2 not-prose">
+              {images.map((imgUrl, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => dispatch(setActiveArtifact({
+                    type: 'image',
+                    title: 'Attached Image',
+                    imageUrl: imgUrl
+                  }))}
+                  className="w-24 h-24 rounded-xl overflow-hidden border border-white/25 hover:border-white/70 shadow-md cursor-pointer group transition-all relative shrink-0"
+                  title="Click to view image in Artifact panel"
+                >
+                  <img src={imgUrl} alt="Attached visual" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                  <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                    <ExternalLink size={14} className="text-white drop-shadow" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {detectedPdfName && (
+            <div
+              onClick={() => dispatch(setActiveArtifact({
+                type: 'pdf',
+                title: detectedPdfName,
+                pdfUrl: props?.pdf?.url || undefined
+              }))}
+              className="flex items-center gap-2.5 p-2 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 hover:border-white/40 cursor-pointer transition-all group"
+              title="Click to view PDF in Artifact panel"
+            >
+              <div className="w-8 h-8 rounded-lg bg-rose-500/20 border border-rose-300/30 flex items-center justify-center text-rose-200 shrink-0">
+                <FileText size={16} />
+              </div>
+              <div className="flex flex-col min-w-0 pr-2">
+                <span className="text-xs font-semibold text-white truncate max-w-[220px]">
+                  {detectedPdfName}
+                </span>
+                <span className="text-[10px] text-indigo-100 group-hover:text-white transition-colors">
+                  Click to open in Artifact panel
+                </span>
+              </div>
+            </div>
+          )}
+
+          {cleanUserText && (
+            <div className="whitespace-pre-wrap">{cleanUserText}</div>
+          )}
         </div>
       </motion.div>
     );
@@ -827,9 +881,13 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                       key={idx}
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => setLightBox(imgUrl)}
+                      onClick={() => dispatch(setActiveArtifact({
+                        type: 'image',
+                        title: `Visual Reference ${idx + 1}`,
+                        imageUrl: imgUrl
+                      }))}
                       className="shrink-0 w-32 h-24 sm:w-40 sm:h-28 rounded-xl overflow-hidden border border-slate-200 dark:border-white/[0.08] hover:border-indigo-400 dark:hover:border-indigo-500/50 transition-colors duration-200 group relative block bg-slate-100 dark:bg-[#161822] cursor-pointer"
-                      title="Click to view full image"
+                      title="Click to view in Artifact panel"
                     >
                       <img
                         src={imgUrl}

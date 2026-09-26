@@ -8,7 +8,6 @@ import { setUserdata } from '../redux/userSlice'
 import Sidebar from '../components/Sidebar'
 import ChatArea from '../components/ChatArea'
 import Artifact from '../components/Artifact'
-
 const Home = () => {
     const userData = useSelector((state) => state.user?.userData)
     const dispatch = useDispatch()
@@ -42,7 +41,6 @@ const Home = () => {
 
         setLoginLoading(true)
 
-        // Native Google Identity Services OAuth2 token client
         if (window.google?.accounts?.oauth2) {
             try {
                 const tokenClient = window.google.accounts.oauth2.initTokenClient({
@@ -72,7 +70,6 @@ const Home = () => {
             }
         }
 
-        // Direct Browser OAuth2 popup fallback (zero scripts)
         try {
             const redirectUri = window.location.origin
             const scope = encodeURIComponent("openid email profile")
@@ -118,7 +115,6 @@ const Home = () => {
                         }
                     }
                 } catch (e) {
-                    // Cross-origin access until Google redirects back to window.location.origin
                 }
             }, 500)
         } catch (e) {
