@@ -47,4 +47,12 @@ coverage/
 *.sln
 *.sw?
 
+# Data
+data/
 
+# Public temporary files
+public/temp/
+
+# Uploaded files
+uploads/
+public/uploads/
