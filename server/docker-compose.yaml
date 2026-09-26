@@ -1,5 +1,19 @@
 services:
   redis:
-    image: redis
+    image: redis:alpine
+    container_name: redis
+    restart: unless-stopped
     ports:
-      - 6379:6379
+      - "6379:6379"
+
+  searxng:
+    image: searxng/searxng:latest
+    container_name: searxng
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./searxng:/etc/searxng:rw
+    environment:
+      - SEARXNG_BASE_URL=http://localhost:8080/
+      - SEARXNG_SECRET=ultrasecretkeyforsearxngmultiagentbot

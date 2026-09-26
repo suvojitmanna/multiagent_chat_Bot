@@ -8,6 +8,7 @@ import router from "./routes/agent.route.js";
 import pdfRagRoutes from "./routes/pdfRag.route.js";
 import { customVectorDB } from "./utils/vectorStore.js";
 import { getCloudinaryDownloadUrl } from "./config/cloudinary.js";
+import { checkSearxngConnection } from "./config/searxng.js";
 
 const port = process.env.PORT || 8003;
 const app = express();
@@ -114,4 +115,5 @@ app.listen(port, async () => {
   console.log(`agent service is running on port ${port}`);
   await connectDb();
   await customVectorDB.init();
+  await checkSearxngConnection();
 });
