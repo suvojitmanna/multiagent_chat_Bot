@@ -212,7 +212,7 @@ flowchart TD
 %%{init: {'theme': 'base', 'themeVariables': { 'background': 'transparent', 'actorBkg': 'transparent', 'actorBorder': '#6366f1', 'actorTextColor': '#e2e8f0', 'actorLineColor': '#818cf8', 'signalColor': '#818cf8', 'signalTextColor': '#e2e8f0', 'labelBoxBkgColor': 'transparent', 'labelBoxBorderColor': '#6366f1', 'labelTextColor': '#e2e8f0', 'loopTextColor': '#e2e8f0', 'noteBkgColor': 'transparent', 'noteBorderColor': '#6366f1', 'noteTextColor': '#e2e8f0' }}}%%
 sequenceDiagram
     autonumber
-    actor User as 👤 User
+    actor User
     participant Client as 🖥️ Client UI
     participant GW as 🛡️ API Gateway
     participant AgentSvc as 🧠 Agent Service
