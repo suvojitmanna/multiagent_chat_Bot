@@ -1,324 +1,370 @@
-# <div align="center">⚡ ShifraAI — Autonomous Multi-Agent Conversational AI Platform</div>
+# ⚡ ShifraAI™ — Autonomous Multi-Agent Conversational AI Platform
+### Enterprise Distributed Microservices • Multi-Model LLM Orchestration • Custom Vector RAG
+#### Next-Generation AI Ecosystem Powered by LangGraph, Google Gemini, Groq, OpenRouter & Clipdrop
+
+<p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:090b11,50:312e81,100:6366f1&height=220&section=header&text=ShifraAI%E2%84%A2%20%E2%80%A2%20Multi-Agent&fontSize=38&fontColor=ffffff&animation=fadeIn&desc=Autonomous%20Multi-Agent%20Orchestrator%20%7C%20Custom%20Vector%20DB%20%7C%20Live%20Monaco%20Studio&descAlignY=72" width="100%" />
+</p>
+
+<p align="center">
+  <img src="https://readme-typing-svg.herokuapp.com?color=818CF8&size=23&center=true&vCenter=true&width=950&lines=Autonomous+Multi-Agent+Orchestration+with+LangGraph;Multi-Model+Routing+(Gemini+3.8+Flash,+Groq+LLaMA,+DeepSeek);Custom+Vector+DB+with+Cosine+Similarity+for+PDF+RAG;Live+Interactive+Monaco+Code+Studio+with+IFrame+Preview;Clipdrop+SDXL+Image+Synthesis+with+Cloudinary+CDN;Automated+16:9+Widescreen+PowerPoint+Deck+Generation;Self-Hosted+SearXNG+Metasearch+and+Tavily+Fallback;Token+Economics+and+Razorpay+Monetization+Engine" />
+</p>
+
+---
+
+## 🏆 Badges & Standards
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Architecture-Distributed%20Microservices-6366F1?style=for-the-badge&logo=microgen&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Agent%20Graph-LangGraph%20%26%20LangChain-FF6F61?style=for-the-badge&logo=diagram-next&logoColor=white"/>
+  <img src="https://img.shields.io/badge/AI%20Models-Gemini%20%7C%20Groq%20%7C%20DeepSeek-8B5CF6?style=for-the-badge&logo=google&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Vector%20DB-Custom%20Isolated%20Engine-10B981?style=for-the-badge&logo=databricks&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Stack-MERN%20(React%2019%20%2B%20Node%205)-61DAFB?style=for-the-badge&logo=react&logoColor=black"/>
+  <img src="https://img.shields.io/badge/Cache%20%26%20Session-Redis%207%20(Alpine)-DC382D?style=for-the-badge&logo=redis&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Database-MongoDB%20Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Monetization-Razorpay%20UPI%20%26%20Cards-02042B?style=for-the-badge&logo=razorpay&logoColor=3395FF"/>
+  <img src="https://img.shields.io/badge/License-ISC-blue?style=for-the-badge&logo=open-source-initiative&logoColor=white"/>
+</p>
+
+### 💻 Programming Languages & Technologies Used
+
+<p align="center">
+  <a href="https://skillicons.dev">
+    <img src="https://skillicons.dev/icons?i=js,html,css,react,nodejs,express,mongodb,redis,docker,tailwind,vite,redux,git,github,postman" alt="Languages and Technologies" />
+  </a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript" />
+  <img src="https://img.shields.io/badge/React%2019-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React 19" />
+  <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js" />
+  <img src="https://img.shields.io/badge/Express.js%205-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express.js 5" />
+  <img src="https://img.shields.io/badge/LangGraph-FF6F61?style=for-the-badge&logo=diagram-next&logoColor=white" alt="LangGraph" />
+  <img src="https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB Atlas" />
+  <img src="https://img.shields.io/badge/Redis%207-DC382D?style=for-the-badge&logo=redis&logoColor=white" alt="Redis 7" />
+  <img src="https://img.shields.io/badge/Docker%20Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker Compose" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS_v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS v4" />
+  <img src="https://img.shields.io/badge/Redux%20Toolkit-764ABC?style=for-the-badge&logo=redux&logoColor=white" alt="Redux Toolkit" />
+  <img src="https://img.shields.io/badge/Monaco%20Editor-1E1E1E?style=for-the-badge&logo=visualstudiocode&logoColor=white" alt="Monaco Editor" />
+  <img src="https://img.shields.io/badge/Google%20Gemini-8E75C2?style=for-the-badge&logo=google&logoColor=white" alt="Google Gemini" />
+  <img src="https://img.shields.io/badge/Groq%20LPU-F55036?style=for-the-badge&logo=lightning&logoColor=white" alt="Groq LPU" />
+  <img src="https://img.shields.io/badge/DeepSeek-4D6BFE?style=for-the-badge&logo=deepin&logoColor=white" alt="DeepSeek" />
+  <img src="https://img.shields.io/badge/Clipdrop%20AI-00C9FF?style=for-the-badge&logo=artstation&logoColor=white" alt="Clipdrop AI" />
+  <img src="https://img.shields.io/badge/Razorpay-02042B?style=for-the-badge&logo=razorpay&logoColor=3395FF" alt="Razorpay" />
+</p>
+
+---
+
+## 🌟 Interactive Dual Workspace (Chat Hub & Monaco Live Studio)
 
 <div align="center">
-
-[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg?style=for-the-badge)](https://opensource.org/licenses/ISC)
-[![Node.js Version](https://img.shields.io/badge/Node.js-v18%2B%20%7C%20v20%2B-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org)
-[![Express](https://img.shields.io/badge/Express-5.x-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com)
-[![React 19](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
-[![Vite](https://img.shields.io/badge/Vite-8.3-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
-[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-v4.3-38B2AC?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
-[![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com)
-[![Redis](https://img.shields.io/badge/Redis-Cache%20%26%20Session-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas%20Ready-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com)
-
-**An enterprise-grade, distributed microservices AI assistant platform powered by LangGraph multi-agent state machines, multi-model LLM routing (Gemini 3.8 Flash, Groq, OpenRouter DeepSeek), custom in-memory & persistent Vector Database for PDF RAG, Clipdrop AI image synthesis, automated PowerPoint generation, live Monaco interactive code preview, and integrated Razorpay monetization.**
-
-<sub>Crafted with passion by **Lead Developer Suvojit Manna** and the **ShifraAI Team**.</sub>
-
----
-
-[Explore Features](#-core-capabilities--agent-fleet) •
-[System Architecture](#-system-architecture--data-flow) •
-[Tech Stack](#-technology-stack--logos) •
-[Getting Started](#-getting-started) •
-[API Reference](#-api-gateway--microservices-routes) •
-[Directory Structure](#-repository-structure)
-
----
-
+  <table>
+    <tr>
+      <td align="center" width="50%">
+        <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80" width="100%" alt="Conversational Intelligence Hub" style="border-radius: 12px;" /><br/>
+        <b>💬 Conversational Intelligence Hub</b><br/>
+        <img src="https://img.shields.io/badge/Agents-7%20Specialized%20Nodes-6366F1?style=flat-square" alt="7 Specialized Nodes" />
+        <img src="https://img.shields.io/badge/Voice-Web%20Speech%20API-EC4899?style=flat-square" alt="Web Speech API" /><br/>
+        <sub>Multi-turn memory, realtime speech-to-text, prompt classifier & multimodal file dropzone</sub>
+      </td>
+      <td align="center" width="50%">
+        <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&auto=format&fit=crop&q=80" width="100%" alt="Monaco Artifact Studio" style="border-radius: 12px;" /><br/>
+        <b>💻 Live Monaco Code & Project Studio</b><br/>
+        <img src="https://img.shields.io/badge/Sandbox-Live%20IFrame%20Preview-10B981?style=flat-square" alt="Live IFrame Preview" />
+        <img src="https://img.shields.io/badge/Theme-Shifra%20Dark%20%2F%20Light-8B5CF6?style=flat-square" alt="Monaco Themes" /><br/>
+        <sub>In-browser multi-file project execution, syntax coloring, live preview & instant downloads</sub>
+      </td>
+    </tr>
+  </table>
 </div>
 
-<br />
+To provide an elite developer and end-user productivity environment:
+* **Autonomous Task Classification:** Automatically categorizes queries into Code, PDF RAG, Image Synthesis, Multimodal Vision, PowerPoint Presentations, Web Search, or Chit-chat.
+* **Embedded VS Code Power:** Full Monaco Editor integration supporting multiple tabs (`index.html`, `style.css`, `script.js`), live interactive code editing, error highlights, and zero-reload DOM refreshes.
+* **Instant Sandboxed Rendering:** Runs generated interactive applications (calculators, games, web dashboards, responsive landing pages) in a secure, sandboxed browser iframe.
+* **Permanent Cloud CDN Ingestion:** High-speed cloud asset storage via Cloudinary for synthetic imagery, generated PDFs, and PPT presentations.
+* **Universal Light / Dark / System Mode:** Native dark mode engineered with Tailwind CSS v4, custom Monaco themes (`shifra-dark` & `shifra-light`), and fluid Framer Motion transitions.
 
-## 🌟 Highlights & Key Innovations
-
-- 🧠 **LangGraph Orchestrated Multi-Agent Architecture**: Intelligent request routing engine using heuristic classification, content analysis, and LLM fallback decisions to dispatch tasks to specialized agent nodes.
-- 💻 **Interactive Code & Project Studio**: Generates full-stack web applications, calculators, games, and UI components; renders code instantly inside an embedded **Monaco Editor** with a live sandboxed `<iframe>` preview, syntax highlighting, and single-click file downloads.
-- 📄 **Custom In-Memory & Disk-Persistent Vector Database**: Purpose-built vector database with isolated document collections, cosine similarity search, chunking, and Gemini embeddings (`text-embedding-004`) for high-fidelity PDF Question & Answering with exact page citations.
-- 🎨 **Clipdrop AI Image Synthesis**: Generates photorealistic digital artwork and visual concepts using SDXL via Clipdrop API, enhanced by an automated prompt optimization agent and backed by **Cloudinary CDN** permanent asset hosting.
-- 👁️ **Multimodal Vision Analysis**: Deep image analysis powered by **Google Gemini 3.8 Flash Vision**, providing OCR text extraction, chart and table comprehension, and cross-image comparative reasoning.
-- 📊 **Autonomous PowerPoint Deck Generation**: Generates comprehensive 16:9 widescreen `.pptx` presentation decks utilizing **pptxgenjs** with adaptive color palettes, executive KPI cards, and instant download endpoints.
-- 🌐 **Intelligent Hybrid Web Search**: High-relevance web intelligence featuring a private self-hosted **SearXNG metasearch container** with automatic fallback to **Tavily AI Search**, complete with image and source deduplication and relevance reranking.
-- 🎙️ **Real-Time Voice Dictation**: Integrated Web Speech API microphone recognition with interim transcription streaming, auto-prefixing, and ambient speech detection.
-- 💳 **Usage-Based Token Economics & Razorpay Billing**: Granular per-agent token pricing (Chat: 1 credit, Search: 5 credits, Code/PDF/PPT/Image: 10 credits), integrated with **Razorpay UPI & Cards**, real-time credit tracking, and plan management (Free, Starter, Pro).
-- 🔐 **High-Performance Distributed Microservices**: Clean separation of concerns with an Express 5 API Gateway, Redis session management, distributed authentication, chat persistence, billing, and agent execution layers.
-- 🌓 **Adaptive Light / Dark / System Theme**: High-contrast, accessibility-focused interface engineered with Tailwind CSS v4, Monaco dynamic theme swapping (`shifra-dark` & `shifra-light`), and fluid Framer Motion animations.
-
-<br />
+| Feature Dimension | 💬 Conversational Hub | 💻 Monaco Artifact Studio |
+| :--- | :--- | :--- |
+| **Primary Interaction** | Natural language, voice dictation & attachments | Live multi-tab code editing & preview |
+| **Execution Target** | LangGraph State Machine & AI Router | In-browser sandboxed runtime iframe |
+| **Supported File Types** | PDF, PNG, JPG, WEBP, GIF, Speech Audio | HTML, CSS, JavaScript, Python, JSON |
+| **Feedback Loop** | Dynamic credit deduction & message history | Live preview reload, reset & ZIP download |
+| **Underlying Models** | Groq LPU, Gemini 3.8 Flash, SearXNG, Clipdrop | OpenRouter DeepSeek-Chat & Fallback Gemini |
 
 ---
 
-## 🛠️ Technology Stack & Logos
+## 🌍 Architecture & Deployment Topology
 
-### 🎨 Frontend Ecosystem
-
-| Technology | Badge / Logo | Version | Purpose |
-| :--- | :--- | :--- | :--- |
-| **React** | ![React](https://img.shields.io/badge/React_19-20232A?style=flat-square&logo=react&logoColor=61DAFB) | `^19.2.8` | Component-based reactive UI framework |
-| **Vite** | ![Vite](https://img.shields.io/badge/Vite_8-646CFF?style=flat-square&logo=vite&logoColor=white) | `^8.3.0` | Ultra-fast next-generation frontend build tooling |
-| **Tailwind CSS** | ![Tailwind](https://img.shields.io/badge/Tailwind_CSS_v4-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white) | `^4.3.3` | Modern utility-first CSS styling engine |
-| **Redux Toolkit** | ![Redux](https://img.shields.io/badge/Redux_Toolkit-764ABC?style=flat-square&logo=redux&logoColor=white) | `^2.12.0` | Global state management for user, chats, and artifacts |
-| **Monaco Editor** | ![Monaco](https://img.shields.io/badge/Monaco_Editor-1E1E1E?style=flat-square&logo=visualstudiocode&logoColor=white) | `^4.7.0` | In-browser VS Code editing experience with syntax highlighting |
-| **Framer Motion** | ![Framer](https://img.shields.io/badge/Framer_Motion-0055FF?style=flat-square&logo=framer&logoColor=white) | `^13.4.3` | Fluid gesture controls, drawer animations & transitions |
-| **Lucide Icons** | ![Lucide](https://img.shields.io/badge/Lucide_Icons-F56565?style=flat-square&logo=feather&logoColor=white) | `^1.47.0` | Lightweight modern UI iconography |
-| **Axios** | ![Axios](https://img.shields.io/badge/Axios-5A29E4?style=flat-square&logo=axios&logoColor=white) | `^1.20.0` | Promise-based HTTP client for API Gateway calls |
-
-<br />
-
-### ⚙️ Backend & Microservices
-
-| Technology | Badge / Logo | Version | Purpose |
-| :--- | :--- | :--- | :--- |
-| **Node.js** | ![NodeJS](https://img.shields.io/badge/Node.js-339933?style=flat-square&logo=nodedotjs&logoColor=white) | `v18+ / v20+` | Server-side JavaScript runtime environment |
-| **Express.js** | ![Express](https://img.shields.io/badge/Express.js_5-000000?style=flat-square&logo=express&logoColor=white) | `^5.2.1` | Robust web application & routing framework |
-| **LangChain** | ![LangChain](https://img.shields.io/badge/LangChain-1C3C3C?style=flat-square&logo=langchain&logoColor=white) | `^1.5.11` | Foundation framework for LLM chains and tools |
-| **LangGraph** | ![LangGraph](https://img.shields.io/badge/LangGraph-FF6F61?style=flat-square&logo=diagram-next&logoColor=white) | `^0.2.x` | Cyclical multi-agent state machine and workflow graph |
-| **MongoDB / Mongoose** | ![MongoDB](https://img.shields.io/badge/MongoDB_Mongoose-47A248?style=flat-square&logo=mongodb&logoColor=white) | `^9.10.1` | NoSQL document database for messages & users |
-| **Redis / ioredis** | ![Redis](https://img.shields.io/badge/Redis_ioredis-DC382D?style=flat-square&logo=redis&logoColor=white) | `^6.0.0` | High-speed cache for sessions, status, and RAG memory |
-| **Docker Compose** | ![Docker](https://img.shields.io/badge/Docker_Compose-2496ED?style=flat-square&logo=docker&logoColor=white) | `v2+` | Container orchestration for Redis & SearXNG services |
-| **HTTP Proxy** | ![Proxy](https://img.shields.io/badge/Express_HTTP_Proxy-009688?style=flat-square&logo=nginx&logoColor=white) | `^2.1.2` | High-throughput reverse proxy routing at API Gateway |
-
-<br />
-
-### 🤖 AI Providers & Intelligence Engines
-
-| Engine / Provider | Badge / Logo | Model / Service | Capability |
-| :--- | :--- | :--- | :--- |
-| **Google Gemini** | ![Gemini](https://img.shields.io/badge/Google_Gemini-8E75B2?style=flat-square&logo=googlebard&logoColor=white) | `gemini-3.8-flash` | Multimodal vision OCR, fallback coding & RAG answering |
-| **Groq LPU** | ![Groq](https://img.shields.io/badge/Groq_Inference-F55036?style=flat-square&logo=lightning&logoColor=white) | `openai/gpt-oss-120b` / LLaMA | Ultra-fast conversational chatting & router classification |
-| **OpenRouter** | ![OpenRouter](https://img.shields.io/badge/OpenRouter-4D6BFE?style=flat-square&logo=deepin&logoColor=white) | `deepseek/deepseek-chat` | Multi-file full-stack code synthesis & architecture generation |
-| **Clipdrop AI** | ![Clipdrop](https://img.shields.io/badge/Clipdrop_AI-00C9FF?style=flat-square&logo=artstation&logoColor=white) | `SDXL Text-to-Image` | High-definition text-to-image artistic rendering |
-| **Cloudinary** | ![Cloudinary](https://img.shields.io/badge/Cloudinary-3448C5?style=flat-square&logo=cloudinary&logoColor=white) | `Cloud CDN Asset API` | Secure media storage & distribution for images & documents |
-| **SearXNG** | ![SearXNG](https://img.shields.io/badge/SearXNG-0084FF?style=flat-square&logo=searxng&logoColor=white) | `Self-hosted Engine` | Privacy-preserving aggregated web search engine |
-| **Tavily AI** | ![Tavily](https://img.shields.io/badge/Tavily_Search-000000?style=flat-square&logo=googlechrome&logoColor=white) | `Tavily Search API` | AI-curated web search fallback with factual relevance |
-| **Razorpay** | ![Razorpay](https://img.shields.io/badge/Razorpay_Payments-02042B?style=flat-square&logo=razorpay&logoColor=3395FF) | `Orders & Webhooks` | Monetization, UPI QR, and Subscription management |
-
-<br />
+| Resource | Service URL / Port | Role |
+| :--- | :--- | :--- |
+| **🖥️ Frontend Client** | `http://localhost:5173` | React 19 + Vite 8 UI Dashboard, Chat & Artifacts |
+| **🛡️ API Gateway** | `http://localhost:8000` | Central Express 5 reverse proxy, session guard & CORS |
+| **🔑 Auth Service** | `http://localhost:8001` | Google OAuth 2.0 verification, users & credits |
+| **💬 Chat Service** | `http://localhost:8002` | MongoDB conversation history, messages & artifact storage |
+| **🧠 Agent Service** | `http://localhost:8003` | LangGraph multi-agent graph, Custom Vector DB & generators |
+| **💳 Billing Service** | `http://localhost:8004` | Razorpay checkout, UPI / Card payments & plan upgrades |
+| **⚡ Redis Cache** | `localhost:6379` | User sessions, RAG response cache & processing status |
+| **🔍 SearXNG Container** | `http://localhost:8080` | Self-hosted privacy metasearch engine (Docker) |
 
 ---
 
-## 🏛️ System Architecture & Data Flow
+## 🧠 Project Overview
 
-ShifraAI is built on a clean **Microservices Architecture** where independent, decoupled services communicate through an **API Gateway** with centralized authentication, Redis-backed session caching, and distributed credit verification.
+### The Challenge
+Modern AI applications often rely on monolithic prompts and single LLM models that fail when handling diverse user tasks: general chatting requires low-latency inference, coding demands deep reasoning, document analysis requires vector embeddings and grounded citations, while image and slide generation demand specialized external APIs. Furthermore, typical AI chatbots provide raw markdown code blocks without allowing users to view, test, modify, or download full multi-file web applications.
+
+### The Solution: ShifraAI™
+**ShifraAI™** solves this through a distributed **LangGraph Multi-Agent Architecture** running on an Express 5 microservices backend. Incoming prompts and files are classified by an intelligent router that dispatches the task to dedicated agent nodes powered by the optimal model for the job: **Groq** for instant chat, **OpenRouter DeepSeek** for full-stack code synthesis, **Google Gemini 3.8 Flash** for multimodal OCR and PDF RAG, **Clipdrop SDXL** for creative image rendering, **PPTXGenJS** for executive presentations, and **SearXNG/Tavily** for web search.
+
+---
+
+## ✨ Key Capabilities & Agent Fleet
+
+### 1. 🧭 Intelligent Intent & MIME Router Node
+* Dynamically inspects uploaded MIME types (PDFs route to `pdfRag`, images route to `imageAnalyzer`).
+* Evaluates conversational keywords and creator queries via high-speed regex pattern matching.
+* Employs an LLM decision classifier as a fallback for complex prompts to determine the best agent node (`chat`, `coding`, `pdf`, `ppt`, `image`, or `search`).
+
+### 2. 💻 Coding Agent & Live Monaco Artifact Studio
+* Generates complete, multi-file responsive web applications (typically `index.html`, `style.css`, and `script.js`).
+* Automatically integrates real, high-resolution **Unsplash image URLs** instead of broken placeholder images.
+* Outputs structured JSON parsed directly into the **Monaco Editor**, enabling tab switching, in-browser code editing, live sandboxed iframe preview, code copying, and multi-file downloads.
+
+### 3. 📚 Custom Vector Database & PDF RAG Engine
+* **Zero External Vector DB Dependencies**: Built with a custom, document-isolated vector database (`CustomVectorDB`) combining in-memory caching with disk JSON persistence.
+* Ingests PDFs up to 30 MB, extracts text per page, chunks content, and generates vector embeddings via Google Gemini (`text-embedding-004`).
+* Performs **Cosine Similarity Search** with score thresholds to answer user questions grounded strictly in the source material, citing exact page numbers.
+
+### 4. 🎨 AI Image Synthesis & Cloudinary CDN
+* Powered by **Clipdrop AI (SDXL Text-to-Image)**.
+* Includes an automated AI Prompt Enhancement node that enriches basic user prompts with cinematic lighting, camera angles, textures, and artistic styles.
+* Automatically uploads output buffers to **Cloudinary** for permanent cloud storage and returns high-speed CDN URLs.
+
+### 5. 👁️ Multimodal Vision & OCR Analyzer
+* Employs **Google Gemini 3.8 Flash Vision** to analyze single or multiple uploaded images (up to 15 MB each).
+* Performs OCR text extraction, chart interpretation, diagram breakdown, and cross-image comparative reasoning.
+
+### 6. 📊 Autonomous PowerPoint Deck Architect
+* Generates complete executive `.pptx` presentation decks utilizing **pptxgenjs**.
+* Implements a 16:9 widescreen layout, custom corporate color palettes, numbered milestone cards, bullet points, and an executive summary slide.
+* Provides direct download endpoints and optional Cloudinary cloud backups.
+
+### 7. 🌐 Dual Hybrid Web Intelligence (SearXNG + Tavily)
+* High-relevance web search engine utilizing a self-hosted **SearXNG Docker container** as primary, with automatic fallback to **Tavily AI Search**.
+* Features built-in source deduplication, junk-link filtering, and semantic relevance reranking to cite real-time news and verified web pages.
+
+### 8. 💳 Usage-Based Token Economics & Razorpay Billing
+* Configurable token billing model: Chat (`1 cr`), Search (`5 cr`), Coding (`10 cr`), PDF RAG (`10 cr`), PPT (`10 cr`), Image (`10 cr`).
+* Integrated with **Razorpay UPI & Cards**, supporting instant QR payments and plan subscriptions (Free, Starter, Pro).
+* Synchronizes user credit balances in real time across the API Gateway, Redis session cache, and client dashboard.
+
+---
+
+## 🛠️ Languages, Tools & Technology Stack
+
+```
+                                  SHIFRAAI TECH STACK
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│  FRONTEND            React 19  •  Vite 8  •  Tailwind CSS v4  •  Redux Toolkit         │
+│  CODE STUDIO         Monaco Editor (@monaco-editor/react)  •  Sandboxed Live IFrame    │
+│  UI & MOTION         Framer Motion  •  Lucide Icons  •  React Markdown  •  Speech API  │
+│  API GATEWAY         Express.js 5  •  express-http-proxy  •  Cookie Parser  •  CORS    │
+│  BACKEND RUNTIME     Node.js (v18+ / v20+)  •  ES Modules (ESM)  •  Nodemon            │
+│  DATABASE & CACHE    MongoDB Atlas  •  Mongoose ODM (v9)  •  Redis 7 (ioredis)         │
+│  AGENT ORCHESTRATION LangGraph StateGraph  •  LangChain Core  •  Cyclical Workflows    │
+│  AI INFERENCE        Gemini 3.8 Flash  •  Groq LPU (GPT-OSS)  •  OpenRouter (DeepSeek) │
+│  RAG & PARSING       Custom In-Memory Vector DB  •  Cosine Sim  •  pdf-parse  •  PDFKit│
+│  DOCUMENT GENERATION pptxgenjs (16:9 Decks)  •  Clipdrop AI SDXL  •  Cloudinary CDN    │
+│  SEARCH ENGINES      SearXNG (Self-Hosted Docker)  •  Tavily AI Search API             │
+│  MONETIZATION        Razorpay Payments SDK  •  UPI QR / Netbanking / Cards             │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🏗️ System Architecture & Data Flow
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'background': 'transparent', 'mainBkg': 'transparent', 'primaryColor': 'transparent', 'primaryBorderColor': '#6366f1', 'primaryTextColor': '#e2e8f0', 'lineColor': '#818cf8', 'clusterBkg': 'transparent', 'clusterBorder': '#6366f1' }}}%%
 flowchart TD
-    subgraph ClientLayer["🖥️ Frontend Client (React 19 + Vite)"]
-        UI["Modern Web Interface\n(Tailwind CSS v4 + Framer Motion)"]
-        Chat["Chat Conversation Hub"]
-        Monaco["Live Monaco Artifact Studio\n(Code Sandbox & IFrame Preview)"]
-        Speech["Web Speech API\n(Real-Time Voice Input)"]
-    end
+    Client["🖥️ React 19 Client UI\n(Vite 8 • Tailwind v4 • Redux)"]
+    Monaco["💻 Monaco Artifact Studio\n(Code Sandbox & Live IFrame)"]
+    Mic["🎙️ Web Speech API\n(Realtime Voice Input)"]
 
-    subgraph GatewayLayer["🛡️ API Gateway (Port 8000)"]
-        GW["Express 5 Gateway"]
-        AuthMiddleware["Auth Middleware\n(Redis Session Validation)"]
-        Proxy["Reverse Proxy Dispatcher\n(Header Enrichment & x-user-id)"]
-    end
+    Gateway["🛡️ Express 5 API Gateway (:8000)"]
+    AuthMid["🔐 Redis Session Auth Middleware"]
+    Proxy["🔀 Reverse Proxy Dispatcher\n(Header Enrichment & x-user-id)"]
 
-    subgraph Microservices["⚙️ Backend Microservices"]
-        AuthSvc["🔑 Auth Service (:8001)\nGoogle OAuth 2.0 • User Schema • Credit Deductions"]
-        ChatSvc["💬 Chat Service (:8002)\nConversations • Message Storage • History Retrieval"]
-        AgentSvc["🧠 Agent Service (:8003)\nLangGraph Multi-Agent Orchestration • Vector DB"]
-        BillingSvc["💳 Billing Service (:8004)\nRazorpay Orders • UPI/Card Verification • Plans"]
-    end
+    AuthSvc["🔑 Auth Service (:8001)\nGoogle OAuth 2.0 • User Schema • Credit Deductions"]
+    ChatSvc["💬 Chat Service (:8002)\nConversations • Message Storage • Artifacts"]
+    AgentSvc["🧠 Agent Service (:8003)\nLangGraph Multi-Agent Orchestration • Vector DB"]
+    BillingSvc["💳 Billing Service (:8004)\nRazorpay Orders • Signature Verification • Plans"]
 
-    subgraph DataStorage["💾 Data & Cache Storage"]
-        Mongo[("🍃 MongoDB Atlas\nUsers, Chats, Messages, Orders, Documents")]
-        RedisDB[("⚡ Redis 7 (Alpine)\nSessions, Status, RAG Response Cache")]
-        VectorStore[("📚 Custom Vector DB\nIn-Memory + Disk JSON Isolated Vector Store")]
-        CloudinaryStore[("☁️ Cloudinary CDN\nPermanent Image & PDF/PPT Document Storage")]
-        SearXNGContainer[("🔍 SearXNG Container (:8080)\nSelf-Hosted Privacy Search Metasearch")]
-    end
+    MongoDB[("🍃 MongoDB Atlas Cloud Database\nUsers, Chats, Messages, Orders, Documents")]
+    RedisCache[("⚡ Redis 7 (Alpine Container)\nSessions, RAG Query Cache, Status")]
+    VectorStore[("📚 Custom Vector DB\nIn-Memory + Disk JSON Isolated Vector Store")]
+    Cloudinary[("☁️ Cloudinary CDN\nPermanent Image & Document Hosting")]
+    SearXNG[("🔍 SearXNG Container (:8080)\nSelf-Hosted Privacy Search Metasearch")]
 
-    ClientLayer <==>|HTTP / Cookies / REST| GW
-    GW --> AuthMiddleware
-    AuthMiddleware <-->|Validate Session| RedisDB
-    AuthMiddleware --> Proxy
-    
+    Mic --> Client
+    Client <==>|HTTP / Cookies / REST| Gateway
+    Gateway --> AuthMid
+    AuthMid <-->|Validate Session| RedisCache
+    AuthMid --> Proxy
+
     Proxy -->|/api/auth| AuthSvc
     Proxy -->|/api/chat| ChatSvc
     Proxy -->|/api/agent & /api/pdf| AgentSvc
     Proxy -->|/api/billing| BillingSvc
 
-    AuthSvc <--> Mongo
-    AuthSvc <--> RedisDB
-    ChatSvc <--> Mongo
-    BillingSvc <--> Mongo
-    AgentSvc <--> Mongo
-    AgentSvc <--> RedisDB
+    AuthSvc <--> MongoDB
+    AuthSvc <--> RedisCache
+    ChatSvc <--> MongoDB
+    BillingSvc <--> MongoDB
+    AgentSvc <--> MongoDB
+    AgentSvc <--> RedisCache
     AgentSvc <--> VectorStore
-    AgentSvc <--> CloudinaryStore
-    AgentSvc <--> SearXNGContainer
-```
+    AgentSvc <--> Cloudinary
+    AgentSvc <--> SearXNG
 
-<br />
+    AgentSvc -.->|Multi-File Project JSON| Monaco
+```
 
 ---
 
-## 🔄 LangGraph Multi-Agent Orchestration Workflow
+## 🔄 Sequence Diagrams
 
-Every user query, attached image, or uploaded PDF flows through the **LangGraph State Machine**. The system dynamically assesses intent and routes the payload to the ideal agent node:
-
-```mermaid
-flowchart TD
-    Start(["__start__ User Input"]) --> RouterNode["🧭 Router Node (Intent & MIME Analysis)"]
-
-    RouterNode -->|File is PDF| PdfRagAgent["📚 PDF RAG Agent\n(Custom Vector DB + Cosine Search)"]
-    RouterNode -->|File is Image| ImageAnalyzerAgent["👁️ Image Analyzer Agent\n(Gemini 3.8 Flash Vision OCR)"]
-    RouterNode -->|Prompt: Generate Image| ImageGenAgent["🎨 Image Generator Agent\n(Clipdrop AI + Cloudinary)"]
-    RouterNode -->|Prompt: Presentation Deck| PPTGenAgent["📊 PPT Generator Agent\n(PPTXGenJS 16:9 Deck Builder)"]
-    RouterNode -->|Prompt: Create PDF Doc| PDFGenAgent["📄 PDF Generator Agent\n(PDFKit Document Formatter)"]
-    RouterNode -->|Prompt: Build App / Code| CodingAgent["💻 Coding Agent\n(DeepSeek / Gemini Multi-File Builder)"]
-    RouterNode -->|Prompt: Web Query / News| SearchAgent["🌐 Search Agent\n(SearXNG + Tavily Fallback & Reranker)"]
-    RouterNode -->|Prompt: Conversational Chat| ChatAgent["🤖 Chat Agent\n(Groq LPU Conversation Engine)"]
-
-    SearchAgent -->|Contextual Search Results| ChatAgent
-    
-    CodingAgent -->|Multi-file Project JSON| MonacoArtifact["📦 Interactive Monaco Artifact Studio"]
-    
-    PdfRagAgent --> End(["__end__ Final Response to User"])
-    ImageAnalyzerAgent --> End
-    ImageGenAgent --> End
-    PPTGenAgent --> End
-    PDFGenAgent --> End
-    ChatAgent --> End
-    MonacoArtifact --> End
-```
-
-<br />
-
----
-
-## ⚡ Custom Vector DB & PDF RAG Engine
-
-ShifraAI features a standalone, lightweight, zero-external-dependency **Custom Vector Database** designed specifically for high-speed document question-answering with complete tenant isolation:
+### 1. LangGraph Multi-Agent Routing & Execution Pipeline
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'background': 'transparent', 'actorBkg': 'transparent', 'actorBorder': '#6366f1', 'actorTextColor': '#e2e8f0', 'actorLineColor': '#818cf8', 'signalColor': '#818cf8', 'signalTextColor': '#e2e8f0', 'labelBoxBkgColor': 'transparent', 'labelBoxBorderColor': '#6366f1', 'labelTextColor': '#e2e8f0', 'loopTextColor': '#e2e8f0', 'noteBkgColor': 'transparent', 'noteBorderColor': '#6366f1', 'noteTextColor': '#e2e8f0' }}}%%
 sequenceDiagram
     autonumber
     actor User as 👤 User
     participant Client as 🖥️ Client UI
-    participant Agent as 🧠 Agent Service
-    participant PDFProc as ⚙️ PDF Processor
-    participant Gemini as ✨ Gemini Embedding API
-    participant VecDB as 📚 Custom Vector DB
-    participant LLM as 🤖 Gemini 3.8 Flash
-    participant Redis as ⚡ Redis Cache
+    participant GW as 🛡️ API Gateway
+    participant AgentSvc as 🧠 Agent Service
+    participant Router as 🧭 LangGraph Router
+    participant Node as 🤖 Target Agent Node
+    participant ChatSvc as 💬 Chat Service
+    participant AuthSvc as 🔑 Auth Service
 
-    User->>Client: Uploads PDF document & asks question
-    Client->>Agent: POST /api/agent (multipart/form-data)
-    Agent->>PDFProc: Extract text by page & chunk into segments
-    PDFProc-->>Agent: Array of chunks with page metadata
-    Agent->>Gemini: Generate embeddings (text-embedding-004)
-    Gemini-->>Agent: High-dimensional vector float arrays
-    Agent->>VecDB: insertMany(chunkId, pageNumber, text, embedding)
-    VecDB-->>Agent: Vectors indexed in-memory & persisted to JSON disk
-    
-    Agent->>Gemini: Embed user query string
-    Gemini-->>Agent: Query vector embedding
-    Agent->>VecDB: search(queryVector, documentId, topK=5, minScore=0.15)
-    VecDB-->>Agent: Top matched chunks ranked by Cosine Similarity
-    
-    Agent->>LLM: Prompt with injected contextual excerpts + Strict No-Hallucination rules
-    LLM-->>Agent: Grounded answer citing exact page numbers
-    Agent->>Redis: Cache Q&A pair for instant sub-millisecond replay
-    Agent-->>Client: Answer + Page Citations + Vector DB status
-    Client-->>User: Render verified answer with source badges
+    User->>Client: Types prompt / attaches file & clicks Send
+    Client->>GW: POST /api/agent (Prompt + Agent + Attachments)
+    GW->>GW: Validate Session & Attach x-user-id
+    GW->>AgentSvc: Forward enriched request
+    AgentSvc->>AuthSvc: Pre-check user credit balance
+    AuthSvc-->>AgentSvc: Balance OK
+    AgentSvc->>Router: Invoke StateGraph with initial state
+    Router->>Router: Check MIME type, regex patterns, or LLM classification
+    Router-->>Node: Dispatch to agent (Coding, Chat, PDF, Image, PPT, Search)
+    Node->>Node: Execute generation / API invocation
+    Node-->>AgentSvc: Return aiResponse, images, artifacts
+    AgentSvc->>ChatSvc: Save user & assistant messages with artifacts
+    AgentSvc->>AuthSvc: Deduct token credits based on agent cost
+    AuthSvc-->>AgentSvc: Updated remaining credits
+    AgentSvc-->>GW: Return response payload + artifacts + credits
+    GW-->>Client: Final response stream
+    Client-->>User: Render Markdown, Artifacts in Monaco Studio & update balance
 ```
 
-<br />
+---
+
+### 2. Custom Vector DB Ingestion & PDF RAG Retrieval Pipeline
+
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'background': 'transparent', 'mainBkg': 'transparent', 'primaryColor': 'transparent', 'primaryBorderColor': '#6366f1', 'primaryTextColor': '#e2e8f0', 'lineColor': '#818cf8' }}}%%
+flowchart LR
+    A["Uploaded PDF File\n(up to 30 MB)"] --> B["PDF Parser & Text Extractor\n(pdf-parse / PDFKit)"]
+    B --> C["Recursive Text Chunking\n(500-1000 char windows + page meta)"]
+    C --> D["Gemini Embedding Model\n(text-embedding-004)"]
+    D --> E["Custom Vector Store\n(In-Memory + Disk JSON Isolation)"]
+    
+    Q["User Question\n('What is the conclusion?')"] --> EEmbed["Embed Question\n(text-embedding-004)"]
+    EEmbed --> Search["Cosine Similarity Search\n(topK=5, minScore=0.15)"]
+    E --> Search
+    Search --> Prompt["Context Injection Prompt\n(Strict Grounding & Page Numbers)"]
+    Prompt --> LLM["Google Gemini 3.8 Flash"]
+    LLM --> Out["Grounded Answer +\nTraceable Page Citations"]
+```
 
 ---
 
-## 🤖 Core Capabilities & Agent Fleet
+### 3. Credit Deduction & Razorpay Subscription Lifecycle
 
-### 1. 🤖 General Chat Agent (`chat`)
-- **Engine**: Groq LPU (`openai/gpt-oss-120b` or LLaMA models)
-- **Features**: Ultra-low latency responses, conversational multi-turn history retrieved from Redis/Mongo memory, clean Markdown formatting, professional and structured tone.
-- **Cost**: 1 Credit
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'background': 'transparent', 'mainBkg': 'transparent', 'primaryColor': 'transparent', 'primaryBorderColor': '#6366f1', 'primaryTextColor': '#e2e8f0', 'lineColor': '#818cf8' }}}%%
+flowchart TD
+    Select["User selects Plan\n(Starter: ₹199 / Pro: ₹499)"] --> Order["POST /api/billing/create-order\n(Razorpay Orders API)"]
+    Order --> Modal["Client opens Razorpay Modal\n(UPI QR, Cards, Netbanking)"]
+    Modal --> Pay["Payment Successful at Razorpay"]
+    Pay --> Verify["POST /api/billing/verify\n(HMAC SHA256 Signature Verification)"]
+    Verify --> UpdateUser["Update User Plan & Credits in MongoDB"]
+    UpdateUser --> SyncRedis["Refresh Redis Session Key\n(session-UUID)"]
+    SyncRedis --> UI["Live Update Credits in Client Header"]
 
-### 2. 💻 Coding & Full-Stack Studio Agent (`coding`)
-- **Engine**: OpenRouter (`deepseek/deepseek-chat`) with Gemini fallback
-- **Features**: Generates production-ready, multi-file codebases (e.g. `index.html`, `style.css`, `script.js`). Automatically integrates real Unsplash visual assets, full responsive layouts, and modern CSS glassmorphism.
-- **Artifact Integration**: Feeds generated files directly into the **Monaco Artifact Studio** for live sandboxed testing, code modifications, and ZIP/file exports.
-- **Cost**: 10 Credits
-
-### 3. 📚 PDF RAG Document Analyst (`pdfRag`)
-- **Engine**: Google Gemini Embeddings + Custom Isolated Vector Store + Gemini Flash
-- **Features**: Upload any PDF up to 30 MB. Parses text into segmented chunks, produces embeddings, performs vector similarity search, and answers queries with strict grounding and verifiable page-level citations.
-- **Cost**: 10 Credits
-
-### 4. 🎨 AI Image Synthesis Agent (`image`)
-- **Engine**: Clipdrop AI (SDXL) + Groq Prompt Enhancer + Cloudinary Storage
-- **Features**: Takes a simple user concept, automatically refines it through an AI prompt optimization agent (adding lighting, volumetric rays, camera angle, textures), calls the Clipdrop Text-to-Image API, and uploads the output to Cloudinary for permanent high-speed CDN delivery.
-- **Cost**: 10 Credits
-
-### 5. 👁️ Multimodal Vision Analyzer (`imageAnalyzer`)
-- **Engine**: Google Gemini 3.8 Flash Vision
-- **Features**: Supports multi-image uploads up to 15 MB each. Performs OCR text extraction, visual reasoning, chart/graph interpretation, and side-by-side visual comparisons.
-- **Cost**: 10 Credits
-
-### 6. 📊 PowerPoint Deck Architect (`ppt`)
-- **Engine**: Groq LPU + `pptxgenjs`
-- **Features**: Automatically generates 5 to 7 executive slides in 16:9 widescreen format, styled with strategic color accents, numbered metric cards, bulleted takeaways, and executive summary slides. Outputs downloadable `.pptx` presentations instantly.
-- **Cost**: 10 Credits
-
-### 7. 🌐 Web Intelligence & Search Agent (`search`)
-- **Engine**: Self-Hosted SearXNG Docker + Tavily AI Search Fallback
-- **Features**: Real-time web querying with duplicate removal, spam filtering, and semantic relevance re-ranking. Cites real URLs and live facts, feeding the synthesized context back into the conversation.
-- **Cost**: 5 Credits
-
-<br />
+    Usage["Agent Query Executed\n(Chat: 1cr, Code/PDF: 10cr)"] --> Deduct["POST /deduct-credits"]
+    Deduct --> Check["Has sufficient credits?"]
+    Check -->|Yes| Sub["credits -= cost\nUpdate Redis Session"]
+    Check -->|No| Reject["400 Insufficient Credits\nPrompt Billing Drawer"]
+```
 
 ---
 
-## 📁 Repository Structure
+## 📁 Project Directory Structure
 
-```plaintext
+```bash
 multiagent_chat_Bot/
-├── 📄 README.md                        # Primary Project Documentation
+├── 📄 README.md                        # Master Project Documentation
 ├── 🐳 docker-compose.yaml              # Docker orchestration (Redis & SearXNG)
 │
-├── 📂 client/                          # Frontend Application (React 19 + Vite)
+├── 📂 client/                          # Frontend Single Page Application (React 19)
 │   ├── 📄 index.html                   # HTML5 Entry Point
-│   ├── 📄 vite.config.js               # Vite build configuration
+│   ├── 📄 vite.config.js               # Vite 8 build configuration
 │   ├── 📄 package.json                 # Frontend dependencies & scripts
 │   ├── 📂 src/
-│   │   ├── 📄 App.jsx                  # Root App & Theme Provider
-│   │   ├── 📄 main.jsx                 # React DOM mount point
+│   │   ├── 📄 App.jsx                  # Root component, theme listener & user sync
+│   │   ├── 📄 main.jsx                 # Application bootstrap with Redux Provider
+│   │   ├── 📄 index.css                # Tailwind CSS v4 styling entrypoint
 │   │   ├── 📂 pages/
-│   │   │   └── 📄 Home.jsx             # Main dashboard, chat area & auth modal
+│   │   │   └── 📄 Home.jsx             # Main dashboard, chat area & Google auth modal
 │   │   ├── 📂 components/
-│   │   │   ├── 📄 Artifact.jsx         # Monaco Editor & Sandboxed IFrame Preview
+│   │   │   ├── 📄 Artifact.jsx         # Monaco Editor & Sandboxed IFrame Preview Studio
 │   │   │   ├── 📄 BillingDrawer.jsx    # Razorpay payment & plan upgrade drawer
-│   │   │   ├── 📄 ChatArea.jsx         # Chat stream, suggestions & header
-│   │   │   ├── 📄 ChatInput.jsx        # Multimodal input, agent selector & mic
-│   │   │   ├── 📄 MessageBuble.jsx     # Markdown renderer, code syntax & citations
-│   │   │   ├── 📄 MessageList.jsx      # Scrollable chat feed & typing indicator
-│   │   │   ├── 📄 Nav.jsx              # Top bar, credit display & user profile
+│   │   │   ├── 📄 ChatArea.jsx         # Chat stream, quick prompts & top navigation
+│   │   │   ├── 📄 ChatInput.jsx        # Multimodal input, agent selector & voice dictation
+│   │   │   ├── 📄 MessageBuble.jsx     # Markdown renderer, code syntax & RAG citations
+│   │   │   ├── 📄 MessageList.jsx      # Scrollable chat feed & typing indicators
+│   │   │   ├── 📄 Nav.jsx              # Top bar, credit display & user avatar menu
 │   │   │   ├── 📄 Sidebar.jsx          # Conversation history & agent shortcuts
 │   │   │   └── 📄 ThemeToggle.jsx      # Dark / Light / System switcher
 │   │   ├── 📂 redux/                   # Redux Toolkit state slices
-│   │   │   ├── 📄 store.js             # Configured Redux store
-│   │   │   ├── 📄 userSlice.js         # User session, credits & plan state
-│   │   │   ├── 📄 conversationSlice.js # Active conversation state
+│   │   │   ├── 📄 store.js             # Global Redux store
+│   │   │   ├── 📄 userSlice.js         # User profile, credits & plan state
+│   │   │   ├── 📄 conversationSlice.js # Active conversation threads
 │   │   │   ├── 📄 messageSlice.js      # Message streams & active artifacts
 │   │   │   ├── 📄 themeSlice.js        # Light / Dark theme state
 │   │   │   └── 📄 uiSlice.js           # UI drawers & modal toggles
-│   │   └── 📂 features/                # API integration handlers (Axios)
-│   │       ├── 📄 createConverSation.js
-│   │       ├── 📄 sendMessage.js
-│   │       ├── 📄 getMessages.js
-│   │       ├── 📄 createOrder.js
-│   │       └── 📄 verifyPayment.js
+│   │   ├── 📂 features/                # Axios API service integrations
+│   │   │   ├── 📄 getCurrentUser.js    # /api/me caller
+│   │   │   ├── 📄 createConverSation.js# New conversation creator
+│   │   │   ├── 📄 getConverSations.js  # Conversation list fetcher
+│   │   │   ├── 📄 getMessages.js       # Message history loader
+│   │   │   ├── 📄 sendMessage.js       # Agent dispatch caller
+│   │   │   ├── 📄 createOrder.js       # Razorpay order creator
+│   │   │   ├── 📄 verifyPayment.js     # Payment signature verifier
+│   │   │   ├── 📄 pdfRagApi.js         # Dedicated PDF RAG API client
+│   │   │   └── 📄 logout.js            # Session logout caller
+│   │   └── 📂 utils/
+│   │       └── 📄 axios.js             # Configured Axios instance with credentials
 │
 └── 📂 server/                          # Backend Microservices Ecosystem
     ├── 📄 package.json                 # Server workspace package
-    ├── 📄 redis.js                     # Shared Redis client connection
+    ├── 📄 redis.js                     # Shared Redis client connection (ioredis)
     ├── 📂 searxng/                     # SearXNG configuration files
-    │   └── 📄 settings.yml             # Engine definitions, rate limits & format
+    │   └── 📄 settings.yml             # Engines, rate limits & output formats
     │
     ├── 📂 gateway/                     # API Gateway Service (Port 8000)
     │   ├── 📄 index.js                 # Gateway entry & reverse proxy routing
@@ -329,15 +375,15 @@ multiagent_chat_Bot/
     │   └── 📂 utils/
     │       └── 📄 proxyWithHeader.js   # Header injection (x-user-id forwarding)
     │
-    └── 📂 services/                    # Autonomous Domain Services
+    └── 📂 services/                    # Autonomous Domain Microservices
         ├── 📂 auth/                    # Auth Service (Port 8001)
-        │   ├── 📄 index.js             # Service entry & MongoDB connection
+        │   ├── 📄 index.js             # Express app entry & MongoDB connection
         │   ├── 📂 controllers/
         │   │   └── 📄 auth.controller.js # Google token verification, login, deduct credits
         │   ├── 📂 models/
         │   │   └── 📄 user.model.js    # User schema (credits, plan, expiration)
         │   └── 📂 routes/
-        │       └── 📄 auth.routes.js   # Login, logout, credit deduction endpoints
+        │       └── 📄 auth.routes.js   # /login, /logout, /deduct-credits
         │
         ├── 📂 chatservice/             # Chat Service (Port 8002)
         │   ├── 📄 index.js             # Service entry
@@ -350,15 +396,15 @@ multiagent_chat_Bot/
         │       └── 📄 chat.routes.js   # Chat history & conversation routes
         │
         ├── 📂 agent/                   # Agent Service (Port 8003)
-        │   ├── 📄 index.js             # Service entry & static file downloads
-        │   ├── 📂 graph/               # LangGraph Workflow Definition
+        │   ├── 📄 index.js             # Express app & static file download endpoints
+        │   ├── 📂 graph/               # LangGraph State Machine Definition
         │   │   ├── 📄 graph.js         # Compiled StateGraph workflow & edges
         │   │   ├── 📄 router.js        # Multi-factor intelligent routing node
         │   │   └── 📄 state.js         # LangGraph state interface schema
         │   ├── 📂 agents/              # Specialized Agent Implementations
         │   │   ├── 📄 chat.agent.js    # Groq conversational agent
         │   │   ├── 📄 coding.agent.js  # DeepSeek code & project generator
-        │   │   ├── 📄 pdfRag.agent.js  # Vector search Q&A RAG agent
+        │   │   ├── 📄 pdfRag.agent.js  # Custom vector search Q&A RAG agent
         │   │   ├── 📄 image.agent.js   # Clipdrop AI image synthesis
         │   │   ├── 📄 imageAnalyzer.agent.js # Gemini Vision OCR analysis
         │   │   ├── 📄 ppt.agent.js     # PPTXGenJS presentation deck agent
@@ -372,7 +418,7 @@ multiagent_chat_Bot/
         │   └── 📂 config/              # Cloudinary, Model, Memory & Multer setups
         │
         └── 📂 billing/                 # Billing Service (Port 8004)
-            ├── 📄 index.js             # Service entry
+            ├── 📄 index.js             # Service entry & MongoDB connection
             ├── 📂 config/
             │   ├── 📄 plan.js          # Free (100cr), Starter (500cr), Pro (1000cr)
             │   └── 📄 razorPay.js      # Razorpay client instance
@@ -382,52 +428,11 @@ multiagent_chat_Bot/
                 └── 📄 billing.route.js # /create-order & /verify endpoints
 ```
 
-<br />
-
 ---
 
-## 🚦 API Gateway & Microservices Routes
+## 🔐 Environment Variables (`.env`)
 
-The **Express 5 API Gateway** runs on `http://localhost:8000` and transparently routes incoming traffic to the internal microservices with session authentication and user header enrichment:
-
-| Endpoint Path | Method | Auth Req. | Target Microservice | Description |
-| :--- | :---: | :---: | :--- | :--- |
-| `/api/auth/login` | `POST` | No | Auth Service (:8001) | Authenticates Google OAuth token and creates session |
-| `/api/auth/logout` | `POST` | Yes | Auth Service (:8001) | Clears Redis session key and client auth cookie |
-| `/api/me` | `GET` | Yes | API Gateway (:8000) | Retrieves current user profile, plan, and credit balance |
-| `/api/chat/get-conversations` | `GET` | Yes | Chat Service (:8002) | Fetches user's conversation threads |
-| `/api/chat/create-conversation` | `POST` | Yes | Chat Service (:8002) | Initializes a new chat conversation thread |
-| `/api/chat/get-messages/:id` | `GET` | Yes | Chat Service (:8002) | Retrieves message history and artifacts for a chat |
-| `/api/agent` | `POST` | Yes | Agent Service (:8003) | Dispatches prompt and attachments to the LangGraph graph |
-| `/api/pdf/upload` | `POST` | Yes | Agent Service (:8003) | Uploads and indexes PDF into the Custom Vector Store |
-| `/api/pdf/query` | `POST` | Yes | Agent Service (:8003) | Queries indexed document via vector similarity search |
-| `/api/billing/create-order` | `POST` | Yes | Billing Service (:8004)| Creates Razorpay checkout order for credit plans |
-| `/api/billing/verify` | `POST` | Yes | Billing Service (:8004)| Validates Razorpay HMAC signature & credits user account |
-
-<br />
-
----
-
-## 🚀 Getting Started
-
-Follow these step-by-step instructions to set up and run ShifraAI locally.
-
-### 📋 Prerequisites
-
-Ensure you have the following installed on your machine:
-- **Node.js**: `v18.0.0` or higher (Recommended: `v20.x`)
-- **npm**: `v9.x` or higher
-- **Docker & Docker Compose**: For running Redis and SearXNG
-- **MongoDB**: A running local MongoDB daemon or a [MongoDB Atlas](https://www.mongodb.com/atlas) connection URI
-
-<br />
-
-### 🔑 Environment Configuration
-
-Create a `.env` file in each respective directory based on the templates below:
-
-<details>
-<summary><b>1. Gateway (<code>server/gateway/.env</code>)</b></summary>
+### 1. API Gateway Configuration (`server/gateway/.env`)
 
 ```env
 PORT=8000
@@ -439,41 +444,35 @@ CHAT_SERVICE=http://localhost:8002
 AGENT_SERVICE=http://localhost:8003
 BILLING_SERVICE=http://localhost:8004
 ```
-</details>
 
-<details>
-<summary><b>2. Auth Service (<code>server/services/auth/.env</code>)</b></summary>
+### 2. Auth Service Configuration (`server/services/auth/.env`)
 
 ```env
 PORT=8001
-MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/shifra_auth
+MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/shifra_auth?retryWrites=true&w=majority
 REDIS_URL=redis://localhost:6379
 ```
-</details>
 
-<details>
-<summary><b>3. Chat Service (<code>server/services/chatservice/.env</code>)</b></summary>
+### 3. Chat Service Configuration (`server/services/chatservice/.env`)
 
 ```env
 PORT=8002
-MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/shifra_chat
+MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/shifra_chat?retryWrites=true&w=majority
 ```
-</details>
 
-<details>
-<summary><b>4. Agent Service (<code>server/services/agent/.env</code>)</b></summary>
+### 4. Agent Service Configuration (`server/services/agent/.env`)
 
 ```env
 PORT=8003
-MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/shifra_agent
+MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/shifra_agent?retryWrites=true&w=majority
 REDIS_URL=redis://localhost:6379
 SERVER_URL=http://localhost:8003
 
-# Microservices internal URLs
+# Internal Service Handshakes
 AUTH_SERVICE=http://localhost:8001
 CHAT_SERVICE=http://localhost:8002
 
-# AI LLM Provider Keys
+# AI LLM Inference Providers
 GROQ_API_KEY=your_groq_api_key_here
 GROQ_MODEL=openai/gpt-oss-120b
 
@@ -483,34 +482,30 @@ GEMINI_MODEL=gemini-3.8-flash
 OPENROUTER_API_KEY=your_openrouter_api_key_here
 OPENROUTER_MODEL=deepseek/deepseek-chat
 
-# Image Generation & CDN Hosting
+# Image Generation & Media Cloud Storage
 CLIPDROP_API_KEY=your_clipdrop_api_key_here
 CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
 CLOUDINARY_API_KEY=your_cloudinary_api_key
 CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 
-# Search Engine Configuration
+# Search Engine Orchestration
 SEARCH_PROVIDER=searxng
 SEARXNG_URL=http://localhost:8080
 TAVILY_API_KEY=your_tavily_api_key_here
 ```
-</details>
 
-<details>
-<summary><b>5. Billing Service (<code>server/services/billing/.env</code>)</b></summary>
+### 5. Billing Service Configuration (`server/services/billing/.env`)
 
 ```env
 PORT=8004
-MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/shifra_billing
+MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/shifra_billing?retryWrites=true&w=majority
 AUTH_SERVICE=http://localhost:8001
 
 RAZORPAY_KEY_ID=your_razorpay_key_id
 RAZORPAY_KEY_SECRET=your_razorpay_key_secret
 ```
-</details>
 
-<details>
-<summary><b>6. Client (<code>client/.env</code>)</b></summary>
+### 6. Client Frontend Configuration (`client/.env`)
 
 ```env
 VITE_API_URL=http://localhost:8000
@@ -518,32 +513,37 @@ VITE_GOOGLE_CLIENT_ID=your_google_oauth_client_id.apps.googleusercontent.com
 VITE_GOOGLE_AUTH_URL=https://accounts.google.com/o/oauth2/v2/auth
 VITE_RAZORPAY_KEY_ID=your_razorpay_key_id
 ```
-</details>
 
-<br />
+---
 
-### 🐳 Step 1: Start Infrastructure Containers
+## ⚡ Installation & Local Setup Guide
 
-Launch Redis and SearXNG with Docker Compose from the `server/` directory:
+### Prerequisites
+* **Node.js**: `v18.0.0` or higher (Recommended: `v20.x`)
+* **npm**: `v9.x` or higher
+* **Docker & Docker Compose**: For launching Redis and SearXNG
+* **MongoDB**: A running local instance or a [MongoDB Atlas](https://www.mongodb.com/atlas) connection URI
 
+### Step 1: Clone Repository
+```bash
+git clone https://github.com/suvojitmanna/multiagent_chat_Bot.git
+cd multiagent_chat_Bot
+```
+
+### Step 2: Start Infrastructure Containers (Docker Compose)
+Launch Redis and the SearXNG metasearch engine from the `server/` directory:
 ```bash
 cd server
 docker-compose up -d
 ```
+* **Redis**: Accessible at `localhost:6379`
+* **SearXNG**: Accessible at `http://localhost:8080`
 
-Verify that both containers are running healthily:
-- **Redis**: Running on `localhost:6379`
-- **SearXNG**: Running on `http://localhost:8080`
-
-<br />
-
-### 📦 Step 2: Install Dependencies
-
-Open separate terminals or install dependencies across each service:
-
+### Step 3: Install Dependencies
+Install dependencies across the API Gateway, Domain Services, and Client:
 ```bash
-# 1. Gateway
-cd server/gateway && npm install
+# 1. API Gateway
+cd gateway && npm install
 
 # 2. Auth Service
 cd ../services/auth && npm install
@@ -561,11 +561,8 @@ cd ../billing && npm install
 cd ../../../client && npm install
 ```
 
-<br />
-
-### 🚀 Step 3: Run the Services
-
-Start the microservices and client in development mode:
+### Step 4: Run the Services
+Start the microservices and client in development mode across separate terminal tabs:
 
 ```bash
 # Terminal 1: API Gateway (Port 8000)
@@ -587,18 +584,34 @@ cd server/services/billing && npm run dev
 cd client && npm run dev
 ```
 
-Navigate to **`http://localhost:5173`** in your browser to experience **ShifraAI**!
+Open your browser and navigate to **`http://localhost:5173`** to access **ShifraAI**!
 
-<br />
+---
+
+## 🔗 Key API Endpoints Reference
+
+| Module | Method | Endpoint | Auth | Target Service | Description |
+| :--- | :---: | :--- | :---: | :--- | :--- |
+| **Authentication** | `POST` | `/api/auth/login` | No | Auth Service (:8001) | Authenticates Google token & sets Redis session cookie |
+| **Authentication** | `POST` | `/api/auth/logout` | Yes | Auth Service (:8001) | Deletes Redis session key & clears auth cookie |
+| **User Profile** | `GET` | `/api/me` | Yes | API Gateway (:8000) | Fetches authenticated user, current credits & active plan |
+| **Chat Hub** | `GET` | `/api/chat/get-conversations` | Yes | Chat Service (:8002) | Retrieves list of all user conversation threads |
+| **Chat Hub** | `POST`| `/api/chat/create-conversation`| Yes | Chat Service (:8002) | Creates a new conversation thread |
+| **Chat Hub** | `GET` | `/api/chat/get-messages/:id` | Yes | Chat Service (:8002) | Retrieves full message stream & generated artifacts |
+| **Agent Orchestrator**| `POST`| `/api/agent` | Yes | Agent Service (:8003) | Dispatches prompt & files to LangGraph StateGraph |
+| **PDF RAG Studio** | `POST`| `/api/pdf/upload` | Yes | Agent Service (:8003) | Ingests PDF, chunks text & indexes vectors into Custom DB |
+| **PDF RAG Studio** | `POST`| `/api/pdf/query` | Yes | Agent Service (:8003) | Queries indexed document via vector similarity search |
+| **Billing & Payments**| `POST`| `/api/billing/create-order` | Yes | Billing Service (:8004)| Creates Razorpay checkout order for credit plans |
+| **Billing & Payments**| `POST`| `/api/billing/verify` | Yes | Billing Service (:8004)| Validates Razorpay HMAC signature & credits user account |
 
 ---
 
 ## 💳 Subscription Plans & Credit Usage
 
-| Plan Name | Price (INR) | Credits Included | Validity | Ideal For |
+| Plan Name | Price (INR) | Credits Included | Validity | Best Suited For |
 | :--- | :---: | :---: | :---: | :--- |
-| **Free Tier** | **₹0** | **100 Credits** | 30 Days | Exploration, general conversation & light coding |
-| **Starter Plan** | **₹199** | **500 Credits** | 30 Days | Frequent research, document RAG & slide deck generation |
+| **Free Tier** | **₹0** | **100 Credits** | 30 Days | General chat, exploration & lightweight coding |
+| **Starter Plan** | **₹199** | **500 Credits** | 30 Days | Document RAG queries, web research & slide decks |
 | **Pro Plan** | **₹499** | **1,000 Credits** | 30 Days | Power users, full-stack builders, image creators & teams |
 
 ### ⚡ Agent Credit Consumption Table
@@ -611,61 +624,37 @@ Navigate to **`http://localhost:5173`** in your browser to experience **ShifraAI
 - 🎨 **Clipdrop AI Image Generation**: `10 credits` per image
 - 👁️ **Gemini Multimodal Vision Analysis**: `10 credits` per image batch
 
-<br />
-
 ---
 
-## 🤝 Contributing
+## 👨‍💻 Project Author & Team
 
-Contributions, bug reports, and feature suggestions are warmly welcomed!
+<p align="center">
+  <b>Developed with dedication by the ShifraAI Engineering Team</b><br/>
+  <b>Lead Developer & AI Architect:</b> Suvojit Manna<br/>
+  <i>Full Stack MERN Developer • Autonomous Multi-Agent Systems</i>
+</p>
 
-1. **Fork** the repository
-2. **Create** your feature branch (`git checkout -b feature/amazing-feature`)
-3. **Commit** your changes (`git commit -m 'feat: Add amazing multi-agent feature'`)
-4. **Push** to the branch (`git push origin feature/amazing-feature`)
-5. **Open** a Pull Request
-
-<br />
+<p align="center">
+  <a href="https://github.com/suvojitmanna"><img src="https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white" /></a>
+  <a href="https://linkedin.com/in/suvojit-manna"><img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" /></a>
+</p>
 
 ---
 
 ## 📜 License
 
-This project is licensed under the **ISC License**. Feel free to adapt, extend, and build upon it for academic, personal, or commercial projects.
-
-<br />
+This project is licensed under the **ISC License** — feel free to adapt, extend, and build upon it for personal, academic, or commercial projects.
 
 ---
 
-<!-- MODERN FOOTER -->
-<div align="center">
+## 👁️ Visitor Statistics
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=14,24,36&height=120&section=footer&text=ShifraAI%20•%20Intelligent%20Multi-Agent%20Ecosystem&fontSize=22&fontColor=ffffff&fontAlignY=65" width="100%" alt="Footer Banner" />
+<p align="center">
+  <img src="https://komarev.com/ghpvc/?username=suvojitmanna-multiagent-chat-bot&label=Project%20Views&color=6366f1&style=for-the-badge"/>
+</p>
 
-<br />
+---
 
-### 👨‍💻 Created & Maintained by
-
-**Suvojit Manna**  
-*Lead Developer & AI Architect*  
-*ShifraAI Core Engineering Team*
-
-[![GitHub](https://img.shields.io/badge/GitHub-Profile-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/suvojitmanna)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com)
-[![Portfolio](https://img.shields.io/badge/Portfolio-Explore-FF7139?style=for-the-badge&logo=firefox&logoColor=white)](https://github.com/suvojitmanna)
-
-<br />
-
-⭐ **Star this repository if you find ShifraAI useful or inspiring!** ⭐
-
-<br />
-
-<a href="#-shifraai--autonomous-multi-agent-conversational-ai-platform">
-  <img src="https://img.shields.io/badge/Back%20to%20Top-▲-indigo?style=for-the-badge" alt="Back to Top" />
-</a>
-
-<br /><br />
-
-<sub>© 2026 ShifraAI. Built with ❤️ for the global open-source and artificial intelligence developer community.</sub>
-
-</div>
+<p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:6366f1,50:312e81,100:090b11&height=140&section=footer" width="100%" />
+</p>
