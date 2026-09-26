@@ -3,37 +3,57 @@ import { getModel } from "../config/model.js";
 import fs from "fs";
 
 export const imageAnalyzer = async (state) => {
+  const targetFiles =
+    Array.isArray(state.files) && state.files.length > 0
+      ? state.files.filter((f) => f?.mimetype?.startsWith("image/"))
+      : state.file?.mimetype?.startsWith("image/")
+        ? [state.file]
+        : [];
+
   try {
     const llm = await getModel("imageAnalyzer");
 
-    const imageBuffer = await fs.promises.readFile(state.file.path);
+    const imageBlocks = [];
+    for (const f of targetFiles) {
+      if (f?.path && fs.existsSync(f.path)) {
+        const imageBuffer = await fs.promises.readFile(f.path);
+        const base64image = imageBuffer.toString("base64");
+        imageBlocks.push({
+          type: "image_url",
+          image_url: `data:${f.mimetype};base64,${base64image}`,
+        });
+      }
+    }
 
-    const base64image = imageBuffer.toString("base64");
+    if (imageBlocks.length === 0) {
+      return {
+        ...state,
+        aiResponse: "❌ No valid image file was found to analyze.",
+      };
+    }
 
     const messages = [
       new SystemMessage(
         `
-                You are ShifraAI image analyzer Agent.
+You are ShifraAI image analyzer Agent.
 
-                Rules:
-                - Analyze only the uploaded image
-                - If text exists in the image, extract it
-                - If charts or tables exist, explain them.
-                - If something is unclear, say so.
-                - Use Markdown when helpful.
-                - Do not hallucinate.
-                `,
+Rules:
+- Analyze all uploaded images thoroughly.
+- If text exists in the images, extract it.
+- If charts or tables exist, explain them clearly.
+- If multiple images are provided, compare and reference each image clearly.
+- If something is unclear, say so.
+- Use Markdown when helpful.
+- Do not hallucinate.
+        `,
       ),
       new HumanMessage({
         content: [
           {
             type: "text",
-            text: state.prompt || "analyze the image",
+            text: state.prompt || "analyze the uploaded images",
           },
-          {
-            type: "image_url",
-            image_url: `data:${state.file.mimetype};base64,${base64image}`,
-          },
+          ...imageBlocks,
         ],
       }),
     ];
@@ -44,8 +64,8 @@ export const imageAnalyzer = async (state) => {
           .map((part) => (typeof part === "string" ? part : part?.text || ""))
           .join("\n\n")
       : typeof response.content === "string"
-      ? response.content
-      : String(response.content || "");
+        ? response.content
+        : String(response.content || "");
 
     return {
       ...state,
@@ -64,8 +84,10 @@ export const imageAnalyzer = async (state) => {
         : `❌ **Image analysis error:** ${error.message || "Could not analyze image."}`,
     };
   } finally {
-    if (state.file?.path && fs.existsSync(state.file.path)) {
-      await fs.promises.unlink(state.file.path).catch(() => {});
+    for (const f of targetFiles) {
+      if (f?.path && fs.existsSync(f.path)) {
+        await fs.promises.unlink(f.path).catch(() => {});
+      }
     }
   }
 };

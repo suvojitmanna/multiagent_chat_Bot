@@ -6,8 +6,13 @@ import { addMessage } from "../config/memory.js";
 export const agent = async (req, res) => {
   try {
     const { prompt, conversationId, agent } = req.body;
-    const file = req.file;
-    if (!prompt && !file) {
+    const uploadedFiles = Array.isArray(req.files)
+      ? req.files
+      : req.file
+        ? [req.file]
+        : [];
+    const file = uploadedFiles[0] || null;
+    if (!prompt && uploadedFiles.length === 0) {
       return res.status(400).json({ error: "Prompt or file is required" });
     }
 
@@ -56,25 +61,41 @@ export const agent = async (req, res) => {
 
     if (conversationId) {
       try {
-        const userContent =
-          file?.mimetype === "application/pdf"
-            ? `📄 **[PDF: ${file.originalname}]**\n\n${prompt}`
-            : file?.mimetype?.startsWith("image/")
-            ? `🖼️ **[Image: ${file.originalname}]**\n\n${prompt}`
-            : prompt;
+        const imageFiles = uploadedFiles.filter((f) =>
+          f?.mimetype?.startsWith("image/"),
+        );
+        const pdfFiles = uploadedFiles.filter(
+          (f) => f?.mimetype === "application/pdf",
+        );
+
+        let userContent = prompt || "";
+        if (pdfFiles.length > 0) {
+          userContent =
+            `📄 **[PDF: ${pdfFiles.map((p) => p.originalname).join(", ")}]**\n\n${userContent}`.trim();
+        }
+        if (imageFiles.length > 0) {
+          userContent =
+            `🖼️ **[Image: ${imageFiles.map((i) => i.originalname).join(", ")}]**\n\n${userContent}`.trim();
+        }
 
         let savedImages = [];
-        if (
-          file?.mimetype?.startsWith("image/") &&
-          file.path &&
-          fs.existsSync(file.path) &&
-          file.size < 4 * 1024 * 1024
-        ) {
-          try {
-            const buf = await fs.promises.readFile(file.path);
-            savedImages = [`data:${file.mimetype};base64,${buf.toString("base64")}`];
-          } catch (e) {
-            console.warn("Could not read image buffer for persistence:", e.message);
+        for (const img of imageFiles) {
+          if (
+            img.path &&
+            fs.existsSync(img.path) &&
+            img.size < 4 * 1024 * 1024
+          ) {
+            try {
+              const buf = await fs.promises.readFile(img.path);
+              savedImages.push(
+                `data:${img.mimetype};base64,${buf.toString("base64")}`,
+              );
+            } catch (e) {
+              console.warn(
+                "Could not read image buffer for persistence:",
+                e.message,
+              );
+            }
           }
         }
 
@@ -97,6 +118,7 @@ export const agent = async (req, res) => {
       conversationId,
       agent,
       file,
+      files: uploadedFiles,
       userId,
       documentId: req.body?.documentId,
     });
