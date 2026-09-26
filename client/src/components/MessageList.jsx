@@ -136,6 +136,9 @@ const MessageList = ({ sidebarCollapsed, loading }) => {
                     artifacts={msg?.artifacts}
                     isThinking={msg?.isThinking}
                     sidebarCollapsed={sidebarCollapsed}
+                    pdf={msg?.pdf}
+                    file={msg?.file}
+                    {...msg}
                   />
                 </motion.div>
               ))}

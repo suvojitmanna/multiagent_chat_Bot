@@ -13,6 +13,7 @@ import {
   Globe,
   Plus,
   Check,
+  X,
 } from 'lucide-react'
 import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -55,12 +56,12 @@ const AGENTS = [
   },
   {
     id: "pdf",
-    label: "PDF",
+    label: "PDF RAG",
     credits: -10,
     icon: FileText,
     color: "text-rose-400 border-rose-500/30 bg-rose-500/10",
-    placeholder: "Ask questions about documents, reports, or PDF context...",
-    description: "Understand, summarize, extract key insights, and answer questions from documents and PDFs.",
+    placeholder: "Attach a PDF to index and ask questions with Custom Vector DB citations...",
+    description: "Upload PDF documents to index into Custom Vector DB and chat with source citations.",
   },
   {
     id: "ppt",
@@ -73,12 +74,21 @@ const AGENTS = [
   },
   {
     id: "image",
-    label: "Image",
+    label: "Image Generator",
     credits: -10,
     icon: ImageIcon,
     color: "text-cyan-400 border-cyan-500/30 bg-cyan-500/10",
     placeholder: "Describe the image or visual scene you want to generate...",
     description: "Generate creative image concepts, visual descriptions, and artistic prompts.",
+  },
+  {
+    id: "imageAnalyzer",
+    label: "Image Analyzer",
+    credits: -10,
+    icon: ImageIcon,
+    color: "text-amber-400 border-amber-500/30 bg-amber-500/10",
+    placeholder: "Attach an image to extract text, analyze charts, or explain diagrams...",
+    description: "Multimodal Gemini image understanding: OCR text extraction, chart analysis, and visual reasoning.",
   },
   {
     id: "search",
@@ -117,6 +127,108 @@ const ChatInput = ({ sidebarCollapsed }) => {
   const [isListening, setIsListening] = useState(false)
   const recognitionRef = useRef(null)
   const baseTextRef = useRef("")
+
+  const [selectedImage, setSelectedImage] = useState(null)
+  const [imagePreview, setImagePreview] = useState(false)
+  const imageInputRef = useRef(null)
+
+  const [selectedPdf, setSelectedPdf] = useState(null)
+  const pdfInputRef = useRef(null)
+
+  const handleSelectImage = (file) => {
+    if (!file) return
+    if (!file.type.startsWith("image/")) {
+      alert("Please upload a valid image file (PNG, JPG, WEBP, GIF)")
+      return
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      alert("Image file size should be less than 15 MB")
+      return
+    }
+    if (selectedPdf) {
+      handleRemovePdf()
+    }
+    setSelectedImage(file)
+    setSelectedAgent("imageAnalyzer")
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const dataUrl = e.target.result
+      setImagePreview(dataUrl)
+      if (typeof window !== "undefined") {
+        window.__imageBlobCache = window.__imageBlobCache || new Map()
+        window.__imageBlobCache.set(file.name, dataUrl)
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null)
+    setImagePreview(null)
+    if (imageInputRef.current) {
+      imageInputRef.current.value = ""
+    }
+  }
+
+  const handleSelectPdf = (file) => {
+    if (!file) return
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      alert("Please upload a valid PDF document (.pdf)")
+      return
+    }
+    if (file.size > 30 * 1024 * 1024) {
+      alert("PDF file size should be less than 30 MB")
+      return
+    }
+    if (selectedImage) {
+      handleRemoveImage()
+    }
+    setSelectedPdf(file)
+    setSelectedAgent("pdf")
+    const pdfUrl = URL.createObjectURL(file)
+    if (typeof window !== "undefined") {
+      window.__pdfBlobCache = window.__pdfBlobCache || new Map()
+      window.__pdfBlobCache.set(file.name, pdfUrl)
+    }
+  }
+
+  const handleRemovePdf = () => {
+    setSelectedPdf(null)
+    if (pdfInputRef.current) {
+      pdfInputRef.current.value = ""
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview)
+      }
+    }
+  }, [imagePreview])
+
+  const handlePaste = (e) => {
+    const items = e.clipboardData?.items
+    if (!items) return
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith("image/")) {
+        const file = items[i].getAsFile()
+        if (file) {
+          e.preventDefault()
+          handleSelectImage(file)
+          break
+        }
+      } else if (items[i].type === "application/pdf") {
+        const file = items[i].getAsFile()
+        if (file) {
+          e.preventDefault()
+          handleSelectPdf(file)
+          break
+        }
+      }
+    }
+  }
 
   useEffect(() => {
     return () => {
@@ -267,14 +379,51 @@ const ChatInput = ({ sidebarCollapsed }) => {
     }
 
     const promptText = value.trim()
-    if (!promptText || loading) return
+    const imageToSend = selectedImage
+    const pdfToSend = selectedPdf
+    const previewToSend = imagePreview
+
+    if ((!promptText && !imageToSend && !pdfToSend) || loading) return
 
     setLoading(true)
     setValue("")
+    handleRemoveImage()
+    handleRemovePdf()
+
+    const effectivePrompt =
+      promptText ||
+      (pdfToSend
+        ? "Please summarize this PDF document and provide the main key takeaways."
+        : imageToSend
+          ? "Analyze this image and describe all details, text, and visual features."
+          : "")
 
     const currentList = Array.isArray(messages) ? messages : (messages?.messages || [])
-    const trimmedTitle = trimPromptToTitle(promptText)
-    const pendingUserMsg = { role: "user", content: promptText }
+    const trimmedTitle = trimPromptToTitle(
+      pdfToSend ? `PDF: ${pdfToSend.name}` : effectivePrompt
+    )
+    const pdfBlobUrl = pdfToSend ? URL.createObjectURL(pdfToSend) : null
+    const imageBlobUrl = previewToSend || (imageToSend ? URL.createObjectURL(imageToSend) : null)
+
+    if (pdfToSend && pdfBlobUrl) {
+      window.__pdfBlobCache = window.__pdfBlobCache || new Map()
+      window.__pdfBlobCache.set(pdfToSend.name, pdfBlobUrl)
+    }
+    if (imageToSend && imageBlobUrl) {
+      window.__imageBlobCache = window.__imageBlobCache || new Map()
+      window.__imageBlobCache.set(imageToSend.name, imageBlobUrl)
+    }
+
+    const pendingUserMsg = {
+      role: "user",
+      content: pdfToSend
+        ? `📄 **[PDF: ${pdfToSend.name}]**\n\n${effectivePrompt}`
+        : imageToSend
+        ? `🖼️ **[Image: ${imageToSend.name}]**\n\n${effectivePrompt}`
+        : effectivePrompt,
+      images: imageBlobUrl ? [imageBlobUrl] : [],
+      pdf: pdfToSend ? { name: pdfToSend.name, size: pdfToSend.size, url: pdfBlobUrl } : null,
+    }
     const pendingAssistantMsg = { role: "assistant", content: "", isThinking: true }
     dispatch(setMessages([...currentList, pendingUserMsg, pendingAssistantMsg]))
 
@@ -295,11 +444,12 @@ const ChatInput = ({ sidebarCollapsed }) => {
       }
 
       const payload = {
-        prompt: promptText,
+        prompt: effectivePrompt,
         conversationId: convId,
-        agent: selectedAgent.toLocaleLowerCase(),
+        agent: pdfToSend ? "pdfRag" : (imageToSend ? "imageAnalyzer" : selectedAgent.toLocaleLowerCase()),
+        file: pdfToSend || imageToSend || undefined,
       }
-      console.log(`Sending message with Agent: [${selectedAgent}]`, payload)
+      console.log(`Sending message with Agent: [${payload.agent}]`, payload)
       const resData = await sendMessage(payload)
 
       if (resData && typeof resData.credits === 'number') {
@@ -341,7 +491,37 @@ const ChatInput = ({ sidebarCollapsed }) => {
         const data = await getMessages(convId)
         const fetchedList = Array.isArray(data) ? data : (data?.messages || [])
         if (fetchedList.length > 0) {
-          dispatch(setMessages(fetchedList))
+          const mergedList = [...fetchedList]
+          for (let i = 0; i < mergedList.length; i++) {
+            if (mergedList[i].role === "user") {
+              const pMatch = typeof mergedList[i].content === "string" ? mergedList[i].content.match(/📄\s*\*\*\[PDF:\s*([^\]]+)\]\*\*/) : null;
+              if (pMatch && !mergedList[i].pdf) {
+                const pName = pMatch[1].trim();
+                const cachedUrl = typeof window !== "undefined" && window.__pdfBlobCache?.get(pName);
+                mergedList[i].pdf = { name: pName, url: cachedUrl || undefined };
+              }
+              const iMatch = typeof mergedList[i].content === "string" ? mergedList[i].content.match(/🖼️\s*\*\*\[Image:\s*([^\]]+)\]\*\*/) : null;
+              if (iMatch && (!mergedList[i].images || mergedList[i].images.length === 0)) {
+                const iName = iMatch[1].trim();
+                const cachedUrl = typeof window !== "undefined" && window.__imageBlobCache?.get(iName);
+                if (cachedUrl) {
+                  mergedList[i].images = [cachedUrl];
+                }
+              }
+            }
+          }
+          for (let i = mergedList.length - 1; i >= 0; i--) {
+            if (mergedList[i].role === "user") {
+              if ((!mergedList[i].images || mergedList[i].images.length === 0) && imageBlobUrl) {
+                mergedList[i].images = [imageBlobUrl]
+              }
+              if (!mergedList[i].pdf && pdfToSend) {
+                mergedList[i].pdf = { name: pdfToSend.name, size: pdfToSend.size, url: pdfBlobUrl }
+              }
+              break
+            }
+          }
+          dispatch(setMessages(mergedList))
         } else if (resData?.response) {
           dispatch(
             setMessages([
@@ -424,6 +604,109 @@ const ChatInput = ({ sidebarCollapsed }) => {
                 className="ml-1 text-[11px] underline opacity-80 hover:opacity-100 cursor-pointer text-rose-600 dark:text-rose-200"
               >
                 Done
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {selectedImage && (
+            <motion.div
+              initial={{ opacity: 0, y: 8, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 8, scale: 0.96 }}
+              transition={{ duration: 0.15 }}
+              onClick={() => {
+                dispatch(setActiveArtifact({
+                  type: 'image',
+                  title: selectedImage.name,
+                  imageUrl: imagePreview,
+                  size: selectedImage.size
+                }))
+              }}
+              className="relative flex items-center gap-3 p-2 bg-white/95 dark:bg-[#141620] border border-slate-200 hover:border-indigo-400 dark:border-white/[0.1] dark:hover:border-indigo-500/50 rounded-2xl shadow-xl w-fit max-w-sm cursor-pointer group transition-all"
+              title="Click to view in Artifact panel"
+            >
+              <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 shrink-0 bg-slate-100 dark:bg-black/40 group-hover:scale-105 transition-transform">
+                <img
+                  src={imagePreview}
+                  alt="Upload preview"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex flex-col min-w-0 pr-6">
+                <span className="text-[12.5px] font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[190px] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                  {selectedImage.name}
+                </span>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="text-[10px] text-slate-500 font-mono">
+                    {(selectedImage.size / 1024).toFixed(0)} KB
+                  </span>
+                  <span className="text-[9.5px] font-medium text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                    Gemini Vision
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleRemoveImage()
+                }}
+                className="absolute top-2 right-2 p-1 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                title="Remove image"
+              >
+                <X size={14} />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {selectedPdf && (
+            <motion.div
+              initial={{ opacity: 0, y: 8, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 8, scale: 0.96 }}
+              transition={{ duration: 0.15 }}
+              onClick={() => {
+                const pdfUrl = URL.createObjectURL(selectedPdf)
+                dispatch(setActiveArtifact({
+                  type: 'pdf',
+                  title: selectedPdf.name,
+                  pdfUrl: pdfUrl,
+                  size: selectedPdf.size
+                }))
+              }}
+              className="relative flex items-center gap-3 p-2 bg-white/95 dark:bg-[#141620] border border-rose-500/30 hover:border-rose-500 dark:border-rose-500/25 dark:hover:border-rose-500/60 rounded-2xl shadow-xl w-fit max-w-sm cursor-pointer group transition-all"
+              title="Click to view PDF in Artifact panel"
+            >
+              <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-rose-500/20 shrink-0 bg-rose-500/10 text-rose-500 flex items-center justify-center group-hover:scale-105 transition-transform">
+                <FileText size={22} className="text-rose-500" />
+              </div>
+              <div className="flex flex-col min-w-0 pr-6">
+                <span className="text-[12.5px] font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[190px] group-hover:text-rose-500 transition-colors">
+                  {selectedPdf.name}
+                </span>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="text-[10px] text-slate-500 font-mono">
+                    {(selectedPdf.size / 1024).toFixed(0)} KB
+                  </span>
+                  <span className="text-[9.5px] font-medium text-rose-600 dark:text-rose-400 bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20">
+                    Custom Vector DB
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleRemovePdf()
+                }}
+                className="absolute top-2 right-2 p-1 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                title="Remove PDF"
+              >
+                <X size={14} />
               </button>
             </motion.div>
           )}
@@ -528,25 +811,77 @@ const ChatInput = ({ sidebarCollapsed }) => {
             </AnimatePresence>
           </div>
 
+          <input
+            ref={pdfInputRef}
+            type="file"
+            accept="application/pdf,.pdf"
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files && e.target.files[0]) {
+                handleSelectPdf(e.target.files[0])
+              }
+              e.target.value = ""
+            }}
+          />
+
           <motion.button
             type="button"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className="shrink-0 flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-white/[0.05] border border-transparent hover:border-slate-300 dark:hover:border-white/[0.06] transition-colors cursor-pointer"
-            title="Attach file"
-            aria-label="Attach file"
+            onClick={() => pdfInputRef.current?.click()}
+            className={`shrink-0 flex items-center justify-center w-8 h-8 rounded-lg transition-colors cursor-pointer ${
+              selectedPdf
+                ? "text-rose-500 bg-rose-500/15 border border-rose-500/30 shadow-xs"
+                : "text-slate-400 dark:text-slate-500 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-slate-200/60 dark:hover:bg-white/[0.05] border border-transparent hover:border-slate-300 dark:hover:border-white/[0.06]"
+            }`}
+            title="Upload PDF document (Custom Vector DB RAG)"
+            aria-label="Upload PDF"
           >
             <Paperclip size={16} />
+          </motion.button>
+
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files && e.target.files[0]) {
+                handleSelectImage(e.target.files[0])
+              }
+              e.target.value = ""
+            }}
+          />
+
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => imageInputRef.current?.click()}
+            className={`shrink-0 flex items-center justify-center w-8 h-8 rounded-lg transition-colors cursor-pointer ${
+              selectedImage
+                ? "text-amber-500 bg-amber-500/15 border border-amber-500/30 shadow-xs"
+                : "text-slate-400 dark:text-slate-500 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-slate-200/60 dark:hover:bg-white/[0.05] border border-transparent hover:border-slate-300 dark:hover:border-white/[0.06]"
+            }`}
+            title="Upload image to analyze (charts, OCR, diagrams)"
+            aria-label="Upload image"
+          >
+            <ImageIcon size={16} />
           </motion.button>
 
           <textarea
             value={value}
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
             placeholder={
               isListening
                 ? "Listening to your voice... (speak now into your microphone)"
-                : (activeAgentConfig?.placeholder || "Ask Anything...")
+                : selectedPdf
+                  ? "Ask anything about this PDF (or press Enter to summarize)..."
+                  : selectedImage
+                    ? "Ask about this image (or press Enter to analyze)..."
+                    : (activeAgentConfig?.placeholder || "Ask Anything...")
             }
             rows={1}
             className="flex-1 min-w-0 bg-transparent outline-none resize-none text-[14px] text-slate-900 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 leading-relaxed [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -569,12 +904,13 @@ const ChatInput = ({ sidebarCollapsed }) => {
 
           <motion.button
             type="button"
-            whileHover={{ scale: !value.trim() || loading ? 1 : 1.08 }}
-            whileTap={{ scale: !value.trim() || loading ? 1 : 0.92 }}
+            whileHover={{ scale: (!value.trim() && !selectedImage && !selectedPdf) || loading ? 1 : 1.08 }}
+            whileTap={{ scale: (!value.trim() && !selectedImage && !selectedPdf) || loading ? 1 : 0.92 }}
             transition={{ type: "spring", stiffness: 400, damping: 17 }}
-            disabled={!value.trim() || loading}
-            className={`shrink-0 flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-indigo-500 to-violet-500 hover:from-indigo-400 hover:to-violet-400 text-white shadow-lg shadow-indigo-500/20 transition-opacity cursor-pointer ${!value.trim() || loading ? 'opacity-35 cursor-not-allowed' : 'opacity-100 cursor-pointer'
-              }`}
+            disabled={(!value.trim() && !selectedImage && !selectedPdf) || loading}
+            className={`shrink-0 flex items-center justify-center w-8 h-8 rounded-lg bg-linear-to-br from-indigo-500 to-violet-500 hover:from-indigo-400 hover:to-violet-400 text-white shadow-lg shadow-indigo-500/20 transition-opacity cursor-pointer ${
+              (!value.trim() && !selectedImage && !selectedPdf) || loading ? 'opacity-35 cursor-not-allowed' : 'opacity-100 cursor-pointer'
+            }`}
             onClick={handleSendMessage}
             title="Send message"
             aria-label="Send message"

@@ -11,4 +11,6 @@ export const agentState = Annotation.Root({
   pdfUrl: Annotation(),
   pptUrl: Annotation(),
   file: Annotation(),
+  userId: Annotation(),
+  documentId: Annotation(),
 });

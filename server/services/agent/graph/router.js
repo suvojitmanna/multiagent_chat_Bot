@@ -1,11 +1,30 @@
 import { getModel } from "../config/model.js";
 
 export const router = async (state) => {
-  if (state.agent && state.agent !== "auto") {
-    console.log("--> Selected Agent (Direct Route):", state.agent);
+  if (state.file?.mimetype === "application/pdf") {
+    console.log("--> Selected Agent (File: PDF): pdfRag");
     return {
       ...state,
-      agent: state.agent,
+      agent: "pdfRag",
+    };
+  }
+
+  if (state.file?.mimetype?.startsWith("image/")) {
+    console.log("--> Selected Agent (File: Image): imageAnalyzer");
+    return {
+      ...state,
+      agent: "imageAnalyzer",
+    };
+  }
+
+  if (state.agent && state.agent !== "auto") {
+    const directAgent =
+      state.agent === "pdf" || state.agent === "pdfRag"
+        ? "pdfRag"
+        : state.agent;
+    return {
+      ...state,
+      agent: directAgent,
     };
   }
 
@@ -33,6 +52,16 @@ export const router = async (state) => {
     return {
       ...state,
       agent: "image",
+    };
+  }
+
+  if (
+    /\b(pdf|document|page\s*\d+|summarize\s+page|uploaded\s*(file|pdf|doc)|this\s*(file|pdf|doc))\b/i.test(promptText)
+  ) {
+    console.log("--> Selected Agent (Document Query): pdfRag");
+    return {
+      ...state,
+      agent: "pdfRag",
     };
   }
 

@@ -136,6 +136,22 @@ const ThinkingIndicator = () => {
 
 const formatContent = (val) => {
   if (val === null || val === undefined) return "";
+  if (Array.isArray(val)) {
+    const hasTextBlocks = val.some((item) => item && typeof item === "object" && (item.text || item.content));
+    if (hasTextBlocks) {
+      return val
+        .map((item) => {
+          if (typeof item === "string") return item;
+          if (item && typeof item === "object") {
+            if (item.text) return item.text;
+            if (item.content) return formatContent(item.content);
+          }
+          return formatContent(item);
+        })
+        .filter(Boolean)
+        .join("\n\n");
+    }
+  }
   if (typeof val === "object") {
     if (val.response) return formatContent(val.response);
     if (val.content) return formatContent(val.content);
@@ -471,7 +487,8 @@ const PresentationDeckCard = ({ data, originalContent }) => {
 
   let finalDownloadUrl = downloadUrl;
   if (downloadUrl && downloadUrl.includes("res.cloudinary.com") && downloadUrl.includes("/raw/upload/")) {
-    finalDownloadUrl = `http://localhost:8003/proxy-pdf?url=${encodeURIComponent(downloadUrl)}&filename=${encodeURIComponent(downloadFilename)}`;
+    const proxyBase = import.meta.env.VITE_AGENT_URL || import.meta.env.VITE_SERVER_URL || "";
+    finalDownloadUrl = `${proxyBase}/proxy-pdf?url=${encodeURIComponent(downloadUrl)}&filename=${encodeURIComponent(downloadFilename)}`;
   }
 
   const pointCount = currentSlide.points?.length || 0;
@@ -720,23 +737,26 @@ const PresentationDeckCard = ({ data, originalContent }) => {
   );
 };
 
-const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking = false, sidebarCollapsed = false }) => {
+const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking = false, sidebarCollapsed = false, ...props }) => {
   const dispatch = useDispatch();
   const [lightBox, setLightBox] = useState(null);
   const artifactCardRef = useRef(null);
 
   useEffect(() => {
     const el = artifactCardRef.current;
-    if (!el || !Array.isArray(artifacts) || artifacts.length === 0) return;
+    const validArts = (Array.isArray(artifacts) ? artifacts : []).filter(
+      (a) => Array.isArray(a?.files) && a.files.length > 0
+    );
+    if (!el || validArts.length === 0) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          const firstArt = artifacts[0];
+          const firstArt = validArts[0];
           const resolvedTitle = getArtifactTitle(firstArt, content);
           dispatch(setVisibleArtifact({ ...firstArt, title: resolvedTitle }));
         } else {
-          dispatch(clearVisibleArtifact(artifacts[0]?.id));
+          dispatch(clearVisibleArtifact(validArts[0]?.id));
         }
       },
       {
@@ -747,7 +767,7 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
     observer.observe(el);
     return () => {
       observer.disconnect();
-      dispatch(clearVisibleArtifact(artifacts[0]?.id));
+      dispatch(clearVisibleArtifact(validArts[0]?.id));
     };
   }, [artifacts, content, dispatch]);
 
@@ -782,6 +802,30 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
   const pptData = useMemo(() => parsePresentationData(displayText), [displayText]);
 
   if (isUser) {
+    const pdfMatch = typeof content === "string" ? content.match(/📄\s*\*\*\[PDF:\s*([^\]]+)\]\*\*/) : null;
+    const imageMatch = typeof content === "string" ? content.match(/🖼️\s*\*\*\[Image:\s*([^\]]+)\]\*\*/) : null;
+    const detectedPdfName = pdfMatch ? pdfMatch[1].trim() : (props?.pdf?.name || null);
+    const detectedImageName = imageMatch ? imageMatch[1].trim() : (props?.image?.name || null);
+
+    let cleanUserText = displayText;
+    if (pdfMatch) {
+      cleanUserText = cleanUserText.replace(/📄\s*\*\*\[PDF:\s*([^\]]+)\]\*\*\s*/g, "").trim();
+    }
+    if (imageMatch) {
+      cleanUserText = cleanUserText.replace(/🖼️\s*\*\*\[Image:\s*([^\]]+)\]\*\*\s*/g, "").trim();
+    }
+
+    const resolvedPdfUrl =
+      props?.pdf?.url ||
+      (detectedPdfName && typeof window !== "undefined" && window.__pdfBlobCache?.get(detectedPdfName)) ||
+      null;
+
+    const resolvedImages = (Array.isArray(images) && images.length > 0)
+      ? images
+      : (detectedImageName && typeof window !== "undefined" && window.__imageBlobCache?.has(detectedImageName))
+        ? [window.__imageBlobCache.get(detectedImageName)]
+        : (props?.imageUrl ? [props.imageUrl] : []);
+
     return (
       <motion.div
         initial={{ opacity: 0, y: 10, scale: 0.98 }}
@@ -789,8 +833,117 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
         transition={{ duration: 0.22, ease: "easeOut" }}
         className="flex items-start my-1.5 w-full justify-end"
       >
-        <div className="max-w-[85%] sm:max-w-[78%] md:max-w-[72%] px-4 py-2.5 rounded-2xl rounded-tr-sm bg-linear-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/15 text-[13.5px] sm:text-[14px] leading-relaxed whitespace-pre-wrap break-words">
-          {displayText}
+        <div className="max-w-[85%] sm:max-w-[78%] md:max-w-[72%] px-4 py-3 rounded-2xl rounded-tr-sm bg-linear-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/15 text-[13.5px] sm:text-[14px] leading-relaxed break-words flex flex-col gap-2.5">
+          {resolvedImages.length > 0 && (
+            <div className="flex flex-wrap gap-2.5 not-prose">
+              {resolvedImages.map((imgUrl, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => dispatch(setActiveArtifact({
+                    type: 'image',
+                    title: detectedImageName || 'Attached Image',
+                    imageUrl: imgUrl
+                  }))}
+                  className="group relative rounded-xl overflow-hidden border border-white/30 hover:border-white/80 shadow-md hover:shadow-lg cursor-pointer transition-all bg-black/20"
+                  title="Click to show image in Artifact panel"
+                >
+                  <div className="w-28 h-28 sm:w-32 sm:h-32 overflow-hidden relative bg-indigo-950/50 flex items-center justify-center">
+                    <ImageIcon size={28} className="text-white/30 absolute pointer-events-none" />
+                    <img
+                      src={imgUrl}
+                      alt={detectedImageName || "Attached visual"}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 relative z-1"
+                      onError={(e) => {
+                        if (detectedImageName && typeof window !== "undefined" && window.__imageBlobCache?.has(detectedImageName)) {
+                          const cached = window.__imageBlobCache.get(detectedImageName);
+                          if (cached && cached !== e.target.src) {
+                            e.target.src = cached;
+                            return;
+                          }
+                        }
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                  <div className="absolute inset-0 bg-linear-to-t from-black/75 via-black/20 to-transparent opacity-90 group-hover:opacity-100 flex flex-col justify-end p-2 transition-opacity">
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-[10px] font-semibold text-white/90 truncate max-w-[80px]">
+                        {detectedImageName || 'Image'}
+                      </span>
+                      <span className="flex items-center gap-1 text-[10px] font-medium text-white bg-white/20 group-hover:bg-indigo-500/80 px-1.5 py-0.5 rounded-md backdrop-blur-xs transition-colors">
+                        <Sparkles size={10} className="text-amber-300" />
+                        <span>Artifact</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {resolvedImages.length === 0 && detectedImageName && (
+            <div
+              onClick={() => dispatch(setActiveArtifact({
+                type: 'image',
+                title: detectedImageName,
+                imageUrl: (typeof window !== "undefined" && window.__imageBlobCache?.get(detectedImageName)) || null
+              }))}
+              className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 hover:border-white/40 cursor-pointer transition-all group"
+              title="Click to show Image in Artifact panel"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-indigo-500/30 border border-indigo-300/40 flex items-center justify-center text-indigo-100 shrink-0">
+                  <ImageIcon size={16} />
+                </div>
+                <div className="flex flex-col min-w-0 pr-1">
+                  <span className="text-xs font-semibold text-white truncate max-w-[200px]">
+                    {detectedImageName}
+                  </span>
+                  <span className="text-[10px] text-indigo-100/80 group-hover:text-white transition-colors">
+                    Attached visual document
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/20 group-hover:bg-white/30 text-white font-medium text-[11px] shrink-0 border border-white/25 transition-all">
+                <Sparkles size={11} className="text-amber-300" />
+                <span>Show Artifact</span>
+              </div>
+            </div>
+          )}
+
+          {detectedPdfName && (
+            <div
+              onClick={() => dispatch(setActiveArtifact({
+                type: 'pdf',
+                title: detectedPdfName,
+                pdfUrl: resolvedPdfUrl || undefined
+              }))}
+              className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 hover:border-white/40 cursor-pointer transition-all group"
+              title="Click to show PDF in Artifact panel"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-rose-500/25 border border-rose-300/40 flex items-center justify-center text-rose-200 shrink-0">
+                  <FileText size={16} />
+                </div>
+                <div className="flex flex-col min-w-0 pr-1">
+                  <span className="text-xs font-semibold text-white truncate max-w-[200px]">
+                    {detectedPdfName}
+                  </span>
+                  <span className="text-[10px] text-indigo-100/80 group-hover:text-white transition-colors">
+                    Custom Vector DB • Indexed
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/20 group-hover:bg-white/30 text-white font-medium text-[11px] shrink-0 border border-white/25 transition-all">
+                <Sparkles size={11} className="text-amber-300" />
+                <span>Show Artifact</span>
+              </div>
+            </div>
+          )}
+
+          {cleanUserText && (
+            <div className="whitespace-pre-wrap">{cleanUserText}</div>
+          )}
         </div>
       </motion.div>
     );
@@ -827,9 +980,13 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                       key={idx}
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => setLightBox(imgUrl)}
+                      onClick={() => dispatch(setActiveArtifact({
+                        type: 'image',
+                        title: `Visual Reference ${idx + 1}`,
+                        imageUrl: imgUrl
+                      }))}
                       className="shrink-0 w-32 h-24 sm:w-40 sm:h-28 rounded-xl overflow-hidden border border-slate-200 dark:border-white/[0.08] hover:border-indigo-400 dark:hover:border-indigo-500/50 transition-colors duration-200 group relative block bg-slate-100 dark:bg-[#161822] cursor-pointer"
-                      title="Click to view full image"
+                      title="Click to view in Artifact panel"
                     >
                       <img
                         src={imgUrl}
@@ -848,12 +1005,18 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                 </div>
               </div>
             )}
-            {Array.isArray(artifacts) && artifacts.length > 0 && (
-              <div ref={artifactCardRef} className="mb-4 flex flex-col gap-2.5 not-prose">
-                {artifacts.map((art, idx) => {
-                  const filesCount = art.files?.length || 0;
-                  const resolvedTitle = getArtifactTitle(art, content);
-                  return (
+            {(() => {
+              const codeArtifacts = (Array.isArray(artifacts) ? artifacts : []).filter(
+                (art) => Array.isArray(art?.files) && art.files.length > 0
+              );
+              if (codeArtifacts.length === 0) return null;
+
+              return (
+                <div ref={artifactCardRef} className="mb-4 flex flex-col gap-2.5 not-prose">
+                  {codeArtifacts.map((art, idx) => {
+                    const filesCount = art.files?.length || 0;
+                    const resolvedTitle = getArtifactTitle(art, content);
+                    return (
                     <motion.div
                       key={art.id || idx}
                       initial={{ opacity: 0, y: 8 }}
@@ -908,7 +1071,8 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                   );
                 })}
               </div>
-            )}
+              );
+            })()}
             {pptData ? (
               <PresentationDeckCard data={pptData} originalContent={displayText} />
             ) : (
@@ -1031,7 +1195,8 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                     }
 
                     if (href.includes("res.cloudinary.com") && href.includes("/raw/upload/")) {
-                      finalUrl = `http://localhost:8003/proxy-pdf?url=${encodeURIComponent(href)}&filename=${encodeURIComponent(downloadFilename)}`;
+                      const proxyBase = import.meta.env.VITE_AGENT_URL || import.meta.env.VITE_SERVER_URL || "";
+                      finalUrl = `${proxyBase}/proxy-pdf?url=${encodeURIComponent(href)}&filename=${encodeURIComponent(downloadFilename)}`;
                     }
 
                     return (

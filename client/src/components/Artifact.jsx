@@ -18,7 +18,12 @@ import {
   ChevronLeft,
   RotateCcw,
   Loader2,
-  Code2
+  Code2,
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
+  Image as ImageIcon,
+  FileText
 } from 'lucide-react'
 
 const getMonacoLanguage = (name = '') => {
@@ -112,20 +117,63 @@ const Artifact = () => {
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [previewKey, setPreviewKey] = useState(0)
   const [editedFiles, setEditedFiles] = useState({})
+  const [zoom, setZoom] = useState(1)
+  const [rotation, setRotation] = useState(0)
+
+  const isImageArtifact = Boolean(
+    activeArtifact?.type === 'image' ||
+    Boolean(activeArtifact?.imageUrl) ||
+    (activeArtifact?.type === 'file' && activeArtifact?.fileType?.startsWith('image/')) ||
+    (typeof activeArtifact?.title === 'string' && /\.(png|jpe?g|webp|gif|svg|bmp)$/i.test(activeArtifact.title))
+  )
+
+  const isPdfArtifact = Boolean(
+    activeArtifact?.type === 'pdf' ||
+    activeArtifact?.type === 'pdf_rag' ||
+    Boolean(activeArtifact?.pdfUrl) ||
+    (activeArtifact?.type === 'file' && activeArtifact?.fileType === 'application/pdf') ||
+    (typeof activeArtifact?.title === 'string' && activeArtifact.title.toLowerCase().endsWith('.pdf'))
+  )
 
   const currentArtifact = useMemo(() => {
-    if (activeArtifact && Array.isArray(activeArtifact.files) && activeArtifact.files.length > 0) {
-      return activeArtifact
+    if (activeArtifact) {
+      if (isImageArtifact || isPdfArtifact) return activeArtifact
+      if (Array.isArray(activeArtifact.files) && activeArtifact.files.length > 0) {
+        return activeArtifact
+      }
     }
     const messageList = Array.isArray(messages) ? messages : (messages?.messages || [])
     for (let i = messageList.length - 1; i >= 0; i--) {
       const arts = messageList[i]?.artifacts
-      if (Array.isArray(arts) && arts.length > 0 && Array.isArray(arts[0].files) && arts[0].files.length > 0) {
+      if (Array.isArray(arts) && arts.length > 0) {
         return arts[0]
       }
     }
     return null
-  }, [activeArtifact, messages])
+  }, [activeArtifact, messages, isImageArtifact, isPdfArtifact])
+
+  const activePdfUrl = useMemo(() => {
+    return (
+      currentArtifact?.pdfUrl ||
+      currentArtifact?.url ||
+      (typeof window !== "undefined" && currentArtifact?.title && window.__pdfBlobCache?.get(currentArtifact.title)) ||
+      null
+    );
+  }, [currentArtifact]);
+
+  const activeImageUrl = useMemo(() => {
+    return (
+      currentArtifact?.imageUrl ||
+      currentArtifact?.url ||
+      (typeof window !== "undefined" && currentArtifact?.title && window.__imageBlobCache?.get(currentArtifact.title)) ||
+      null
+    );
+  }, [currentArtifact]);
+
+  useEffect(() => {
+    setZoom(1)
+    setRotation(0)
+  }, [currentArtifact])
 
   const files = useMemo(() => {
     return Array.isArray(currentArtifact?.files) ? currentArtifact.files : []
@@ -182,6 +230,12 @@ const Artifact = () => {
   }, [files, hasHtml, getFileContent])
 
   const resolvedTitle = useMemo(() => {
+    if (isImageArtifact) {
+      return currentArtifact?.title || 'Attached Image'
+    }
+    if (isPdfArtifact) {
+      return currentArtifact?.title || 'Attached PDF Document'
+    }
     if (
       currentArtifact?.title &&
       currentArtifact.title.trim() &&
@@ -203,7 +257,7 @@ const Artifact = () => {
       }
     }
     return currentArtifact?.title || 'Interactive Project'
-  }, [currentArtifact, files, getFileContent])
+  }, [currentArtifact, files, getFileContent, isImageArtifact, isPdfArtifact])
 
   const currentFile = files.find((f) => f.name === activeTab) || files[0]
   const currentCode = getFileContent(currentFile)
@@ -259,6 +313,34 @@ const Artifact = () => {
     window.open(url, '_blank')
   }
 
+  const handleDownloadArtifact = () => {
+    if (isImageArtifact) {
+      const url = activeImageUrl || currentArtifact?.imageUrl || currentArtifact?.url
+      if (!url) return
+      const link = document.createElement('a')
+      link.href = url
+      link.download = resolvedTitle || 'image.png'
+      link.target = '_blank'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      return
+    }
+    if (isPdfArtifact) {
+      const url = activePdfUrl || currentArtifact?.pdfUrl || currentArtifact?.url
+      if (!url) return
+      const link = document.createElement('a')
+      link.href = url
+      link.download = resolvedTitle || 'document.pdf'
+      link.target = '_blank'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      return
+    }
+    handleDownloadAll()
+  }
+
   const handleOpenDrawer = () => {
     const targetArtifact = visibleArtifact || currentArtifact
     if (targetArtifact) {
@@ -271,9 +353,12 @@ const Artifact = () => {
     dispatch(setArtifactOpen(false))
   }
 
-  const isVerticalTabVisible = Boolean(visibleArtifact && !isArtifactOpen)
-  const isDrawerAvailable = Boolean((activeArtifact || visibleArtifact || currentArtifact) && files.length > 0)
-  const displayTitle = visibleArtifact?.title || resolvedTitle || 'Interactive Project'
+  const isVerticalTabVisible = Boolean((visibleArtifact || activeArtifact) && !isArtifactOpen)
+  const isDrawerAvailable = Boolean(
+    (activeArtifact || visibleArtifact || currentArtifact) &&
+    (files.length > 0 || isImageArtifact || isPdfArtifact)
+  )
+  const displayTitle = visibleArtifact?.title || resolvedTitle || (isImageArtifact ? 'Attached Image' : (isPdfArtifact ? 'PDF Document' : 'Interactive Project'))
 
   return (
     <>
@@ -289,10 +374,16 @@ const Artifact = () => {
             transition={{ type: 'spring', damping: 22, stiffness: 260 }}
             onClick={handleOpenDrawer}
             className="fixed right-0 top-1/2 -translate-y-1/2 z-30 flex flex-col items-center gap-2 py-3.5 px-2 rounded-l-2xl bg-white/95 dark:bg-[#0f121d]/95 hover:bg-slate-50 dark:hover:bg-[#141827] border-y border-l border-indigo-400/50 dark:border-indigo-500/40 hover:border-indigo-500 shadow-xl shadow-indigo-500/10 backdrop-blur-md cursor-pointer transition-colors duration-200 group select-none"
-            title={`Open Project: ${displayTitle}`}
+            title={`Open: ${displayTitle}`}
           >
             <div className="w-7 h-7 rounded-xl bg-linear-to-br from-indigo-500/25 to-violet-600/30 border border-indigo-500/50 flex items-center justify-center text-indigo-500 dark:text-indigo-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-300 group-hover:scale-105 transition-all shadow-xs">
-              <Sparkles size={13} />
+              {isImageArtifact ? (
+                <ImageIcon size={13} />
+              ) : isPdfArtifact ? (
+                <FileText size={13} />
+              ) : (
+                <Sparkles size={13} />
+              )}
             </div>
 
             <div className="flex items-center justify-center py-1">
@@ -325,7 +416,13 @@ const Artifact = () => {
             <div className="flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-[#11141c] border-b border-slate-200 dark:border-white/[0.08] select-none">
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="w-8 h-8 rounded-xl bg-linear-to-br from-indigo-500/20 to-violet-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-500 dark:text-indigo-400 shrink-0">
-                  <Sparkles size={16} />
+                  {isImageArtifact ? (
+                    <ImageIcon size={16} />
+                  ) : isPdfArtifact ? (
+                    <FileText size={16} className="text-rose-500" />
+                  ) : (
+                    <Sparkles size={16} />
+                  )}
                 </div>
                 <div className="flex flex-col min-w-0">
                   <div className="flex items-center gap-2">
@@ -333,17 +430,97 @@ const Artifact = () => {
                       {resolvedTitle}
                     </h3>
                     <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/10 dark:bg-indigo-500/15 border border-indigo-500/20 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300 shrink-0">
-                      {files.length} {files.length === 1 ? 'file' : 'files'}
+                      {isImageArtifact ? 'Image' : isPdfArtifact ? 'PDF Document' : `${files.length} ${files.length === 1 ? 'file' : 'files'}`}
                     </span>
                   </div>
                   <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                    {currentArtifact.type || 'Web Application'} • Live Artifact
+                    {isImageArtifact
+                      ? `${Math.round(zoom * 100)}% zoom • Interactive Viewer`
+                      : isPdfArtifact
+                      ? 'Custom Vector DB • Indexed Document'
+                      : `${currentArtifact.type || 'Web Application'} • Live Artifact`}
                   </span>
                 </div>
               </div>
 
               <div className="flex items-center gap-1.5 shrink-0">
-                {activeTab === 'preview' && (
+                {isImageArtifact && (
+                  <>
+                    <motion.button
+                      type="button"
+                      whileHover={{ scale: 1.08 }}
+                      whileTap={{ scale: 0.92 }}
+                      onClick={() => setZoom((z) => Math.max(0.2, Number((z - 0.2).toFixed(1))))}
+                      className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-200/60 dark:bg-white/[0.03] hover:bg-slate-200 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/[0.06] transition-colors cursor-pointer"
+                      title="Zoom Out"
+                    >
+                      <ZoomOut size={14} />
+                    </motion.button>
+                    <motion.button
+                      type="button"
+                      whileHover={{ scale: 1.08 }}
+                      whileTap={{ scale: 0.92 }}
+                      onClick={() => setZoom(1)}
+                      className="px-2 py-1 rounded-lg text-xs font-mono text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
+                      title="Reset Zoom (100%)"
+                    >
+                      {Math.round(zoom * 100)}%
+                    </motion.button>
+                    <motion.button
+                      type="button"
+                      whileHover={{ scale: 1.08 }}
+                      whileTap={{ scale: 0.92 }}
+                      onClick={() => setZoom((z) => Math.min(3, Number((z + 0.2).toFixed(1))))}
+                      className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-200/60 dark:bg-white/[0.03] hover:bg-slate-200 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/[0.06] transition-colors cursor-pointer"
+                      title="Zoom In"
+                    >
+                      <ZoomIn size={14} />
+                    </motion.button>
+                    <motion.button
+                      type="button"
+                      whileHover={{ scale: 1.08 }}
+                      whileTap={{ scale: 0.92 }}
+                      onClick={() => setRotation((r) => (r + 90) % 360)}
+                      className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-200/60 dark:bg-white/[0.03] hover:bg-slate-200 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/[0.06] transition-colors cursor-pointer"
+                      title="Rotate 90°"
+                    >
+                      <RotateCw size={14} />
+                    </motion.button>
+                    <motion.button
+                      type="button"
+                      whileHover={{ scale: 1.08 }}
+                      whileTap={{ scale: 0.92 }}
+                      onClick={() => {
+                        const url = currentArtifact.imageUrl || currentArtifact.url
+                        if (url) window.open(url, '_blank')
+                      }}
+                      className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-200/60 dark:bg-white/[0.03] hover:bg-slate-200 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/[0.06] transition-colors cursor-pointer"
+                      title="Open full size in new tab"
+                    >
+                      <ExternalLink size={14} />
+                    </motion.button>
+                  </>
+                )}
+
+                {isPdfArtifact && (
+                  <>
+                    <motion.button
+                      type="button"
+                      whileHover={{ scale: 1.08 }}
+                      whileTap={{ scale: 0.92 }}
+                      onClick={() => {
+                        const url = currentArtifact.pdfUrl || currentArtifact.url
+                        if (url) window.open(url, '_blank')
+                      }}
+                      className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-200/60 dark:bg-white/[0.03] hover:bg-slate-200 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/[0.06] transition-colors cursor-pointer"
+                      title="Open PDF in new tab"
+                    >
+                      <ExternalLink size={14} />
+                    </motion.button>
+                  </>
+                )}
+
+                {!isImageArtifact && !isPdfArtifact && activeTab === 'preview' && (
                   <>
                     <motion.button
                       type="button"
@@ -368,7 +545,7 @@ const Artifact = () => {
                   </>
                 )}
 
-                {activeTab !== 'preview' && (
+                {!isImageArtifact && !isPdfArtifact && activeTab !== 'preview' && (
                   <>
                     {isCurrentFileEdited && (
                       <motion.button
@@ -411,9 +588,9 @@ const Artifact = () => {
                   type="button"
                   whileHover={{ scale: 1.08 }}
                   whileTap={{ scale: 0.92 }}
-                  onClick={handleDownloadAll}
+                  onClick={handleDownloadArtifact}
                   className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-200/60 dark:bg-white/[0.03] hover:bg-slate-200 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/[0.06] transition-colors cursor-pointer"
-                  title="Download project files"
+                  title="Download artifact"
                 >
                   <Download size={14} />
                 </motion.button>
@@ -442,50 +619,121 @@ const Artifact = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between gap-1 px-3 py-2 bg-slate-100 dark:bg-[#0e1017] border-b border-slate-200 dark:border-white/[0.06] overflow-x-auto [scrollbar-width:none]">
-              <div className="flex items-center gap-1 min-w-0">
-                {hasHtml && (
-                  <motion.button
-                    type="button"
-                    whileTap={{ scale: 0.96 }}
-                    onClick={() => setActiveTab('preview')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer shrink-0 ${activeTab === 'preview'
-                      ? 'bg-indigo-500/15 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-400/40 dark:border-indigo-500/30 shadow-xs'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-white/[0.04]'
-                      }`}
-                  >
-                    <Play size={12} className={activeTab === 'preview' ? 'text-indigo-600 dark:text-indigo-400 fill-indigo-500/20 dark:fill-indigo-400/30' : ''} />
-                    <span>Live Preview</span>
-                  </motion.button>
-                )}
+            {isImageArtifact && (
+              <div className="flex items-center justify-between px-4 py-2 bg-slate-100 dark:bg-[#0e1017] border-b border-slate-200 dark:border-white/[0.06] text-xs text-slate-500 dark:text-slate-400">
+                <span className="font-mono text-[11px] truncate max-w-md">
+                  {resolvedTitle}
+                </span>
+                <span className="text-[11px] bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 px-2 py-0.5 rounded-full font-medium">
+                  {Math.round(zoom * 100)}% zoom
+                </span>
+              </div>
+            )}
 
-                {files.map((file) => {
-                  const isSelected = activeTab === file.name
-                  const isFileEdited = editedFiles[file.name] !== undefined
-                  return (
+            {isPdfArtifact && (
+              <div className="flex items-center justify-between px-4 py-2 bg-slate-100 dark:bg-[#0e1017] border-b border-slate-200 dark:border-white/[0.06] text-xs text-slate-500 dark:text-slate-400">
+                <div className="flex items-center gap-2 min-w-0 truncate">
+                  <FileText size={13} className="text-rose-500 shrink-0" />
+                  <span className="font-mono text-[11px] truncate max-w-md">
+                    {resolvedTitle}
+                  </span>
+                </div>
+                <span className="text-[10px] bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider shrink-0">
+                  Custom Vector DB
+                </span>
+              </div>
+            )}
+
+            {!isImageArtifact && !isPdfArtifact && files.length > 0 && (
+              <div className="flex items-center justify-between gap-1 px-3 py-2 bg-slate-100 dark:bg-[#0e1017] border-b border-slate-200 dark:border-white/[0.06] overflow-x-auto [scrollbar-width:none]">
+                <div className="flex items-center gap-1 min-w-0">
+                  {hasHtml && (
                     <motion.button
-                      key={file.name}
                       type="button"
                       whileTap={{ scale: 0.96 }}
-                      onClick={() => setActiveTab(file.name)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer shrink-0 font-mono ${isSelected
-                        ? 'bg-white dark:bg-white/[0.1] text-slate-800 dark:text-white border border-slate-300 dark:border-white/[0.15] shadow-xs'
+                      onClick={() => setActiveTab('preview')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer shrink-0 ${activeTab === 'preview'
+                        ? 'bg-indigo-500/15 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-400/40 dark:border-indigo-500/30 shadow-xs'
                         : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-white/[0.04]'
                         }`}
                     >
-                      <FileCode size={12} className={isSelected ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500'} />
-                      <span>{file.name}</span>
-                      {isFileEdited && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400 animate-pulse" title="Modified" />
-                      )}
+                      <Play size={12} className={activeTab === 'preview' ? 'text-indigo-600 dark:text-indigo-400 fill-indigo-500/20 dark:fill-indigo-400/30' : ''} />
+                      <span>Live Preview</span>
                     </motion.button>
-                  )
-                })}
+                  )}
+
+                  {files.map((file) => {
+                    const isSelected = activeTab === file.name
+                    const isFileEdited = editedFiles[file.name] !== undefined
+                    return (
+                      <motion.button
+                        key={file.name}
+                        type="button"
+                        whileTap={{ scale: 0.96 }}
+                        onClick={() => setActiveTab(file.name)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer shrink-0 font-mono ${isSelected
+                          ? 'bg-white dark:bg-white/[0.1] text-slate-800 dark:text-white border border-slate-300 dark:border-white/[0.15] shadow-xs'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-white/[0.04]'
+                          }`}
+                      >
+                        <FileCode size={12} className={isSelected ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500'} />
+                        <span>{file.name}</span>
+                        {isFileEdited && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400 animate-pulse" title="Modified" />
+                        )}
+                      </motion.button>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="flex-1 min-h-0 bg-slate-50 dark:bg-[#08090e] relative overflow-hidden">
-              {activeTab === 'preview' && hasHtml ? (
+              {isImageArtifact ? (
+                <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-[#090b10] overflow-auto select-none">
+                  {activeImageUrl ? (
+                    <div
+                      className="relative max-w-full max-h-full flex items-center justify-center transition-transform duration-200 ease-out"
+                      style={{
+                        transform: `scale(${zoom}) rotate(${rotation}deg)`,
+                        transformOrigin: 'center center',
+                      }}
+                    >
+                      <img
+                        src={activeImageUrl}
+                        alt={resolvedTitle}
+                        className="max-h-[78vh] max-w-full object-contain rounded-xl shadow-2xl border border-white/10 ring-1 ring-white/5"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-3 p-6 text-center">
+                      <ImageIcon size={48} className="text-indigo-400 animate-pulse" />
+                      <p className="font-semibold text-slate-200 text-sm">{resolvedTitle}</p>
+                      <p className="text-xs text-slate-500 max-w-sm">
+                        Attached image analyzed by multi-agent vision system.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : isPdfArtifact ? (
+                <div className="w-full h-full bg-slate-900 relative">
+                  {activePdfUrl ? (
+                    <iframe
+                      src={activePdfUrl}
+                      title={resolvedTitle || "PDF Document Viewer"}
+                      className="w-full h-full border-none"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-3 p-6 text-center">
+                      <FileText size={48} className="text-rose-400 animate-pulse" />
+                      <p className="font-semibold text-slate-200 text-sm">{resolvedTitle}</p>
+                      <p className="text-xs text-slate-500 max-w-sm">
+                        PDF document indexed into custom in-memory vector database.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : activeTab === 'preview' && hasHtml ? (
                 <div className="w-full h-full bg-white relative">
                   <iframe
                     key={previewKey}

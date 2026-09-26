@@ -23,7 +23,9 @@ import {
     Sun,
     Moon,
     Laptop,
-    Zap
+    Zap,
+    FileText,
+    Database,
 } from "lucide-react"
 import { getConversations } from '../features/getConverSations'
 import { setConversations, setSelectedConversation, removeConversation, updateConversationTitle } from '../redux/conversationSlice'
@@ -79,10 +81,6 @@ export const UserPlanAvatar = ({
         dot: "w-2.5 h-2.5 bottom-0 right-0",
     }
 
-    // Distinct circle rings based on subscription tier
-    // Pro: Gemini Pro active multi-color spectrum
-    // Starter: Previous vibrant indigo/sky/cyan gradient ring
-    // Free: Clean subtle slate ring with emerald active indicator
     const ringStyle = isPro
         ? "p-[2.5px] bg-[conic-gradient(from_0deg,_#3b82f6_0%,_#8b5cf6_22%,_#ec4899_45%,_#f59e0b_68%,_#06b6d4_85%,_#3b82f6_100%)] shadow-lg shadow-purple-500/25 ring-2 ring-purple-400/40"
         : isStarter
@@ -155,7 +153,7 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
     const editInputRef = useRef(null)
 
     const [showProfilePopup, setShowProfilePopup] = useState(false)
-    const [popupView, setPopupView] = useState("main") // "main" | "settings" | "profile"
+    const [popupView, setPopupView] = useState("main")
     const [copiedEmail, setCopiedEmail] = useState(false)
     const profilePopupRef = useRef(null)
     const profileButtonRef = useRef(null)
@@ -384,7 +382,7 @@ const Sidebar = ({ collapsed: propCollapsed, setCollapsed: propSetCollapsed }) =
                         </motion.button>
                     </div>
 
-                    <div className={`pt-3.5 pb-1 shrink-0 ${collaPsed ? "px-2.5 flex justify-center" : "px-4"}`}>
+                    <div className={`pt-3.5 pb-1 shrink-0 ${collaPsed ? "px-2.5 flex flex-col items-center gap-2" : "px-4 flex flex-col gap-2"}`}>
                         {collaPsed ? (
                             <motion.button
                                 whileHover={{ scale: 1.08 }}

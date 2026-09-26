@@ -1,17 +1,19 @@
 import axios from "axios";
+import fs from "fs";
 import { graph } from "../graph/graph.js";
 import { addMessage } from "../config/memory.js";
 
 export const agent = async (req, res) => {
   try {
     const { prompt, conversationId, agent } = req.body;
-    if (!prompt) {
-      return res.status(400).json({ error: "Prompt is required" });
+    const file = req.file;
+    if (!prompt && !file) {
+      return res.status(400).json({ error: "Prompt or file is required" });
     }
 
     const userId = req.headers["x-user-id"];
     let remainingCredits = null;
-    const authServiceUrl = process.env.AUTH_SERVICE || "http://localhost:8001";
+    const authServiceUrl = process.env.AUTH_SERVICE;
 
     const COST = {
       auto: 1,
@@ -19,8 +21,10 @@ export const agent = async (req, res) => {
       search: 5,
       coding: 10,
       pdf: 10,
+      pdfrag: 10,
       ppt: 10,
       image: 10,
+      imageanalyzer: 10,
     };
     const normalizedAgent = String(agent || "auto")
       .toLowerCase()
@@ -52,10 +56,33 @@ export const agent = async (req, res) => {
 
     if (conversationId) {
       try {
+        const userContent =
+          file?.mimetype === "application/pdf"
+            ? `📄 **[PDF: ${file.originalname}]**\n\n${prompt}`
+            : file?.mimetype?.startsWith("image/")
+            ? `🖼️ **[Image: ${file.originalname}]**\n\n${prompt}`
+            : prompt;
+
+        let savedImages = [];
+        if (
+          file?.mimetype?.startsWith("image/") &&
+          file.path &&
+          fs.existsSync(file.path) &&
+          file.size < 4 * 1024 * 1024
+        ) {
+          try {
+            const buf = await fs.promises.readFile(file.path);
+            savedImages = [`data:${file.mimetype};base64,${buf.toString("base64")}`];
+          } catch (e) {
+            console.warn("Could not read image buffer for persistence:", e.message);
+          }
+        }
+
         await axios.post(`${process.env.CHAT_SERVICE}/save-messages`, {
-          content: prompt,
+          content: userContent,
           conversationId,
           role: "user",
+          images: savedImages,
         });
       } catch (err) {
         console.warn(
@@ -69,12 +96,29 @@ export const agent = async (req, res) => {
       prompt,
       conversationId,
       agent,
+      file,
+      userId,
+      documentId: req.body?.documentId,
     });
 
-    const response =
-      typeof result.aiResponse === "string"
-        ? result.aiResponse
-        : result.aiResponse?.messages || result.aiResponse;
+    const extractCleanText = (val) => {
+      if (!val) return "";
+      if (typeof val === "string") return val;
+      if (Array.isArray(val)) {
+        return val
+          .map((v) => (typeof v === "string" ? v : v?.text || v?.content || ""))
+          .filter(Boolean)
+          .join("\n\n");
+      }
+      if (typeof val === "object") {
+        if (val.content) return extractCleanText(val.content);
+        if (val.text) return extractCleanText(val.text);
+        if (val.messages) return extractCleanText(val.messages);
+      }
+      return String(val);
+    };
+
+    const response = extractCleanText(result.aiResponse);
 
     await addMessage(conversationId, "user", prompt);
     if (conversationId && response) {
@@ -115,9 +159,6 @@ export const agent = async (req, res) => {
           deductRes.data?.credits !== undefined
             ? deductRes.data.credits
             : deductRes.data?.user?.credits;
-        console.log(
-          `[Agent] Deducted credits for user ${userId} after answer generation. Remaining: ${remainingCredits}`,
-        );
       } catch (creditErr) {
         console.warn(
           "Could not deduct credits after answer generation:",
