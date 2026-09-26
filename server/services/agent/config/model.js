@@ -34,7 +34,7 @@ export const getGemini = () => {
     }
     geminiInstance = new ChatGoogleGenerativeAI({
       apiKey,
-      model: process.env.GEMINI_MODEL || "gemini-3.6-flash",
+      model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
       temperature: 0,
       maxRetries: 2,
     });

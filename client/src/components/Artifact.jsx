@@ -123,7 +123,8 @@ const Artifact = () => {
   const isImageArtifact = Boolean(
     activeArtifact?.type === 'image' ||
     Boolean(activeArtifact?.imageUrl) ||
-    (activeArtifact?.type === 'file' && activeArtifact?.fileType?.startsWith('image/'))
+    (activeArtifact?.type === 'file' && activeArtifact?.fileType?.startsWith('image/')) ||
+    (typeof activeArtifact?.title === 'string' && /\.(png|jpe?g|webp|gif|svg|bmp)$/i.test(activeArtifact.title))
   )
 
   const isPdfArtifact = Boolean(
@@ -150,6 +151,24 @@ const Artifact = () => {
     }
     return null
   }, [activeArtifact, messages, isImageArtifact, isPdfArtifact])
+
+  const activePdfUrl = useMemo(() => {
+    return (
+      currentArtifact?.pdfUrl ||
+      currentArtifact?.url ||
+      (typeof window !== "undefined" && currentArtifact?.title && window.__pdfBlobCache?.get(currentArtifact.title)) ||
+      null
+    );
+  }, [currentArtifact]);
+
+  const activeImageUrl = useMemo(() => {
+    return (
+      currentArtifact?.imageUrl ||
+      currentArtifact?.url ||
+      (typeof window !== "undefined" && currentArtifact?.title && window.__imageBlobCache?.get(currentArtifact.title)) ||
+      null
+    );
+  }, [currentArtifact]);
 
   useEffect(() => {
     setZoom(1)
@@ -296,7 +315,7 @@ const Artifact = () => {
 
   const handleDownloadArtifact = () => {
     if (isImageArtifact) {
-      const url = currentArtifact?.imageUrl || currentArtifact?.url
+      const url = activeImageUrl || currentArtifact?.imageUrl || currentArtifact?.url
       if (!url) return
       const link = document.createElement('a')
       link.href = url
@@ -308,7 +327,7 @@ const Artifact = () => {
       return
     }
     if (isPdfArtifact) {
-      const url = currentArtifact?.pdfUrl || currentArtifact?.url
+      const url = activePdfUrl || currentArtifact?.pdfUrl || currentArtifact?.url
       if (!url) return
       const link = document.createElement('a')
       link.href = url
@@ -334,7 +353,7 @@ const Artifact = () => {
     dispatch(setArtifactOpen(false))
   }
 
-  const isVerticalTabVisible = Boolean(visibleArtifact && !isArtifactOpen)
+  const isVerticalTabVisible = Boolean((visibleArtifact || activeArtifact) && !isArtifactOpen)
   const isDrawerAvailable = Boolean(
     (activeArtifact || visibleArtifact || currentArtifact) &&
     (files.length > 0 || isImageArtifact || isPdfArtifact)
@@ -672,25 +691,35 @@ const Artifact = () => {
             <div className="flex-1 min-h-0 bg-slate-50 dark:bg-[#08090e] relative overflow-hidden">
               {isImageArtifact ? (
                 <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-[#090b10] overflow-auto select-none">
-                  <div
-                    className="relative max-w-full max-h-full flex items-center justify-center transition-transform duration-200 ease-out"
-                    style={{
-                      transform: `scale(${zoom}) rotate(${rotation}deg)`,
-                      transformOrigin: 'center center',
-                    }}
-                  >
-                    <img
-                      src={currentArtifact?.imageUrl || currentArtifact?.url}
-                      alt={resolvedTitle}
-                      className="max-h-[78vh] max-w-full object-contain rounded-xl shadow-2xl border border-white/10 ring-1 ring-white/5"
-                    />
-                  </div>
+                  {activeImageUrl ? (
+                    <div
+                      className="relative max-w-full max-h-full flex items-center justify-center transition-transform duration-200 ease-out"
+                      style={{
+                        transform: `scale(${zoom}) rotate(${rotation}deg)`,
+                        transformOrigin: 'center center',
+                      }}
+                    >
+                      <img
+                        src={activeImageUrl}
+                        alt={resolvedTitle}
+                        className="max-h-[78vh] max-w-full object-contain rounded-xl shadow-2xl border border-white/10 ring-1 ring-white/5"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-3 p-6 text-center">
+                      <ImageIcon size={48} className="text-indigo-400 animate-pulse" />
+                      <p className="font-semibold text-slate-200 text-sm">{resolvedTitle}</p>
+                      <p className="text-xs text-slate-500 max-w-sm">
+                        Attached image analyzed by multi-agent vision system.
+                      </p>
+                    </div>
+                  )}
                 </div>
               ) : isPdfArtifact ? (
                 <div className="w-full h-full bg-slate-900 relative">
-                  {currentArtifact?.pdfUrl ? (
+                  {activePdfUrl ? (
                     <iframe
-                      src={currentArtifact.pdfUrl}
+                      src={activePdfUrl}
                       title={resolvedTitle || "PDF Document Viewer"}
                       className="w-full h-full border-none"
                     />

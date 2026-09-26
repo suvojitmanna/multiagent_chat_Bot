@@ -39,13 +39,30 @@ export const imageAnalyzer = async (state) => {
     ];
 
     const response = await llm.invoke(messages);
+    const contentText = Array.isArray(response.content)
+      ? response.content
+          .map((part) => (typeof part === "string" ? part : part?.text || ""))
+          .join("\n\n")
+      : typeof response.content === "string"
+      ? response.content
+      : String(response.content || "");
+
     return {
       ...state,
-      aiResponse: response.content,
+      aiResponse: contentText,
     };
   } catch (error) {
     console.error("Image Analyzer error:", error);
-    throw error;
+    const isRateLimit =
+      error?.status === 429 ||
+      error?.message?.includes("429") ||
+      error?.message?.includes("Quota");
+    return {
+      ...state,
+      aiResponse: isRateLimit
+        ? "⚠️ **Gemini API Rate Limit (429):** Free-tier quota was temporarily reached. Please wait ~30-60 seconds and try again."
+        : `❌ **Image analysis error:** ${error.message || "Could not analyze image."}`,
+    };
   } finally {
     if (state.file?.path && fs.existsSync(state.file.path)) {
       await fs.promises.unlink(state.file.path).catch(() => {});

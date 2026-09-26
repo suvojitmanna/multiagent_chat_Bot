@@ -129,7 +129,7 @@ const ChatInput = ({ sidebarCollapsed }) => {
   const baseTextRef = useRef("")
 
   const [selectedImage, setSelectedImage] = useState(null)
-  const [imagePreview, setImagePreview] = useState(null)
+  const [imagePreview, setImagePreview] = useState(false)
   const imageInputRef = useRef(null)
 
   const [selectedPdf, setSelectedPdf] = useState(null)
@@ -149,21 +149,21 @@ const ChatInput = ({ sidebarCollapsed }) => {
       handleRemovePdf()
     }
     setSelectedImage(file)
-    const url = URL.createObjectURL(file)
-    setImagePreview(url)
     setSelectedAgent("imageAnalyzer")
-    dispatch(setActiveArtifact({
-      type: "image",
-      title: file.name,
-      imageUrl: url,
-      size: file.size,
-    }))
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const dataUrl = e.target.result
+      setImagePreview(dataUrl)
+      if (typeof window !== "undefined") {
+        window.__imageBlobCache = window.__imageBlobCache || new Map()
+        window.__imageBlobCache.set(file.name, dataUrl)
+      }
+    }
+    reader.readAsDataURL(file)
   }
 
   const handleRemoveImage = () => {
-    if (imagePreview) {
-      URL.revokeObjectURL(imagePreview)
-    }
     setSelectedImage(null)
     setImagePreview(null)
     if (imageInputRef.current) {
@@ -187,12 +187,10 @@ const ChatInput = ({ sidebarCollapsed }) => {
     setSelectedPdf(file)
     setSelectedAgent("pdf")
     const pdfUrl = URL.createObjectURL(file)
-    dispatch(setActiveArtifact({
-      type: "pdf",
-      title: file.name,
-      pdfUrl: pdfUrl,
-      size: file.size,
-    }))
+    if (typeof window !== "undefined") {
+      window.__pdfBlobCache = window.__pdfBlobCache || new Map()
+      window.__pdfBlobCache.set(file.name, pdfUrl)
+    }
   }
 
   const handleRemovePdf = () => {
@@ -404,13 +402,27 @@ const ChatInput = ({ sidebarCollapsed }) => {
     const trimmedTitle = trimPromptToTitle(
       pdfToSend ? `PDF: ${pdfToSend.name}` : effectivePrompt
     )
+    const pdfBlobUrl = pdfToSend ? URL.createObjectURL(pdfToSend) : null
+    const imageBlobUrl = previewToSend || (imageToSend ? URL.createObjectURL(imageToSend) : null)
+
+    if (pdfToSend && pdfBlobUrl) {
+      window.__pdfBlobCache = window.__pdfBlobCache || new Map()
+      window.__pdfBlobCache.set(pdfToSend.name, pdfBlobUrl)
+    }
+    if (imageToSend && imageBlobUrl) {
+      window.__imageBlobCache = window.__imageBlobCache || new Map()
+      window.__imageBlobCache.set(imageToSend.name, imageBlobUrl)
+    }
+
     const pendingUserMsg = {
       role: "user",
       content: pdfToSend
         ? `📄 **[PDF: ${pdfToSend.name}]**\n\n${effectivePrompt}`
+        : imageToSend
+        ? `🖼️ **[Image: ${imageToSend.name}]**\n\n${effectivePrompt}`
         : effectivePrompt,
-      images: previewToSend ? [previewToSend] : [],
-      pdf: pdfToSend ? { name: pdfToSend.name, size: pdfToSend.size, url: URL.createObjectURL(pdfToSend) } : null,
+      images: imageBlobUrl ? [imageBlobUrl] : [],
+      pdf: pdfToSend ? { name: pdfToSend.name, size: pdfToSend.size, url: pdfBlobUrl } : null,
     }
     const pendingAssistantMsg = { role: "assistant", content: "", isThinking: true }
     dispatch(setMessages([...currentList, pendingUserMsg, pendingAssistantMsg]))
@@ -479,7 +491,37 @@ const ChatInput = ({ sidebarCollapsed }) => {
         const data = await getMessages(convId)
         const fetchedList = Array.isArray(data) ? data : (data?.messages || [])
         if (fetchedList.length > 0) {
-          dispatch(setMessages(fetchedList))
+          const mergedList = [...fetchedList]
+          for (let i = 0; i < mergedList.length; i++) {
+            if (mergedList[i].role === "user") {
+              const pMatch = typeof mergedList[i].content === "string" ? mergedList[i].content.match(/📄\s*\*\*\[PDF:\s*([^\]]+)\]\*\*/) : null;
+              if (pMatch && !mergedList[i].pdf) {
+                const pName = pMatch[1].trim();
+                const cachedUrl = typeof window !== "undefined" && window.__pdfBlobCache?.get(pName);
+                mergedList[i].pdf = { name: pName, url: cachedUrl || undefined };
+              }
+              const iMatch = typeof mergedList[i].content === "string" ? mergedList[i].content.match(/🖼️\s*\*\*\[Image:\s*([^\]]+)\]\*\*/) : null;
+              if (iMatch && (!mergedList[i].images || mergedList[i].images.length === 0)) {
+                const iName = iMatch[1].trim();
+                const cachedUrl = typeof window !== "undefined" && window.__imageBlobCache?.get(iName);
+                if (cachedUrl) {
+                  mergedList[i].images = [cachedUrl];
+                }
+              }
+            }
+          }
+          for (let i = mergedList.length - 1; i >= 0; i--) {
+            if (mergedList[i].role === "user") {
+              if ((!mergedList[i].images || mergedList[i].images.length === 0) && imageBlobUrl) {
+                mergedList[i].images = [imageBlobUrl]
+              }
+              if (!mergedList[i].pdf && pdfToSend) {
+                mergedList[i].pdf = { name: pdfToSend.name, size: pdfToSend.size, url: pdfBlobUrl }
+              }
+              break
+            }
+          }
+          dispatch(setMessages(mergedList))
         } else if (resData?.response) {
           dispatch(
             setMessages([
@@ -567,7 +609,6 @@ const ChatInput = ({ sidebarCollapsed }) => {
           )}
         </AnimatePresence>
 
-        {/* Selected Image Preview Thumbnail */}
         <AnimatePresence>
           {selectedImage && (
             <motion.div
@@ -621,7 +662,6 @@ const ChatInput = ({ sidebarCollapsed }) => {
           )}
         </AnimatePresence>
 
-        {/* Selected PDF Preview Card */}
         <AnimatePresence>
           {selectedPdf && (
             <motion.div
