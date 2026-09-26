@@ -16,7 +16,7 @@ export const pdfRag = async (state) => {
         fileSize: state.file.size,
         userId,
       });
-      if (prompt && !/^(analyze|read|process|summarize\s+this|what\s+is\s+this)\b/i.test(prompt)) {
+      if (prompt) {
         const queryRes = await pdfRagService.queryPdfRag({
           userId,
           documentId: processed.documentId,

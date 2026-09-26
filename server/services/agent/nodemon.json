@@ -1,0 +1,24 @@
+{
+  "watch": [
+    "agents",
+    "config",
+    "controllers",
+    "graph",
+    "models",
+    "routes",
+    "services",
+    "utils",
+    "index.js"
+  ],
+  "ext": "js,mjs,cjs",
+  "ignore": [
+    "temp/*",
+    "temp/**",
+    "data/*",
+    "data/**",
+    "public/*",
+    "public/**",
+    "*.json",
+    "node_modules"
+  ]
+}
