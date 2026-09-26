@@ -1,18 +1,11 @@
-<<<<<<< HEAD
-# ⚡ ShifraAI™ — Autonomous Multi-Agent Conversational AI Platform
-### Enterprise Distributed Microservices • Multi-Model LLM Orchestration • Custom Vector RAG
-#### Next-Generation AI Ecosystem Powered by LangGraph, Google Gemini, Groq, OpenRouter & Clipdrop
-
 <p align="center">
   <img src="https://capsule-render.vercel.app/api?type=waving&color=0:090b11,50:312e81,100:6366f1&height=220&section=header&text=ShifraAI%E2%84%A2%20%E2%80%A2%20Multi-Agent&fontSize=38&fontColor=ffffff&animation=fadeIn&desc=Autonomous%20Multi-Agent%20Orchestrator%20%7C%20Custom%20Vector%20DB%20%7C%20Live%20Monaco%20Studio&descAlignY=72" width="100%" />
 </p>
-
 <p align="center">
   <img src="https://readme-typing-svg.herokuapp.com?color=818CF8&size=23&center=true&vCenter=true&width=950&lines=Autonomous+Multi-Agent+Orchestration+with+LangGraph;Multi-Model+Routing+(Gemini+3.8+Flash,+Groq+LLaMA,+DeepSeek);Custom+Vector+DB+with+Cosine+Similarity+for+PDF+RAG;Live+Interactive+Monaco+Code+Studio+with+IFrame+Preview;Clipdrop+SDXL+Image+Synthesis+with+Cloudinary+CDN;Automated+16:9+Widescreen+PowerPoint+Deck+Generation;Self-Hosted+SearXNG+Metasearch+and+Tavily+Fallback;Token+Economics+and+Razorpay+Monetization+Engine" />
 </p>
 
 ---
-
 ## 🏆 Badges & Standards
 
 <p align="center">
@@ -55,78 +48,6 @@
 </p>
 
 ---
-
-## 🌟 Interactive Dual Workspace (Chat Hub & Monaco Live Studio)
-
-<div align="center">
-  <table>
-    <tr>
-      <td align="center" width="50%">
-        <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80" width="100%" alt="Conversational Intelligence Hub" style="border-radius: 12px;" /><br/>
-        <b>💬 Conversational Intelligence Hub</b><br/>
-        <img src="https://img.shields.io/badge/Agents-7%20Specialized%20Nodes-6366F1?style=flat-square" alt="7 Specialized Nodes" />
-        <img src="https://img.shields.io/badge/Voice-Web%20Speech%20API-EC4899?style=flat-square" alt="Web Speech API" /><br/>
-        <sub>Multi-turn memory, realtime speech-to-text, prompt classifier & multimodal file dropzone</sub>
-      </td>
-      <td align="center" width="50%">
-        <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&auto=format&fit=crop&q=80" width="100%" alt="Monaco Artifact Studio" style="border-radius: 12px;" /><br/>
-        <b>💻 Live Monaco Code & Project Studio</b><br/>
-        <img src="https://img.shields.io/badge/Sandbox-Live%20IFrame%20Preview-10B981?style=flat-square" alt="Live IFrame Preview" />
-        <img src="https://img.shields.io/badge/Theme-Shifra%20Dark%20%2F%20Light-8B5CF6?style=flat-square" alt="Monaco Themes" /><br/>
-        <sub>In-browser multi-file project execution, syntax coloring, live preview & instant downloads</sub>
-      </td>
-    </tr>
-  </table>
-=======
-<div align="center">
-
-<img src="https://capsule-render.vercel.app/api?type=waving&height=220&section=header&text=ShifraAI&fontSize=58&fontColor=ffffff&fontAlignY=40&desc=Autonomous%20Multi-Agent%20Conversational%20AI%20Platform&descSize=18&descAlignY=62&color=gradient&customColorList=12,20,24,30,36&animation=twinkling" width="100%" alt="ShifraAI Header" />
-<p align="center">
-  <b>Autonomous Multi-Agent Conversational AI Platform</b>
-</p>
-
-<p align="center">
-  LangGraph • Gemini • Groq • DeepSeek • RAG • SearXNG • Redis • MongoDB
-</p>
-
-<p align="center">
-  <a href="#-highlights--key-innovations">Features</a> •
-  <a href="#-system-architecture--data-flow">Architecture</a> •
-  <a href="#-technology-stack--logos">Tech Stack</a> •
-  <a href="#-getting-started">Getting Started</a>
-</p>
-
-<br>
-
-
-[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg?style=for-the-badge)](https://opensource.org/licenses/ISC)
-[![Node.js Version](https://img.shields.io/badge/Node.js-v18%2B%20%7C%20v20%2B-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org)
-[![Express](https://img.shields.io/badge/Express-5.x-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com)
-[![React 19](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
-[![Vite](https://img.shields.io/badge/Vite-8.3-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
-[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-v4.3-38B2AC?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
-[![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com)
-[![Redis](https://img.shields.io/badge/Redis-Cache%20%26%20Session-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas%20Ready-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com)
-
-**An enterprise-grade, distributed microservices AI assistant platform powered by LangGraph multi-agent state machines, multi-model LLM routing (Gemini 3.8 Flash, Groq, OpenRouter DeepSeek), custom in-memory & persistent Vector Database for PDF RAG, Clipdrop AI image synthesis, automated PowerPoint generation, live Monaco interactive code preview, and integrated Razorpay monetization.**
-
-<sub>Crafted with passion by **Lead Developer Suvojit Manna** and the **ShifraAI Team**.</sub>
-
----
-
-[Explore Features](#-core-capabilities--agent-fleet) •
-[System Architecture](#-system-architecture--data-flow) •
-[Tech Stack](#-technology-stack--logos) •
-[Getting Started](#-getting-started) •
-[API Reference](#-api-gateway--microservices-routes) •
-[Directory Structure](#-repository-structure)
-
----
-
->>>>>>> c750d145d097611cf315eefd811514cb0cf36ec8
-</div>
-
 To provide an elite developer and end-user productivity environment:
 * **Autonomous Task Classification:** Automatically categorizes queries into Code, PDF RAG, Image Synthesis, Multimodal Vision, PowerPoint Presentations, Web Search, or Chit-chat.
 * **Embedded VS Code Power:** Full Monaco Editor integration supporting multiple tabs (`index.html`, `style.css`, `script.js`), live interactive code editing, error highlights, and zero-reload DOM refreshes.
@@ -687,23 +608,9 @@ Open your browser and navigate to **`http://localhost:5173`** to access **Shifra
   <a href="https://github.com/suvojitmanna"><img src="https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white" /></a>
   <a href="https://linkedin.com/in/suvojit-manna"><img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" /></a>
 </p>
-
----
-
-## 📜 License
-
-This project is licensed under the **ISC License** — feel free to adapt, extend, and build upon it for personal, academic, or commercial projects.
-
----
-
-## 👁️ Visitor Statistics
-
-<p align="center">
-  <img src="https://komarev.com/ghpvc/?username=suvojitmanna-multiagent-chat-bot&label=Project%20Views&color=6366f1&style=for-the-badge"/>
-</p>
-
----
-
 <p align="center">
   <img src="https://capsule-render.vercel.app/api?type=waving&color=0:6366f1,50:312e81,100:090b11&height=140&section=footer" width="100%" />
+</p>
+<p align="center">
+  <img src="https://komarev.com/ghpvc/?username=suvojitmanna-multiagent-chat-bot&label=Project%20Views&color=6366f1&style=for-the-badge"/>
 </p>
