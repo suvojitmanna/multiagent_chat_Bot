@@ -48,10 +48,12 @@ export const searchSearxng = async (query, options = {}) => {
 
   const rawResults = textRes.data?.results || [];
 
-  const results = rawResults.slice(0, maxResults).map((item) => ({
+  const results = rawResults.map((item) => ({
     title: item.title || "",
     url: item.url || "",
     content: item.content || item.snippet || "",
+    score: item.score || 0,
+    engine: item.engine || "",
   }));
 
   const imageResults = imageRes.data?.results || [];
@@ -62,16 +64,12 @@ export const searchSearxng = async (query, options = {}) => {
     if (src && typeof src === "string" && src.startsWith("http")) {
       images.push(src);
     }
-    if (images.length >= 5) break;
   }
 
-  if (images.length < 5) {
-    for (const item of rawResults) {
-      const src = item.img_src || item.thumbnail;
-      if (src && typeof src === "string" && src.startsWith("http") && !images.includes(src)) {
-        images.push(src);
-      }
-      if (images.length >= 5) break;
+  for (const item of rawResults) {
+    const src = item.img_src || item.thumbnail;
+    if (src && typeof src === "string" && src.startsWith("http")) {
+      images.push(src);
     }
   }
 

@@ -1,5 +1,6 @@
 import { searchSearxng } from "../config/searxng.js";
 import { searchTavily } from "../config/tavily.js";
+import { deduplicateAndRerankResults, deduplicateImages } from "../utils/searchReranker.js";
 
 export const searchGenAgent = async (state) => {
   const query = state?.prompt || "";
@@ -32,14 +33,14 @@ export const searchGenAgent = async (state) => {
         throw new Error("SearXNG returned empty results");
       }
 
-      console.log(`🟢 [SearXNG] Connected successfully! Found ${result.results.length} web results & ${result.images?.length || 0} images.`);
+      console.log(`🟢 [SearXNG] Connected successfully! Found ${result.results.length} raw results & ${result.images?.length || 0} images.`);
       source = "SearXNG";
     } catch (searxngErr) {
       console.warn(`⚠️ [SearXNG] Failed (${searxngErr.message}). Falling back to Tavily...`);
       try {
         console.log(`🔍 [Tavily] Fallback search for: "${query}"...`);
         result = await searchTavily(query);
-        console.log(`🟡 [Tavily Fallback] Connected successfully! Found ${result?.results?.length || 0} web results & ${result?.images?.length || 0} images.`);
+        console.log(`🟡 [Tavily Fallback] Connected successfully! Found ${result?.results?.length || 0} raw results & ${result?.images?.length || 0} images.`);
         source = "Tavily (fallback)";
       } catch (tavilyErr) {
         console.error("❌ Both SearXNG and Tavily search providers failed:", tavilyErr.message);
@@ -47,16 +48,21 @@ export const searchGenAgent = async (state) => {
     }
   }
 
+  // Deduplicate, filter junk, and rerank results by relevance
+  const rawResults = result?.results || (Array.isArray(result) ? result : []);
+  const rankedResults = deduplicateAndRerankResults(rawResults, query, 5);
+
+  // Deduplicate and filter images
   const rawImages = result?.images || [];
-  const imageUrls = Array.isArray(rawImages)
-    ? rawImages
-        .map((img) => (typeof img === "string" ? img : img?.url))
-        .filter((url) => typeof url === "string" && url.startsWith("http"))
-    : [];
+  const cleanImages = deduplicateImages(rawImages, 5);
+
+  console.log(
+    `🎯 [Rerank & Filter] Filtered ${rawResults.length} raw results down to ${rankedResults.length} unique, top-ranked sources (${cleanImages.length} unique images).`
+  );
 
   return {
     ...state,
-    searchResult: result?.results || [],
-    images: imageUrls,
+    searchResult: rankedResults,
+    images: cleanImages,
   };
 };
