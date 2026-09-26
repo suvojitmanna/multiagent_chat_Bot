@@ -888,7 +888,8 @@ Instructions:
     const localFilePath = path.join(pptsDir, filename);
     await fs.promises.writeFile(localFilePath, pptBuffer);
 
-    const directDownloadUrl = `http://localhost:${process.env.PORT || 8003}/download-ppt/${filename}`;
+    const serverUrl = process.env.SERVER_URL;
+    const directDownloadUrl = `${serverUrl}/download-ppt/${filename}`;
     console.log("[PPT Agent] Direct Download URL:", directDownloadUrl);
 
     let cloudinaryUrl = "";

@@ -22,7 +22,6 @@ export const router = async (state) => {
       state.agent === "pdf" || state.agent === "pdfRag"
         ? "pdfRag"
         : state.agent;
-    console.log("--> Selected Agent (Direct Route):", directAgent);
     return {
       ...state,
       agent: directAgent,

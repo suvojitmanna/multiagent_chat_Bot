@@ -471,7 +471,8 @@ const PresentationDeckCard = ({ data, originalContent }) => {
 
   let finalDownloadUrl = downloadUrl;
   if (downloadUrl && downloadUrl.includes("res.cloudinary.com") && downloadUrl.includes("/raw/upload/")) {
-    finalDownloadUrl = `http://localhost:8003/proxy-pdf?url=${encodeURIComponent(downloadUrl)}&filename=${encodeURIComponent(downloadFilename)}`;
+    const proxyBase = import.meta.env.VITE_AGENT_URL || import.meta.env.VITE_SERVER_URL || "";
+    finalDownloadUrl = `${proxyBase}/proxy-pdf?url=${encodeURIComponent(downloadUrl)}&filename=${encodeURIComponent(downloadFilename)}`;
   }
 
   const pointCount = currentSlide.points?.length || 0;
@@ -1099,7 +1100,8 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                     }
 
                     if (href.includes("res.cloudinary.com") && href.includes("/raw/upload/")) {
-                      finalUrl = `http://localhost:8003/proxy-pdf?url=${encodeURIComponent(href)}&filename=${encodeURIComponent(downloadFilename)}`;
+                      const proxyBase = import.meta.env.VITE_AGENT_URL || import.meta.env.VITE_SERVER_URL || "";
+                      finalUrl = `${proxyBase}/proxy-pdf?url=${encodeURIComponent(href)}&filename=${encodeURIComponent(downloadFilename)}`;
                     }
 
                     return (

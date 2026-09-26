@@ -114,7 +114,6 @@ class SafeRedisClient {
       try {
         const cached = await this.client.get(key);
         if (cached) {
-          console.log(`[Redis Cache] HIT for document ${documentId} (queryHash: ${queryHash})`);
           return JSON.parse(cached);
         }
       } catch (e) {
@@ -128,11 +127,9 @@ class SafeRedisClient {
         this.fallbackCache.delete(key);
         return null;
       }
-      console.log(`[Fallback Cache] HIT for document ${documentId}`);
       return JSON.parse(fallback.payload);
     }
 
-    console.log(`[Redis Cache] MISS for document ${documentId} (queryHash: ${queryHash})`);
     return null;
   }
 

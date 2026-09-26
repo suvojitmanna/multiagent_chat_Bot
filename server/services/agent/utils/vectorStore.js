@@ -59,9 +59,6 @@ export class CustomVectorDB {
         }
       }
       this.initialized = true;
-      console.log(
-        `[CustomVectorDB] Initialized successfully. Loaded ${loadedCount} vectors across ${this.documents.size} documents.`
-      );
     } catch (err) {
       console.error("[CustomVectorDB] Error during initialization:", err);
       this.initialized = true;

@@ -165,7 +165,6 @@ class PdfRagService {
 
     const queryEmbedding = await embedQuery(trimmedQuestion);
 
-    // Direct page matching if user specifies a page (e.g. "Summarize page 1 for me")
     const pageMatch =
       trimmedQuestion.match(/\bpage\s*(\d+)\b/i) ||
       (trimmedQuestion.match(/\b(first|1st)\s+page\b/i) ? [, "1"] : null) ||
@@ -193,7 +192,6 @@ class PdfRagService {
         ...relevantChunks.filter((c) => !existingIds.has(c.id)),
       ].slice(0, 8);
     } else if (relevantChunks.length === 0) {
-      // Fallback search with no score threshold to guarantee best matching chunks are retrieved
       relevantChunks = customVectorDB.search({
         queryEmbedding,
         documentId,
@@ -202,9 +200,6 @@ class PdfRagService {
       });
     }
 
-    console.log(
-      `[PdfRagService] Custom vector search retrieved ${relevantChunks.length} chunks for document ${documentId} (top score: ${relevantChunks[0]?.score || 0})`
-    );
     if (relevantChunks.length === 0) {
       const fallbackAnswer = "I couldn't find this information in the uploaded PDF.";
       return {

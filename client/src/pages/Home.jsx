@@ -72,8 +72,8 @@ const Home = () => {
 
         try {
             const redirectUri = window.location.origin
-            const scope = encodeURIComponent("openid email profile")
-            const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}&prompt=select_account`
+            const googleAuthEndpoint = import.meta.env.VITE_GOOGLE_AUTH_URL
+            const authUrl = `${googleAuthEndpoint}?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=token&scope=${scope}&prompt=select_account`
             
             const width = 500
             const height = 600

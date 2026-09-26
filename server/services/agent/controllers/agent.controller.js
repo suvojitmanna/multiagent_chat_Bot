@@ -12,7 +12,7 @@ export const agent = async (req, res) => {
 
     const userId = req.headers["x-user-id"];
     let remainingCredits = null;
-    const authServiceUrl = process.env.AUTH_SERVICE || "http://localhost:8001";
+    const authServiceUrl = process.env.AUTH_SERVICE;
 
     const COST = {
       auto: 1,
@@ -121,9 +121,6 @@ export const agent = async (req, res) => {
           deductRes.data?.credits !== undefined
             ? deductRes.data.credits
             : deductRes.data?.user?.credits;
-        console.log(
-          `[Agent] Deducted credits for user ${userId} after answer generation. Remaining: ${remainingCredits}`,
-        );
       } catch (creditErr) {
         console.warn(
           "Could not deduct credits after answer generation:",
