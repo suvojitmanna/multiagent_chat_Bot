@@ -1,6 +1,23 @@
-# <div align="center">⚡ ShifraAI — Autonomous Multi-Agent Conversational AI Platform</div>
-
 <div align="center">
+
+<img src="https://capsule-render.vercel.app/api?type=waving&height=220&section=header&text=ShifraAI&fontSize=58&fontColor=ffffff&fontAlignY=40&desc=Autonomous%20Multi-Agent%20Conversational%20AI%20Platform&descSize=18&descAlignY=62&color=gradient&customColorList=12,20,24,30,36&animation=twinkling" width="100%" alt="ShifraAI Header" />
+<p align="center">
+  <b>Autonomous Multi-Agent Conversational AI Platform</b>
+</p>
+
+<p align="center">
+  LangGraph • Gemini • Groq • DeepSeek • RAG • SearXNG • Redis • MongoDB
+</p>
+
+<p align="center">
+  <a href="#-highlights--key-innovations">Features</a> •
+  <a href="#-system-architecture--data-flow">Architecture</a> •
+  <a href="#-technology-stack--logos">Tech Stack</a> •
+  <a href="#-getting-started">Getting Started</a>
+</p>
+
+<br>
+
 
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg?style=for-the-badge)](https://opensource.org/licenses/ISC)
 [![Node.js Version](https://img.shields.io/badge/Node.js-v18%2B%20%7C%20v20%2B-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org)
