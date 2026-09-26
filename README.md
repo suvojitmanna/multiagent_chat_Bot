@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # ⚡ ShifraAI™ — Autonomous Multi-Agent Conversational AI Platform
 ### Enterprise Distributed Microservices • Multi-Model LLM Orchestration • Custom Vector RAG
 #### Next-Generation AI Ecosystem Powered by LangGraph, Google Gemini, Groq, OpenRouter & Clipdrop
@@ -76,6 +77,54 @@
       </td>
     </tr>
   </table>
+=======
+<div align="center">
+
+<img src="https://capsule-render.vercel.app/api?type=waving&height=220&section=header&text=ShifraAI&fontSize=58&fontColor=ffffff&fontAlignY=40&desc=Autonomous%20Multi-Agent%20Conversational%20AI%20Platform&descSize=18&descAlignY=62&color=gradient&customColorList=12,20,24,30,36&animation=twinkling" width="100%" alt="ShifraAI Header" />
+<p align="center">
+  <b>Autonomous Multi-Agent Conversational AI Platform</b>
+</p>
+
+<p align="center">
+  LangGraph • Gemini • Groq • DeepSeek • RAG • SearXNG • Redis • MongoDB
+</p>
+
+<p align="center">
+  <a href="#-highlights--key-innovations">Features</a> •
+  <a href="#-system-architecture--data-flow">Architecture</a> •
+  <a href="#-technology-stack--logos">Tech Stack</a> •
+  <a href="#-getting-started">Getting Started</a>
+</p>
+
+<br>
+
+
+[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg?style=for-the-badge)](https://opensource.org/licenses/ISC)
+[![Node.js Version](https://img.shields.io/badge/Node.js-v18%2B%20%7C%20v20%2B-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org)
+[![Express](https://img.shields.io/badge/Express-5.x-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com)
+[![React 19](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+[![Vite](https://img.shields.io/badge/Vite-8.3-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-v4.3-38B2AC?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com)
+[![Redis](https://img.shields.io/badge/Redis-Cache%20%26%20Session-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas%20Ready-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com)
+
+**An enterprise-grade, distributed microservices AI assistant platform powered by LangGraph multi-agent state machines, multi-model LLM routing (Gemini 3.8 Flash, Groq, OpenRouter DeepSeek), custom in-memory & persistent Vector Database for PDF RAG, Clipdrop AI image synthesis, automated PowerPoint generation, live Monaco interactive code preview, and integrated Razorpay monetization.**
+
+<sub>Crafted with passion by **Lead Developer Suvojit Manna** and the **ShifraAI Team**.</sub>
+
+---
+
+[Explore Features](#-core-capabilities--agent-fleet) •
+[System Architecture](#-system-architecture--data-flow) •
+[Tech Stack](#-technology-stack--logos) •
+[Getting Started](#-getting-started) •
+[API Reference](#-api-gateway--microservices-routes) •
+[Directory Structure](#-repository-structure)
+
+---
+
+>>>>>>> c750d145d097611cf315eefd811514cb0cf36ec8
 </div>
 
 To provide an elite developer and end-user productivity environment:
