@@ -606,7 +606,7 @@ Open your browser and navigate to **`http://localhost:5173`** to access **Shifra
 
 <p align="center">
   <a href="https://github.com/suvojitmanna"><img src="https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white" /></a>
-  <a href="https://linkedin.com/in/suvojit-manna"><img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" /></a>
+  <a href="https://www.linkedin.com/in/suvojit-manna-505614327/"><img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" /></a>
 </p>
 <p align="center">
   <img src="https://capsule-render.vercel.app/api?type=waving&color=0:6366f1,50:312e81,100:090b11&height=140&section=footer" width="100%" />
