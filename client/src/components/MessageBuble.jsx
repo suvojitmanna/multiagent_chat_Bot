@@ -4,7 +4,7 @@ import { setActiveArtifact, setVisibleArtifact, clearVisibleArtifact, setArtifac
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Sparkles, Copy, Check, Brain, Loader2, Zap, Image as ImageIcon, ExternalLink, X, Play, FolderCode, FileCode, Code2, FileText, Presentation, ChevronLeft, ChevronRight, Download, Layers, List } from "lucide-react";
+import { Sparkles, Copy, Check, Brain, Loader2, Zap, Image as ImageIcon, ExternalLink, X, Play, FolderCode, FileCode, Code2, FileText, Presentation, ChevronLeft, ChevronRight, Download, Layers, List, AlertTriangle, Clock, AlertCircle } from "lucide-react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import oneDark from "react-syntax-highlighter/dist/esm/styles/prism/one-dark.js";
 import oneLight from "react-syntax-highlighter/dist/esm/styles/prism/one-light.js";
@@ -732,10 +732,47 @@ const PresentationDeckCard = ({ data, originalContent }) => {
   );
 };
 
-const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking = false, sidebarCollapsed = false, ...props }) => {
+const formatMessageTime = (dateInput) => {
+  if (!dateInput) return "";
+  try {
+    const d = new Date(dateInput);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true });
+  } catch {
+    return "";
+  }
+};
+
+const getFullDateTitle = (dateInput) => {
+  if (!dateInput) return "";
+  try {
+    const d = new Date(dateInput);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleString([], {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+  } catch {
+    return "";
+  }
+};
+
+const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking = false, sidebarCollapsed = false, createdAt, updatedAt, timestamp, ...props }) => {
   const dispatch = useDispatch();
   const [lightBox, setLightBox] = useState(null);
+  const [copied, setCopied] = useState(false);
   const artifactCardRef = useRef(null);
+
+  const rawDate = createdAt || timestamp || updatedAt || props?.createdAt || props?.timestamp;
+  const formattedTime = useMemo(() => formatMessageTime(rawDate), [rawDate]);
+  const fullDateTitle = useMemo(() => getFullDateTitle(rawDate), [rawDate]);
+
+  const handleCopy = () => {
+    if (!displayText) return;
+    navigator.clipboard.writeText(displayText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   useEffect(() => {
     const el = artifactCardRef.current;
@@ -795,6 +832,22 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
   const isUser = role === "user";
   const displayText = formatContent(content);
   const pptData = useMemo(() => parsePresentationData(displayText), [displayText]);
+
+  const isRateLimit =
+    props?.errorType === "rate_limit" ||
+    (typeof displayText === "string" &&
+      (displayText.includes("Rate Limit Exceeded") ||
+        displayText.includes("Rate limit exceeded") ||
+        displayText.includes("Too many requests")));
+
+  const isErrorMsg =
+    Boolean(props?.isError) ||
+    Boolean(props?.error) ||
+    isRateLimit ||
+    (typeof displayText === "string" &&
+      (displayText.startsWith("⚠️") ||
+        displayText.startsWith("Error:") ||
+        displayText.includes("Insufficient credits")));
 
   if (isUser) {
     const pdfMatch = typeof content === "string" ? content.match(/📄\s*\*\*\[PDF:\s*([^\]]+)\]\*\*/) : null;
@@ -954,6 +1007,17 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
           {cleanUserText && (
             <div className="whitespace-pre-wrap">{cleanUserText}</div>
           )}
+
+          {formattedTime && (
+            <div className="flex items-center justify-end gap-1 mt-0.5 self-end">
+              <span
+                className="text-[10px] text-white/75 font-medium tracking-tight select-none"
+                title={fullDateTitle}
+              >
+                {formattedTime}
+              </span>
+            </div>
+          )}
         </div>
       </motion.div>
     );
@@ -967,15 +1031,57 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
       className="flex items-start gap-2.5 sm:gap-3 my-2 w-full justify-start"
     >
       <div
-        className={`w-7 h-7 sm:w-7.5 sm:h-7.5 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5 shadow-xs transition-all duration-300 ${isThinking ? "animate-pulse ring-1 ring-indigo-500/30" : ""
+        className={`w-7 h-7 sm:w-7.5 sm:h-7.5 rounded-lg flex items-center justify-center shrink-0 mt-0.5 shadow-xs transition-all duration-300 ${isErrorMsg
+            ? isRateLimit
+              ? "bg-amber-500/10 border border-amber-500/30 text-amber-500 dark:text-amber-400"
+              : "bg-rose-500/10 border border-rose-500/30 text-rose-500 dark:text-rose-400"
+            : isThinking
+              ? "bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 animate-pulse ring-1 ring-indigo-500/30"
+              : "bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400"
           }`}
       >
-        {isThinking ? <Brain size={14} className="text-indigo-600 dark:text-indigo-400" /> : <Sparkles size={13} className="sm:size-[14px]" />}
+        {isErrorMsg ? (
+          isRateLimit ? (
+            <Clock size={14} className="text-amber-500 dark:text-amber-400" />
+          ) : (
+            <AlertTriangle size={14} className="text-rose-500 dark:text-rose-400" />
+          )
+        ) : isThinking ? (
+          <Brain size={14} className="text-indigo-600 dark:text-indigo-400" />
+        ) : (
+          <Sparkles size={13} className="sm:size-[14px]" />
+        )}
       </div>
 
       <div className="flex-1 min-w-0 text-slate-800 dark:text-slate-200 text-[13.5px] sm:text-[14.5px] leading-relaxed break-words py-0.5">
         {isThinking ? (
           <ThinkingIndicator />
+        ) : isErrorMsg ? (
+          <div
+            className={`p-3.5 sm:p-4 rounded-xl border backdrop-blur-xs max-w-2xl transition-all shadow-sm ${isRateLimit
+                ? "bg-amber-500/[0.05] dark:bg-amber-500/[0.08] border-amber-300/80 dark:border-amber-500/30 text-slate-800 dark:text-slate-100 shadow-amber-500/5"
+                : "bg-rose-500/[0.05] dark:bg-rose-500/[0.08] border-rose-300/80 dark:border-rose-500/30 text-slate-800 dark:text-slate-100 shadow-rose-500/5"
+              }`}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              {isRateLimit ? (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                  <Clock size={13} className="text-amber-500 animate-spin" style={{ animationDuration: '8s' }} />
+                  <span>Rate Limit Notice</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30">
+                  <AlertTriangle size={13} className="text-rose-500" />
+                  <span>Request Notice</span>
+                </div>
+              )}
+            </div>
+            <div className="prose dark:prose-invert max-w-none text-[13px] sm:text-[14px] leading-relaxed">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {displayText}
+              </ReactMarkdown>
+            </div>
+          </div>
         ) : (
           <div className="prose dark:prose-invert max-w-none text-[13.5px] sm:text-[14.5px] leading-relaxed text-slate-800 dark:text-slate-200">
             {Array.isArray(images) && images.length > 0 && (
@@ -1249,6 +1355,37 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
               >
                 {displayText}
               </ReactMarkdown>
+            )}
+          </div>
+        )}
+
+        {!isThinking && (
+          <div className="flex items-center gap-3 mt-2 text-[11px] text-slate-400 dark:text-slate-500 font-medium select-none">
+            {formattedTime && (
+              <span className="flex items-center gap-1 opacity-80 hover:opacity-100 transition-opacity" title={fullDateTitle}>
+                <Clock size={11} className="opacity-70" />
+                <span>{formattedTime}</span>
+              </span>
+            )}
+            {!isErrorMsg && displayText && (
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="flex items-center gap-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
+                title="Copy response"
+              >
+                {copied ? (
+                  <>
+                    <Check size={11} className="text-emerald-500" />
+                    <span className="text-emerald-500 font-medium">Copied</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy size={11} />
+                    <span>Copy</span>
+                  </>
+                )}
+              </button>
             )}
           </div>
         )}

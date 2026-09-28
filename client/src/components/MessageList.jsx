@@ -138,6 +138,9 @@ const MessageList = ({ sidebarCollapsed, loading }) => {
                     sidebarCollapsed={sidebarCollapsed}
                     pdf={msg?.pdf}
                     file={msg?.file}
+                    createdAt={msg?.createdAt}
+                    updatedAt={msg?.updatedAt}
+                    timestamp={msg?.timestamp}
                     {...msg}
                   />
                 </motion.div>

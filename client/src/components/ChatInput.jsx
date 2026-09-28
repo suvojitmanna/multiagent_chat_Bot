@@ -452,8 +452,9 @@ const ChatInput = ({ sidebarCollapsed }) => {
             : effectivePrompt,
       images: imageBlobUrls,
       pdf: pdfToSend ? { name: pdfToSend.name, size: pdfToSend.size, url: pdfBlobUrl } : null,
+      createdAt: new Date().toISOString(),
     }
-    const pendingAssistantMsg = { role: "assistant", content: "", isThinking: true }
+    const pendingAssistantMsg = { role: "assistant", content: "", isThinking: true, createdAt: new Date().toISOString() }
     dispatch(setMessages([...currentList, pendingUserMsg, pendingAssistantMsg]))
 
     try {
@@ -507,6 +508,48 @@ const ChatInput = ({ sidebarCollapsed }) => {
               role: "assistant",
               content: `⚠️ **${resData.message || "Insufficient credits. Please upgrade your plan in Billing & Subscription to continue."}**`,
               isThinking: false,
+              isError: true,
+              errorType: "insufficient_credits",
+              createdAt: new Date().toISOString(),
+            },
+          ])
+        )
+        return
+      }
+
+      if (resData?.isRateLimit || resData?.statusCode === 429 || String(resData?.error).toLowerCase().includes("rate limit")) {
+        const cooldownText = resData.retryAfter ? `\n\n*Cooldown:* Please try again in **${resData.retryAfter}s**.` : "";
+        dispatch(
+          setMessages([
+            ...currentList,
+            pendingUserMsg,
+            {
+              role: "assistant",
+              content: `⏳ **Rate Limit Exceeded**\n\n${resData.message || "You have reached the maximum request rate for this agent. Please wait before sending another prompt."}${cooldownText}`,
+              isThinking: false,
+              isError: true,
+              errorType: "rate_limit",
+              retryAfter: resData.retryAfter,
+              createdAt: new Date().toISOString(),
+            },
+          ])
+        )
+        return
+      }
+
+      if (resData?.error) {
+        dispatch(
+          setMessages([
+            ...currentList,
+            pendingUserMsg,
+            {
+              role: "assistant",
+              content: `⚠️ **${resData.error}**\n\n${resData.message || "Something went wrong while processing your request. Please try again."}`,
+              isThinking: false,
+              isError: true,
+              errorType: "general_error",
+              statusCode: resData?.statusCode,
+              createdAt: new Date().toISOString(),
             },
           ])
         )
@@ -564,7 +607,8 @@ const ChatInput = ({ sidebarCollapsed }) => {
                 content: resData.response,
                 images: resData?.images || [],
                 artifacts: resData?.artifacts || [],
-                isThinking: false
+                isThinking: false,
+                createdAt: new Date().toISOString(),
               },
             ])
           )
@@ -579,7 +623,8 @@ const ChatInput = ({ sidebarCollapsed }) => {
               content: resData.response,
               images: resData?.images || [],
               artifacts: resData?.artifacts || [],
-              isThinking: false
+              isThinking: false,
+              createdAt: new Date().toISOString(),
             },
           ])
         )
@@ -595,8 +640,11 @@ const ChatInput = ({ sidebarCollapsed }) => {
           pendingUserMsg,
           {
             role: "assistant",
-            content: "Sorry, I encountered an error while processing your request. Please try again.",
+            content: `⚠️ **Connection Error**\n\n${error?.message || "Sorry, I encountered an error while processing your request. Please try again."}`,
             isThinking: false,
+            isError: true,
+            errorType: "network_error",
+            createdAt: new Date().toISOString(),
           },
         ])
       )
