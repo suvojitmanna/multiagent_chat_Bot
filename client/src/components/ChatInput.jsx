@@ -28,6 +28,7 @@ import { createConversation } from '../features/createConverSation'
 import { addConversation, setSelectedConversation, updateConversationTitle } from '../redux/conversationSlice'
 import { updateCredits, setUserdata } from '../redux/userSlice'
 import getCurrentUser from '../features/getCurrentUser'
+import { detectAppOrWebsite } from '../utils/appOpener'
 
 const AGENTS = [
   {
@@ -130,12 +131,17 @@ const ChatInput = ({ sidebarCollapsed }) => {
   const [isListening, setIsListening] = useState(false)
   const recognitionRef = useRef(null)
   const baseTextRef = useRef("")
+  const silenceTimerRef = useRef(null)
+  const latestSpeechRef = useRef("")
+  const hasAutoSentRef = useRef(false)
+  const sendMessageRef = useRef(null)
 
   const [selectedImages, setSelectedImages] = useState([])
   const [imagePreviews, setImagePreviews] = useState([])
   const [lightBox, setLightBox] = useState(null)
   const [copiedInput, setCopiedInput] = useState(false)
   const imageInputRef = useRef(null)
+  const textareaRef = useRef(null)
 
   const handleCopyInput = async () => {
     if (!value.trim()) return
@@ -317,11 +323,35 @@ const ChatInput = ({ sidebarCollapsed }) => {
     }
 
     if (isListening) {
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current)
+        silenceTimerRef.current = null
+      }
       try {
         recognitionRef.current?.stop()
       } catch { }
       setIsListening(false)
+
+      // When speaker/voice is turned off manually: enter automatic search immediately & clear input!
+      if (!hasAutoSentRef.current) {
+        const textToSend = (latestSpeechRef.current || value).trim()
+        if (textToSend) {
+          hasAutoSentRef.current = true
+          latestSpeechRef.current = ""
+          baseTextRef.current = ""
+          setValue("")
+          if (textareaRef.current) textareaRef.current.value = ""
+          console.log("[Voice] Speaker turned off manually -> auto-searching:", textToSend)
+          sendMessageRef.current?.(textToSend)
+        }
+      }
       return
+    }
+
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      try {
+        window.speechSynthesis.cancel()
+      } catch { }
     }
 
     if (navigator?.mediaDevices?.getUserMedia) {
@@ -343,16 +373,50 @@ const ChatInput = ({ sidebarCollapsed }) => {
         } catch { }
       }
 
+      hasAutoSentRef.current = false
+      latestSpeechRef.current = ""
+
       const recognition = new SpeechRecognition()
       recognition.continuous = true
       recognition.interimResults = true
       recognition.lang = navigator.language || "en-US"
 
+      const triggerAutoSend = () => {
+        if (silenceTimerRef.current) {
+          clearTimeout(silenceTimerRef.current)
+          silenceTimerRef.current = null
+        }
+        try {
+          recognitionRef.current?.stop()
+        } catch { }
+        setIsListening(false)
+
+        if (hasAutoSentRef.current) return
+        const textToSend = (latestSpeechRef.current || value).trim()
+        if (textToSend) {
+          hasAutoSentRef.current = true
+          latestSpeechRef.current = ""
+          baseTextRef.current = ""
+          setValue("")
+          if (textareaRef.current) textareaRef.current.value = ""
+          console.log("[Voice] Speaker turned off (silence) -> auto-searching:", textToSend)
+          sendMessageRef.current?.(textToSend)
+        }
+      }
+
       recognition.onstart = () => {
         setIsListening(true)
       }
 
+      recognition.onspeechend = () => {
+        // Speech ended; wait brief moment (800ms) then speaker turns off & auto-searches
+        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
+        silenceTimerRef.current = setTimeout(triggerAutoSend, 800)
+      }
+
       recognition.onresult = (event) => {
+        if (hasAutoSentRef.current) return
+
         let interimTranscript = ""
         let finalTranscript = ""
 
@@ -373,9 +437,17 @@ const ChatInput = ({ sidebarCollapsed }) => {
             : prefix + " " + fullSpeech
           : fullSpeech
         setValue(combined)
+        latestSpeechRef.current = combined
+
+        if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current)
+        silenceTimerRef.current = setTimeout(triggerAutoSend, 1200)
       }
 
       recognition.onerror = (event) => {
+        if (silenceTimerRef.current) {
+          clearTimeout(silenceTimerRef.current)
+          silenceTimerRef.current = null
+        }
         console.warn("Speech recognition notice:", event.error)
         setIsListening(false)
 
@@ -394,12 +466,33 @@ const ChatInput = ({ sidebarCollapsed }) => {
 
       recognition.onend = () => {
         setIsListening(false)
+        if (silenceTimerRef.current) {
+          clearTimeout(silenceTimerRef.current)
+          silenceTimerRef.current = null
+        }
+        // Speaker turned off: automatically search if not already sent & clear input
+        if (!hasAutoSentRef.current) {
+          const textToSend = (latestSpeechRef.current || value).trim()
+          if (textToSend) {
+            hasAutoSentRef.current = true
+            latestSpeechRef.current = ""
+            baseTextRef.current = ""
+            setValue("")
+            if (textareaRef.current) textareaRef.current.value = ""
+            console.log("[Voice] Speaker turned off (onend) -> auto-searching:", textToSend)
+            sendMessageRef.current?.(textToSend)
+          }
+        }
       }
 
       recognitionRef.current = recognition
       baseTextRef.current = value.trim() ? value.trim() + " " : ""
       recognition.start()
     } catch (err) {
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current)
+        silenceTimerRef.current = null
+      }
       console.error("Could not start voice recognition:", err)
       setIsListening(false)
     }
@@ -436,23 +529,46 @@ const ChatInput = ({ sidebarCollapsed }) => {
 
   const activeAgentConfig = AGENTS.find((a) => a.id === selectedAgent) || AGENTS[0]
 
-  const handleSendMessage = async () => {
-    if (isListening) {
+  const handleSendMessage = async (overridePrompt) => {
+    hasAutoSentRef.current = true
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current)
+      silenceTimerRef.current = null
+    }
+    if (isListening || recognitionRef.current) {
       try {
-        recognitionRef.current?.stop()
+        recognitionRef.current?.abort()
       } catch { }
       setIsListening(false)
     }
 
-    const promptText = value.trim()
+    const promptText = (typeof overridePrompt === "string" ? overridePrompt : value).trim()
     const imagesToSend = [...selectedImages]
     const pdfToSend = selectedPdf
     const previewsToSend = [...imagePreviews]
 
     if ((!promptText && imagesToSend.length === 0 && !pdfToSend) || loading) return
 
+    const appIntent = (!pdfToSend && imagesToSend.length === 0 && promptText)
+      ? detectAppOrWebsite(promptText)
+      : null
+
+    if (appIntent) {
+      try {
+        console.log(`[AppOpener] Launching ${appIntent.name}: ${appIntent.url}`)
+        window.open(appIntent.url, "_blank")
+      } catch (err) {
+        console.warn("Could not automatically open window:", err)
+      }
+    }
+
     setLoading(true)
     setValue("")
+    latestSpeechRef.current = ""
+    baseTextRef.current = ""
+    if (textareaRef.current) {
+      textareaRef.current.value = ""
+    }
     handleRemoveImage()
     handleRemovePdf()
 
@@ -703,6 +819,8 @@ const ChatInput = ({ sidebarCollapsed }) => {
     }
   }
 
+  sendMessageRef.current = handleSendMessage
+
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
@@ -727,13 +845,13 @@ const ChatInput = ({ sidebarCollapsed }) => {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
               </span>
-              <span className="font-medium tracking-wide">Listening... Speak now</span>
+              <span className="font-medium tracking-wide">Listening... Speak now (auto-searches when you stop)</span>
               <button
                 type="button"
                 onClick={toggleListening}
-                className="ml-1 text-[11px] underline opacity-80 hover:opacity-100 cursor-pointer text-rose-600 dark:text-rose-200"
+                className="ml-1 text-[11px] font-semibold underline opacity-90 hover:opacity-100 cursor-pointer text-rose-600 dark:text-rose-200"
               >
-                Done
+                Search now
               </button>
             </motion.div>
           )}
@@ -1034,6 +1152,7 @@ const ChatInput = ({ sidebarCollapsed }) => {
           )}
 
           <textarea
+            ref={textareaRef}
             value={value}
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={handleKeyDown}
