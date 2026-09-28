@@ -5,7 +5,7 @@ import { setActiveArtifact, setVisibleArtifact, clearVisibleArtifact, setArtifac
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Sparkles, Copy, Check, Brain, Loader2, Zap, Image as ImageIcon, ExternalLink, X, Play, FolderCode, FileCode, Code2, FileText, Presentation, ChevronLeft, ChevronRight, Download, Layers, List, AlertTriangle, Clock, AlertCircle, CornerDownLeft, Share2 } from "lucide-react";
+import { Sparkles, Copy, Check, Brain, Loader2, Zap, Image as ImageIcon, ExternalLink, X, Play, FolderCode, FileCode, Code2, FileText, Presentation, ChevronLeft, ChevronRight, Download, Layers, List, AlertTriangle, Clock, AlertCircle, CornerDownLeft, Share2, Volume2, VolumeX } from "lucide-react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import oneDark from "react-syntax-highlighter/dist/esm/styles/prism/one-dark.js";
 import oneLight from "react-syntax-highlighter/dist/esm/styles/prism/one-light.js";
@@ -763,12 +763,63 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
   const [lightBox, setLightBox] = useState(null);
   const [copied, setCopied] = useState(false);
   const [shared, setShared] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const [userCopied, setUserCopied] = useState(false);
   const artifactCardRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (typeof window !== "undefined" && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   const rawDate = createdAt || timestamp || updatedAt || props?.createdAt || props?.timestamp;
   const formattedTime = useMemo(() => formatMessageTime(rawDate), [rawDate]);
   const fullDateTitle = useMemo(() => getFullDateTitle(rawDate), [rawDate]);
+
+  const handleSpeak = () => {
+    if (typeof window === "undefined" || !window.speechSynthesis) {
+      alert("Text-to-speech is not supported in this browser.");
+      return;
+    }
+
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    const cleanText = (typeof displayText === "string" ? displayText : String(displayText || ""))
+      .replace(/[*#_`~>\[\]]/g, " ")
+      .replace(/https?:\/\/[^\s]+/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (!cleanText) return;
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = "en-US";
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+
+    utterance.onstart = () => {
+      setIsSpeaking(true);
+    };
+
+    utterance.onend = () => {
+      setIsSpeaking(false);
+    };
+
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+    };
+
+    window.speechSynthesis.speak(utterance);
+  };
 
   const handleCopy = async () => {
     if (!displayText) return;
@@ -1515,15 +1566,47 @@ return (
                       );
                     }
 
+                    const isAppProtocol = href && /^(whatsapp|tg|discord|spotify|slack|zoommtg|mailto):/i.test(href);
+                    const linkText = typeof children === "string" ? children : (Array.isArray(children) ? children.join("") : "");
+                    const isActionButton = isAppProtocol || (linkText && /^(open|launch|visit|go to|view)\s+/i.test(linkText.trim()));
+
+                    if (isActionButton) {
+                      const isWhatsApp = href && (href.includes("whatsapp") || href.startsWith("whatsapp:"));
+                      const isYouTube = href && href.includes("youtube");
+                      const isGitHub = href && href.includes("github");
+
+                      return (
+                        <motion.a
+                          href={href}
+                          target={isAppProtocol ? "_self" : "_blank"}
+                          rel="noopener noreferrer"
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.97 }}
+                          className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 my-1.5 rounded-xl font-semibold text-xs shadow-xs transition-all not-prose no-underline cursor-pointer select-none border ${
+                            isWhatsApp
+                              ? "bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500 shadow-emerald-600/25"
+                              : isYouTube
+                                ? "bg-rose-600 hover:bg-rose-500 text-white border-rose-500 shadow-rose-600/25"
+                                : isGitHub
+                                  ? "bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 border-transparent shadow-xs"
+                                  : "bg-indigo-600 hover:bg-indigo-500 text-white border-indigo-500 shadow-indigo-600/25"
+                          }`}
+                        >
+                          <ExternalLink size={13} className="shrink-0" />
+                          <span>{children}</span>
+                        </motion.a>
+                      );
+                    }
+
                     return (
                       <a
                         href={href}
-                        target="_blank"
+                        target={isAppProtocol ? "_self" : "_blank"}
                         rel="noopener noreferrer"
-                        className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 underline underline-offset-2 transition-colors flex items-center gap-1"
+                        className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 underline underline-offset-2 transition-colors inline-flex items-center gap-1"
                       >
                         {children}
-                        <ExternalLink size={14} />
+                        <ExternalLink size={13} className="opacity-70" />
                       </a>
                     );
                   },
@@ -1584,6 +1667,28 @@ return (
                     <>
                       <Share2 size={11} />
                       <span>Share</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSpeak}
+                  className={`flex items-center gap-1 transition-colors cursor-pointer ${
+                    isSpeaking
+                      ? "text-rose-500 font-medium"
+                      : "text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+                  }`}
+                  title={isSpeaking ? "Stop speaking" : "Listen to response"}
+                >
+                  {isSpeaking ? (
+                    <>
+                      <VolumeX size={11} className="text-rose-500" />
+                      <span className="text-rose-500 font-medium">Stop</span>
+                    </>
+                  ) : (
+                    <>
+                      <Volume2 size={11} />
+                      <span>Listen</span>
                     </>
                   )}
                 </button>

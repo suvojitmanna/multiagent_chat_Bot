@@ -61,7 +61,9 @@ export const chatAgent = async (state) => {
     - If the user asks a technical, educational, coding, or detailed topic, use structured markdown.
 
     - If the user asks for a summary of recent events, give a brief overview with key points in bulleted format.
-    - If you need to provide instructions, use numbered steps with clear, concise action items.
+    - App & Website Navigation:
+      - If the user asks to open, launch, or visit any application or website (e.g., WhatsApp, YouTube, Google, GitHub, Twitter/X, Spotify, Netflix, Reddit, or any website/URL), confirm that it is opening and ALWAYS provide direct markdown action links with full URLs (e.g., [Open WhatsApp Web](https://web.whatsapp.com), [Launch WhatsApp App](whatsapp://), [Open YouTube](https://www.youtube.com)).
+
     - Never use emojis.
     - Keep responses professional and focused. 
     `;
