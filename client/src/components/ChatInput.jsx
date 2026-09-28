@@ -14,8 +14,11 @@ import {
   Plus,
   Check,
   X,
+  ExternalLink,
+  Copy,
 } from 'lucide-react'
 import React, { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useDispatch, useSelector } from 'react-redux'
 import { sendMessage } from '../features/sendMessage'
@@ -130,7 +133,54 @@ const ChatInput = ({ sidebarCollapsed }) => {
 
   const [selectedImages, setSelectedImages] = useState([])
   const [imagePreviews, setImagePreviews] = useState([])
+  const [lightBox, setLightBox] = useState(null)
+  const [copiedInput, setCopiedInput] = useState(false)
   const imageInputRef = useRef(null)
+
+  const handleCopyInput = async () => {
+    if (!value.trim()) return
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value)
+      } else {
+        const ta = document.createElement("textarea")
+        ta.value = value
+        ta.style.position = "fixed"
+        ta.style.left = "-9999px"
+        document.body.appendChild(ta)
+        ta.focus()
+        ta.select()
+        document.execCommand("copy")
+        document.body.removeChild(ta)
+      }
+      setCopiedInput(true)
+      setTimeout(() => setCopiedInput(false), 2000)
+    } catch (err) {
+      console.error("Failed to copy input text:", err)
+    }
+  }
+
+  useEffect(() => {
+    if (!lightBox) return
+    const handleClose = () => setLightBox(null)
+    window.addEventListener("wheel", handleClose, { passive: true })
+    window.addEventListener("scroll", handleClose, { capture: true, passive: true })
+    window.addEventListener("touchmove", handleClose, { passive: true })
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setLightBox(null)
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown)
+
+    return () => {
+      window.removeEventListener("wheel", handleClose)
+      window.removeEventListener("scroll", handleClose, { capture: true })
+      window.removeEventListener("touchmove", handleClose)
+      window.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [lightBox])
 
   const [selectedPdf, setSelectedPdf] = useState(null)
   const pdfInputRef = useRef(null)
@@ -714,18 +764,9 @@ const ChatInput = ({ sidebarCollapsed }) => {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 8, scale: 0.95 }}
                     transition={{ duration: 0.15 }}
-                    onClick={() => {
-                      dispatch(
-                        setActiveArtifact({
-                          type: "image",
-                          title: img.name,
-                          imageUrl: img.dataUrl,
-                          size: img.size,
-                        })
-                      )
-                    }}
+                    onClick={() => setLightBox(img.dataUrl)}
                     className="relative flex items-center gap-2.5 p-1.5 pr-8 bg-white/95 dark:bg-[#141620] border border-slate-200 hover:border-indigo-400 dark:border-white/[0.1] dark:hover:border-indigo-500/50 rounded-xl shadow-lg shrink-0 cursor-pointer group transition-all"
-                    title="Click to view in Artifact panel"
+                    title="Click to view image"
                   >
                     <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-slate-200 dark:border-white/10 shrink-0 bg-slate-100 dark:bg-black/40 group-hover:scale-105 transition-transform">
                       <img
@@ -1012,6 +1053,24 @@ const ChatInput = ({ sidebarCollapsed }) => {
             className="flex-1 min-w-0 bg-transparent outline-none resize-none text-[14px] text-slate-900 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 leading-relaxed [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           />
 
+          {value.trim() && (
+            <motion.button
+              type="button"
+              onClick={handleCopyInput}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="shrink-0 flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-200/60 dark:hover:bg-white/[0.05] transition-colors cursor-pointer"
+              title={copiedInput ? "Copied input text!" : "Copy input message"}
+              aria-label="Copy input message"
+            >
+              {copiedInput ? (
+                <Check size={16} className="text-emerald-500 dark:text-emerald-400" />
+              ) : (
+                <Copy size={16} />
+              )}
+            </motion.button>
+          )}
+
           <motion.button
             type="button"
             onClick={toggleListening}
@@ -1043,6 +1102,56 @@ const ChatInput = ({ sidebarCollapsed }) => {
           </motion.button>
         </div>
       </div>
+
+      {typeof document !== "undefined" && createPortal(
+        <AnimatePresence>
+          {lightBox && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-4 sm:p-6 cursor-pointer select-none"
+              onClick={() => setLightBox(null)}
+            >
+              <div className="absolute top-4 right-4 flex items-center gap-2 z-10" onClick={(e) => e.stopPropagation()}>
+                <motion.a
+                  href={lightBox}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.92 }}
+                  className="p-2 rounded-xl text-white/80 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md transition-colors cursor-pointer"
+                  title="Open full size in new tab"
+                >
+                  <ExternalLink size={17} />
+                </motion.a>
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.92 }}
+                  onClick={() => setLightBox(null)}
+                  className="p-2 rounded-xl text-white/80 hover:text-white bg-white/10 hover:bg-rose-500/80 border border-white/20 backdrop-blur-md transition-colors cursor-pointer"
+                  title="Close image view"
+                >
+                  <X size={18} />
+                </motion.button>
+              </div>
+              <motion.img
+                initial={{ scale: 0.92, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.92, opacity: 0 }}
+                transition={{ type: "spring", damping: 26, stiffness: 320 }}
+                src={lightBox}
+                alt="Image Preview"
+                onClick={(e) => e.stopPropagation()}
+                className="max-w-[92vw] max-h-[85vh] object-contain rounded-2xl shadow-2xl border border-white/15 cursor-default ring-1 ring-white/10"
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   )
 }
