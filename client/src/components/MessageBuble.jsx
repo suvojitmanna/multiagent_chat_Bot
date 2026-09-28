@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setActiveArtifact, setVisibleArtifact, clearVisibleArtifact, setArtifactOpen } from "../redux/messageSlice";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Sparkles, Copy, Check, Brain, Loader2, Zap, Image as ImageIcon, ExternalLink, X, Play, FolderCode, FileCode, Code2, FileText, Presentation, ChevronLeft, ChevronRight, Download, Layers, List } from "lucide-react";
+import { Sparkles, Copy, Check, Brain, Loader2, Zap, Image as ImageIcon, ExternalLink, X, Play, FolderCode, FileCode, Code2, FileText, Presentation, ChevronLeft, ChevronRight, Download, Layers, List, AlertTriangle, Clock, AlertCircle, CornerDownLeft, Share2 } from "lucide-react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import oneDark from "react-syntax-highlighter/dist/esm/styles/prism/one-dark.js";
 import oneLight from "react-syntax-highlighter/dist/esm/styles/prism/one-light.js";
@@ -732,10 +733,130 @@ const PresentationDeckCard = ({ data, originalContent }) => {
   );
 };
 
-const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking = false, sidebarCollapsed = false, ...props }) => {
+const formatMessageTime = (dateInput) => {
+  if (!dateInput) return "";
+  try {
+    const d = new Date(dateInput);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true });
+  } catch {
+    return "";
+  }
+};
+
+const getFullDateTitle = (dateInput) => {
+  if (!dateInput) return "";
+  try {
+    const d = new Date(dateInput);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleString([], {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+  } catch {
+    return "";
+  }
+};
+
+const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking = false, sidebarCollapsed = false, createdAt, updatedAt, timestamp, ...props }) => {
   const dispatch = useDispatch();
   const [lightBox, setLightBox] = useState(null);
+  const [copied, setCopied] = useState(false);
+  const [shared, setShared] = useState(false);
+  const [userCopied, setUserCopied] = useState(false);
   const artifactCardRef = useRef(null);
+
+  const rawDate = createdAt || timestamp || updatedAt || props?.createdAt || props?.timestamp;
+  const formattedTime = useMemo(() => formatMessageTime(rawDate), [rawDate]);
+  const fullDateTitle = useMemo(() => getFullDateTitle(rawDate), [rawDate]);
+
+  const handleCopy = async () => {
+    if (!displayText) return;
+    const textToCopy = typeof displayText === "string" ? displayText : String(displayText);
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(textToCopy);
+      } else {
+        const ta = document.createElement("textarea");
+        ta.value = textToCopy;
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy response:", err);
+    }
+  };
+
+  const handleShare = async () => {
+    if (!displayText) return;
+    const shareText = typeof displayText === "string" ? displayText : String(displayText);
+    const shareData = {
+      text: shareText,
+    };
+
+    if (navigator?.share && navigator?.canShare && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+        setShared(true);
+        setTimeout(() => setShared(false), 2000);
+        return;
+      } catch (err) {
+        if (err.name === "AbortError") return;
+        console.warn("navigator.share failed, fallback to copy:", err);
+      }
+    }
+
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareText);
+      } else {
+        const ta = document.createElement("textarea");
+        ta.value = shareText;
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      setShared(true);
+      setTimeout(() => setShared(false), 2000);
+    } catch (err) {
+      console.error("Failed to share text:", err);
+    }
+  };
+
+  const handleUserCopy = async (text) => {
+    const textToCopy = text || displayText || "";
+    if (!textToCopy) return;
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(textToCopy);
+      } else {
+        const ta = document.createElement("textarea");
+        ta.value = textToCopy;
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      setUserCopied(true);
+      setTimeout(() => setUserCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy user message:", err);
+    }
+  };
 
   useEffect(() => {
     const el = artifactCardRef.current;
@@ -796,6 +917,75 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
   const displayText = formatContent(content);
   const pptData = useMemo(() => parsePresentationData(displayText), [displayText]);
 
+  const isRateLimit =
+    props?.errorType === "rate_limit" ||
+    (typeof displayText === "string" &&
+      (displayText.includes("Rate Limit Exceeded") ||
+        displayText.includes("Rate limit exceeded") ||
+        displayText.includes("Too many requests")));
+
+  const isErrorMsg =
+    Boolean(props?.isError) ||
+    Boolean(props?.error) ||
+    isRateLimit ||
+    (typeof displayText === "string" &&
+      (displayText.startsWith("⚠️") ||
+        displayText.startsWith("Error:") ||
+        displayText.includes("Insufficient credits")));
+
+  const renderLightBox = () => {
+    if (typeof document === "undefined") return null;
+    return createPortal(
+      <AnimatePresence>
+        {lightBox && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-4 sm:p-6 cursor-pointer select-none"
+            onClick={() => setLightBox(null)}
+          >
+            <div className="absolute top-4 right-4 flex items-center gap-2 z-10" onClick={(e) => e.stopPropagation()}>
+              <motion.a
+                href={lightBox}
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.92 }}
+                className="p-2 rounded-xl text-white/80 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md transition-colors cursor-pointer"
+                title="Open full size in new tab"
+              >
+                <ExternalLink size={17} />
+              </motion.a>
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.92 }}
+                onClick={() => setLightBox(null)}
+                className="p-2 rounded-xl text-white/80 hover:text-white bg-white/10 hover:bg-rose-500/80 border border-white/20 backdrop-blur-md transition-colors cursor-pointer"
+                title="Close image view"
+              >
+                <X size={18} />
+              </motion.button>
+            </div>
+            <motion.img
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.92, opacity: 0 }}
+              transition={{ type: "spring", damping: 26, stiffness: 320 }}
+              src={lightBox}
+              alt="Image Preview"
+              onClick={(e) => e.stopPropagation()}
+              className="max-w-[92vw] max-h-[85vh] object-contain rounded-2xl shadow-2xl border border-white/15 cursor-default ring-1 ring-white/10"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>,
+      document.body
+    );
+  };
+
   if (isUser) {
     const pdfMatch = typeof content === "string" ? content.match(/📄\s*\*\*\[PDF:\s*([^\]]+)\]\*\*/) : null;
     const imageMatch = typeof content === "string" ? content.match(/🖼️\s*\*\*\[(?:Images?):\s*([^\]]+)\]\*\*/) : null;
@@ -834,92 +1024,88 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
     }
 
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 10, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.22, ease: "easeOut" }}
-        className="flex items-start my-1.5 w-full justify-end"
-      >
-        <div className="max-w-[85%] sm:max-w-[78%] md:max-w-[72%] px-4 py-3 rounded-2xl rounded-tr-sm bg-linear-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/15 text-[13.5px] sm:text-[14px] leading-relaxed break-words flex flex-col gap-2.5">
-          {resolvedImages.length > 0 && (
-            <div className="flex flex-wrap gap-2.5 not-prose">
-              {resolvedImages.map((imgUrl, idx) => {
-                const thisImgName = detectedImageNames[idx] || (detectedImageNames.length === 1 ? detectedImageNames[0] : `Image ${idx + 1}`);
-                return (
-                  <div
-                    key={idx}
-                    onClick={() => dispatch(setActiveArtifact({
-                      type: 'image',
-                      title: thisImgName,
-                      imageUrl: imgUrl
-                    }))}
-                    className="group relative rounded-xl overflow-hidden border border-white/30 hover:border-white/80 shadow-md hover:shadow-lg cursor-pointer transition-all bg-black/20"
-                    title="Click to show image in Artifact panel"
-                  >
-                    <div className="w-28 h-28 sm:w-32 sm:h-32 overflow-hidden relative bg-indigo-950/50 flex items-center justify-center">
-                      <ImageIcon size={28} className="text-white/30 absolute pointer-events-none" />
-                      <img
-                        src={imgUrl}
-                        alt={thisImgName}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 relative z-1"
-                        onError={(e) => {
-                          if (thisImgName && typeof window !== "undefined" && window.__imageBlobCache?.has(thisImgName)) {
-                            const cached = window.__imageBlobCache.get(thisImgName);
-                            if (cached && cached !== e.target.src) {
-                              e.target.src = cached;
-                              return;
+      <>
+        <motion.div
+          initial={{ opacity: 0, y: 10, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.22, ease: "easeOut" }}
+          className="flex items-start my-1.5 w-full justify-end"
+        >
+          <div className="max-w-[85%] sm:max-w-[78%] md:max-w-[72%] px-4 py-3 rounded-2xl rounded-tr-sm bg-linear-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/15 text-[13.5px] sm:text-[14px] leading-relaxed break-words flex flex-col gap-2.5">
+            {resolvedImages.length > 0 && (
+              <div className="flex flex-wrap gap-2.5 not-prose">
+                {resolvedImages.map((imgUrl, idx) => {
+                  const thisImgName = detectedImageNames[idx] || (detectedImageNames.length === 1 ? detectedImageNames[0] : `Image ${idx + 1}`);
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => setLightBox(imgUrl)}
+                      className="group relative rounded-xl overflow-hidden border border-white/30 hover:border-white/80 shadow-md hover:shadow-lg cursor-pointer transition-all bg-black/20"
+                      title="Click to open image view"
+                    >
+                      <div className="w-28 h-28 sm:w-32 sm:h-32 overflow-hidden relative bg-indigo-950/50 flex items-center justify-center">
+                        <ImageIcon size={28} className="text-white/30 absolute pointer-events-none" />
+                        <img
+                          src={imgUrl}
+                          alt={thisImgName}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 relative z-1"
+                          onError={(e) => {
+                            if (thisImgName && typeof window !== "undefined" && window.__imageBlobCache?.has(thisImgName)) {
+                              const cached = window.__imageBlobCache.get(thisImgName);
+                              if (cached && cached !== e.target.src) {
+                                e.target.src = cached;
+                                return;
+                              }
                             }
-                          }
-                          e.target.style.display = 'none';
-                        }}
-                      />
-                    </div>
-                    <div className="absolute inset-0 bg-linear-to-t from-black/75 via-black/20 to-transparent opacity-90 group-hover:opacity-100 flex flex-col justify-end p-2 transition-opacity">
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="text-[10px] font-semibold text-white/90 truncate max-w-[80px]">
-                          {thisImgName}
-                        </span>
-                        <span className="flex items-center gap-1 text-[10px] font-medium text-white bg-white/20 group-hover:bg-indigo-500/80 px-1.5 py-0.5 rounded-md backdrop-blur-xs transition-colors">
-                          <Sparkles size={10} className="text-amber-300" />
-                          <span>Artifact</span>
-                        </span>
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                      <div className="absolute inset-0 bg-linear-to-t from-black/75 via-black/20 to-transparent opacity-90 group-hover:opacity-100 flex flex-col justify-end p-2 transition-opacity">
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="text-[10px] font-semibold text-white/90 truncate max-w-[80px]">
+                            {thisImgName}
+                          </span>
+                          <span className="flex items-center gap-1 text-[10px] font-medium text-white bg-white/20 group-hover:bg-indigo-500/80 px-1.5 py-0.5 rounded-md backdrop-blur-xs transition-colors">
+                            <ImageIcon size={10} className="text-white" />
+                            <span>View Image</span>
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                  );
+                })}
+              </div>
+            )}
 
-          {resolvedImages.length === 0 && detectedImageName && (
-            <div
-              onClick={() => dispatch(setActiveArtifact({
-                type: 'image',
-                title: detectedImageName,
-                imageUrl: (typeof window !== "undefined" && window.__imageBlobCache?.get(detectedImageName)) || null
-              }))}
-              className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 hover:border-white/40 cursor-pointer transition-all group"
-              title="Click to show Image in Artifact panel"
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-indigo-500/30 border border-indigo-300/40 flex items-center justify-center text-indigo-100 shrink-0">
-                  <ImageIcon size={16} />
+            {resolvedImages.length === 0 && detectedImageName && (
+              <div
+                onClick={() => {
+                  const cachedUrl = typeof window !== "undefined" && window.__imageBlobCache?.get(detectedImageName);
+                  if (cachedUrl) setLightBox(cachedUrl);
+                }}
+                className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 hover:border-white/40 cursor-pointer transition-all group"
+                title="Click to open image view"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-500/30 border border-indigo-300/40 flex items-center justify-center text-indigo-100 shrink-0">
+                    <ImageIcon size={16} />
+                  </div>
+                  <div className="flex flex-col min-w-0 pr-1">
+                    <span className="text-xs font-semibold text-white truncate max-w-[200px]">
+                      {detectedImageName}
+                    </span>
+                    <span className="text-[10px] text-indigo-100/80 group-hover:text-white transition-colors">
+                      Attached visual document
+                    </span>
+                  </div>
                 </div>
-                <div className="flex flex-col min-w-0 pr-1">
-                  <span className="text-xs font-semibold text-white truncate max-w-[200px]">
-                    {detectedImageName}
-                  </span>
-                  <span className="text-[10px] text-indigo-100/80 group-hover:text-white transition-colors">
-                    Attached visual document
-                  </span>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/20 group-hover:bg-white/30 text-white font-medium text-[11px] shrink-0 border border-white/25 transition-all">
+                  <ImageIcon size={11} className="text-white" />
+                  <span>View Image</span>
                 </div>
               </div>
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/20 group-hover:bg-white/30 text-white font-medium text-[11px] shrink-0 border border-white/25 transition-all">
-                <Sparkles size={11} className="text-amber-300" />
-                <span>Show Artifact</span>
-              </div>
-            </div>
-          )}
+            )}
 
           {detectedPdfName && (
             <div
@@ -954,12 +1140,63 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
           {cleanUserText && (
             <div className="whitespace-pre-wrap">{cleanUserText}</div>
           )}
+
+          <div className="flex items-center justify-end gap-2 mt-0.5 self-end select-none">
+            {formattedTime && (
+              <span
+                className="text-[10px] text-white/75 font-medium tracking-tight select-none"
+                title={fullDateTitle}
+              >
+                {formattedTime}
+              </span>
+            )}
+            {(cleanUserText || displayText) && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => handleUserCopy(cleanUserText || displayText)}
+                  className="flex items-center gap-1 text-white/75 hover:text-white transition-colors cursor-pointer text-[10px] py-0.5 px-1.5 rounded-md hover:bg-white/15"
+                  title="Copy message"
+                >
+                  {userCopied ? (
+                    <>
+                      <Check size={11} className="text-emerald-300" />
+                      <span className="text-emerald-300 font-medium">Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={11} />
+                      <span>Copy</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.dispatchEvent(
+                      new CustomEvent("insert-prompt", {
+                        detail: cleanUserText || displayText,
+                      })
+                    );
+                  }}
+                  className="flex items-center gap-1 text-white/75 hover:text-white transition-colors cursor-pointer text-[10px] py-0.5 px-1.5 rounded-md hover:bg-white/15"
+                  title="Copy prompt into chat input"
+                >
+                  <CornerDownLeft size={11} />
+                  <span>To Input</span>
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </motion.div>
-    );
-  }
+      {renderLightBox()}
+    </>
+  );
+}
 
-  return (
+return (
+  <>
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -967,15 +1204,59 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
       className="flex items-start gap-2.5 sm:gap-3 my-2 w-full justify-start"
     >
       <div
-        className={`w-7 h-7 sm:w-7.5 sm:h-7.5 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5 shadow-xs transition-all duration-300 ${isThinking ? "animate-pulse ring-1 ring-indigo-500/30" : ""
-          }`}
+        className={`w-7 h-7 sm:w-7.5 sm:h-7.5 rounded-lg flex items-center justify-center shrink-0 mt-0.5 shadow-xs transition-all duration-300 ${
+          isErrorMsg
+            ? isRateLimit
+              ? "bg-amber-500/10 border border-amber-500/30 text-amber-500 dark:text-amber-400"
+              : "bg-rose-500/10 border border-rose-500/30 text-rose-500 dark:text-rose-400"
+            : isThinking
+              ? "bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 animate-pulse ring-1 ring-indigo-500/30"
+              : "bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400"
+        }`}
       >
-        {isThinking ? <Brain size={14} className="text-indigo-600 dark:text-indigo-400" /> : <Sparkles size={13} className="sm:size-[14px]" />}
+        {isErrorMsg ? (
+          isRateLimit ? (
+            <Clock size={14} className="text-amber-500 dark:text-amber-400" />
+          ) : (
+            <AlertTriangle size={14} className="text-rose-500 dark:text-rose-400" />
+          )
+        ) : isThinking ? (
+          <Brain size={14} className="text-indigo-600 dark:text-indigo-400" />
+        ) : (
+          <Sparkles size={13} className="sm:size-[14px]" />
+        )}
       </div>
 
       <div className="flex-1 min-w-0 text-slate-800 dark:text-slate-200 text-[13.5px] sm:text-[14.5px] leading-relaxed break-words py-0.5">
         {isThinking ? (
           <ThinkingIndicator />
+        ) : isErrorMsg ? (
+          <div
+            className={`p-3.5 sm:p-4 rounded-xl border backdrop-blur-xs max-w-2xl transition-all shadow-sm ${
+              isRateLimit
+                ? "bg-amber-500/[0.05] dark:bg-amber-500/[0.08] border-amber-300/80 dark:border-amber-500/30 text-slate-800 dark:text-slate-100 shadow-amber-500/5"
+                : "bg-rose-500/[0.05] dark:bg-rose-500/[0.08] border-rose-300/80 dark:border-rose-500/30 text-slate-800 dark:text-slate-100 shadow-rose-500/5"
+            }`}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              {isRateLimit ? (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                  <Clock size={13} className="text-amber-500 animate-spin" style={{ animationDuration: '8s' }} />
+                  <span>Rate Limit Notice</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30">
+                  <AlertTriangle size={13} className="text-rose-500" />
+                  <span>Request Notice</span>
+                </div>
+              )}
+            </div>
+            <div className="prose dark:prose-invert max-w-none text-[13px] sm:text-[14px] leading-relaxed">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {displayText}
+              </ReactMarkdown>
+            </div>
+          </div>
         ) : (
           <div className="prose dark:prose-invert max-w-none text-[13.5px] sm:text-[14.5px] leading-relaxed text-slate-800 dark:text-slate-200">
             {Array.isArray(images) && images.length > 0 && (
@@ -990,13 +1271,9 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                       key={idx}
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => dispatch(setActiveArtifact({
-                        type: 'image',
-                        title: `Visual Reference ${idx + 1}`,
-                        imageUrl: imgUrl
-                      }))}
+                      onClick={() => setLightBox(imgUrl)}
                       className="shrink-0 w-32 h-24 sm:w-40 sm:h-28 rounded-xl overflow-hidden border border-slate-200 dark:border-white/[0.08] hover:border-indigo-400 dark:hover:border-indigo-500/50 transition-colors duration-200 group relative block bg-slate-100 dark:bg-[#161822] cursor-pointer"
-                      title="Click to view in Artifact panel"
+                      title="Click to open image view"
                     >
                       <img
                         src={imgUrl}
@@ -1008,7 +1285,7 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                       <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <ExternalLink size={14} className="text-white drop-shadow" />
+                        <ImageIcon size={18} className="text-white drop-shadow" />
                       </div>
                     </motion.div>
                   ))}
@@ -1108,6 +1385,17 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
                   },
                   p({ children }) {
                     return <p className="mb-2.5 last:mb-0 leading-relaxed text-slate-800 dark:text-slate-200">{children}</p>;
+                  },
+                  img({ src, alt }) {
+                    return (
+                      <img
+                        src={src}
+                        alt={alt || "Image"}
+                        onClick={() => setLightBox(src)}
+                        className="max-h-72 rounded-xl object-contain my-2 cursor-pointer hover:opacity-90 transition-opacity border border-slate-200 dark:border-white/10"
+                        title="Click to open image view"
+                      />
+                    );
                   },
                   h1({ children }) {
                     return <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 mt-3.5 mb-2 tracking-tight">{children}</h1>;
@@ -1252,42 +1540,62 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
             )}
           </div>
         )}
-      </div>
 
-      <AnimatePresence>
-        {lightBox && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6 cursor-pointer select-none"
-            onClick={() => setLightBox(null)}
-          >
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setLightBox(null)}
-              className="absolute top-5 right-5 text-white hover:text-rose-400 text-xl font-bold z-10 bg-black/70 hover:bg-black/90 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer border border-white/20 shadow-lg"
-              title="Close image"
-            >
-              <X size={20} />
-            </motion.button>
-            <motion.img
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              src={lightBox}
-              alt="Full view"
-              onClick={(e) => e.stopPropagation()}
-              className="max-w-[90vw] max-h-[85vh] object-contain rounded-xl shadow-2xl border border-white/15 cursor-default"
-            />
-          </motion.div>
+        {!isThinking && (
+          <div className="flex items-center gap-3 mt-2 text-[11px] text-slate-400 dark:text-slate-500 font-medium select-none">
+            {formattedTime && (
+              <span className="flex items-center gap-1 opacity-80 hover:opacity-100 transition-opacity" title={fullDateTitle}>
+                <Clock size={11} className="opacity-70" />
+                <span>{formattedTime}</span>
+              </span>
+            )}
+            {!isErrorMsg && displayText && (
+              <>
+                <button
+                  type="button"
+                  onClick={handleCopy}
+                  className="flex items-center gap-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
+                  title="Copy response"
+                >
+                  {copied ? (
+                    <>
+                      <Check size={11} className="text-emerald-500" />
+                      <span className="text-emerald-500 font-medium">Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={11} />
+                      <span>Copy</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  className="flex items-center gap-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
+                  title="Share response"
+                >
+                  {shared ? (
+                    <>
+                      <Check size={11} className="text-emerald-500" />
+                      <span className="text-emerald-500 font-medium">Shared</span>
+                    </>
+                  ) : (
+                    <>
+                      <Share2 size={11} />
+                      <span>Share</span>
+                    </>
+                  )}
+                </button>
+              </>
+            )}
+          </div>
         )}
-      </AnimatePresence>
+      </div>
     </motion.div>
-  );
+    {renderLightBox()}
+  </>
+);
 };
 
 export default MessageBuble;

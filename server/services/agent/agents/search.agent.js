@@ -48,11 +48,9 @@ export const searchGenAgent = async (state) => {
     }
   }
 
-  // Deduplicate, filter junk, and rerank results by relevance
   const rawResults = result?.results || (Array.isArray(result) ? result : []);
   const rankedResults = deduplicateAndRerankResults(rawResults, query, 5);
 
-  // Deduplicate and filter images
   const rawImages = result?.images || [];
   const cleanImages = deduplicateImages(rawImages, 5);
 
