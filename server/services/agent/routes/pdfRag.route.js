@@ -14,7 +14,12 @@ import { createRouteRateLimiter } from "../middlewares/rateLimiter.middleware.js
 
 const router = express.Router();
 
-router.post("/upload", createRouteRateLimiter("pdf_upload", 10, 60), upload.single("file"), uploadPdf);
+router.post(
+  "/upload",
+  createRouteRateLimiter("pdf_upload", 10, 60),
+  upload.single("file"),
+  uploadPdf,
+);
 router.get("/", listDocuments);
 router.get("/status/:documentId", getDocumentStatus);
 router.get("/:documentId", getDocumentDetails);

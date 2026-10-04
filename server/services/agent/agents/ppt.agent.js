@@ -936,10 +936,21 @@ ${pptData.subtitle ? `*${pptData.subtitle}*\n` : ""}
 
 ${slidesList}`;
 
+    const pptArtifact = {
+      id: `ppt_${Date.now()}`,
+      type: "ppt",
+      title: `${pptData.title || topic}.pptx`,
+      pptUrl: activeDownloadUrl,
+      url: activeDownloadUrl,
+      slides: pptData.slides || [],
+      subtitle: pptData.subtitle || "",
+    };
+
     return {
       ...state,
       aiResponse: markdownSummary,
       pptUrl: activeDownloadUrl,
+      artifacts: [pptArtifact],
     };
   } catch (error) {
     console.error("[PPT Agent] Error generating presentation:", error);
