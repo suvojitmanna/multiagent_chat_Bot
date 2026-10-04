@@ -142,6 +142,27 @@ export const agent = async (req, res) => {
 
     const response = extractCleanText(result.aiResponse);
 
+    let finalArtifacts = Array.isArray(result.artifacts) ? [...result.artifacts] : [];
+    if (finalArtifacts.length === 0) {
+      if (result.pdfUrl) {
+        finalArtifacts.push({
+          id: `pdf_${Date.now()}`,
+          type: "pdf",
+          title: "Generated_Document.pdf",
+          pdfUrl: result.pdfUrl,
+          url: result.pdfUrl,
+        });
+      } else if (result.pptUrl) {
+        finalArtifacts.push({
+          id: `ppt_${Date.now()}`,
+          type: "ppt",
+          title: "Generated_Presentation.pptx",
+          pptUrl: result.pptUrl,
+          url: result.pptUrl,
+        });
+      }
+    }
+
     await addMessage(conversationId, "user", prompt);
     if (conversationId && response) {
       try {
@@ -152,7 +173,7 @@ export const agent = async (req, res) => {
           conversationId,
           role: "assistant",
           images: Array.isArray(result.images) ? result.images : [],
-          artifacts: Array.isArray(result.artifacts) ? result.artifacts : [],
+          artifacts: finalArtifacts,
         });
       } catch (err) {
         console.warn(
@@ -193,7 +214,7 @@ export const agent = async (req, res) => {
       success: true,
       response,
       images: Array.isArray(result.images) ? result.images : [],
-      artifacts: Array.isArray(result.artifacts) ? result.artifacts : [],
+      artifacts: finalArtifacts,
       credits: remainingCredits,
     });
   } catch (err) {

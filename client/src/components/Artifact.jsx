@@ -18,12 +18,13 @@ import {
   ChevronLeft,
   RotateCcw,
   Loader2,
-  Code2,
   ZoomIn,
   ZoomOut,
   RotateCw,
   Image as ImageIcon,
-  FileText
+  FileText,
+  Presentation,
+  ChevronRight
 } from 'lucide-react'
 
 const getMonacoLanguage = (name = '') => {
@@ -119,6 +120,8 @@ const Artifact = () => {
   const [editedFiles, setEditedFiles] = useState({})
   const [zoom, setZoom] = useState(1)
   const [rotation, setRotation] = useState(0)
+  const [activeSlideIdx, setActiveSlideIdx] = useState(0)
+  const [pptViewMode, setPptViewMode] = useState('slides')
 
   const isImageArtifact = Boolean(
     activeArtifact?.type === 'image' ||
@@ -135,9 +138,24 @@ const Artifact = () => {
     (typeof activeArtifact?.title === 'string' && activeArtifact.title.toLowerCase().endsWith('.pdf'))
   )
 
+  const isPptArtifact = Boolean(
+    activeArtifact?.type === 'ppt' ||
+    activeArtifact?.type === 'presentation' ||
+    activeArtifact?.type === 'pptx' ||
+    Boolean(activeArtifact?.pptUrl) ||
+    (activeArtifact?.type === 'file' && (
+      activeArtifact?.fileType?.includes('presentation') ||
+      activeArtifact?.fileType?.includes('powerpoint')
+    )) ||
+    (typeof activeArtifact?.title === 'string' && (
+      activeArtifact.title.toLowerCase().endsWith('.pptx') ||
+      activeArtifact.title.toLowerCase().endsWith('.ppt')
+    ))
+  )
+
   const currentArtifact = useMemo(() => {
     if (activeArtifact) {
-      if (isImageArtifact || isPdfArtifact) return activeArtifact
+      if (isImageArtifact || isPdfArtifact || isPptArtifact) return activeArtifact
       if (Array.isArray(activeArtifact.files) && activeArtifact.files.length > 0) {
         return activeArtifact
       }
@@ -150,7 +168,7 @@ const Artifact = () => {
       }
     }
     return null
-  }, [activeArtifact, messages, isImageArtifact, isPdfArtifact])
+  }, [activeArtifact, messages, isImageArtifact, isPdfArtifact, isPptArtifact])
 
   const activePdfUrl = useMemo(() => {
     return (
@@ -160,6 +178,18 @@ const Artifact = () => {
       null
     );
   }, [currentArtifact]);
+
+  const activePptUrl = useMemo(() => {
+    return (
+      currentArtifact?.pptUrl ||
+      currentArtifact?.url ||
+      null
+    );
+  }, [currentArtifact]);
+
+  const pptSlides = useMemo(() => {
+    return Array.isArray(currentArtifact?.slides) ? currentArtifact.slides : []
+  }, [currentArtifact])
 
   const activeImageUrl = useMemo(() => {
     return (
@@ -173,6 +203,7 @@ const Artifact = () => {
   useEffect(() => {
     setZoom(1)
     setRotation(0)
+    setActiveSlideIdx(0)
   }, [currentArtifact])
 
   const files = useMemo(() => {
@@ -236,6 +267,9 @@ const Artifact = () => {
     if (isPdfArtifact) {
       return currentArtifact?.title || 'Attached PDF Document'
     }
+    if (isPptArtifact) {
+      return currentArtifact?.title || 'PowerPoint Presentation'
+    }
     if (
       currentArtifact?.title &&
       currentArtifact.title.trim() &&
@@ -257,7 +291,7 @@ const Artifact = () => {
       }
     }
     return currentArtifact?.title || 'Interactive Project'
-  }, [currentArtifact, files, getFileContent, isImageArtifact, isPdfArtifact])
+  }, [currentArtifact, files, getFileContent, isImageArtifact, isPdfArtifact, isPptArtifact])
 
   const currentFile = files.find((f) => f.name === activeTab) || files[0]
   const currentCode = getFileContent(currentFile)
@@ -338,6 +372,18 @@ const Artifact = () => {
       document.body.removeChild(link)
       return
     }
+    if (isPptArtifact) {
+      const url = activePptUrl || currentArtifact?.pptUrl || currentArtifact?.url
+      if (!url) return
+      const link = document.createElement('a')
+      link.href = url
+      link.download = resolvedTitle?.endsWith('.pptx') ? resolvedTitle : `${resolvedTitle || 'presentation'}.pptx`
+      link.target = '_blank'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      return
+    }
     handleDownloadAll()
   }
 
@@ -356,9 +402,9 @@ const Artifact = () => {
   const isVerticalTabVisible = Boolean((visibleArtifact || activeArtifact) && !isArtifactOpen)
   const isDrawerAvailable = Boolean(
     (activeArtifact || visibleArtifact || currentArtifact) &&
-    (files.length > 0 || isImageArtifact || isPdfArtifact)
+    (files.length > 0 || isImageArtifact || isPdfArtifact || isPptArtifact)
   )
-  const displayTitle = visibleArtifact?.title || resolvedTitle || (isImageArtifact ? 'Attached Image' : (isPdfArtifact ? 'PDF Document' : 'Interactive Project'))
+  const displayTitle = visibleArtifact?.title || resolvedTitle || (isImageArtifact ? 'Attached Image' : (isPdfArtifact ? 'PDF Document' : (isPptArtifact ? 'Presentation Deck' : 'Interactive Project')))
 
   return (
     <>
@@ -381,6 +427,8 @@ const Artifact = () => {
                 <ImageIcon size={13} />
               ) : isPdfArtifact ? (
                 <FileText size={13} />
+              ) : isPptArtifact ? (
+                <Presentation size={13} className="text-amber-500" />
               ) : (
                 <Sparkles size={13} />
               )}
@@ -420,6 +468,8 @@ const Artifact = () => {
                     <ImageIcon size={16} />
                   ) : isPdfArtifact ? (
                     <FileText size={16} className="text-rose-500" />
+                  ) : isPptArtifact ? (
+                    <Presentation size={16} className="text-amber-500" />
                   ) : (
                     <Sparkles size={16} />
                   )}
@@ -430,7 +480,7 @@ const Artifact = () => {
                       {resolvedTitle}
                     </h3>
                     <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/10 dark:bg-indigo-500/15 border border-indigo-500/20 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300 shrink-0">
-                      {isImageArtifact ? 'Image' : isPdfArtifact ? 'PDF Document' : `${files.length} ${files.length === 1 ? 'file' : 'files'}`}
+                      {isImageArtifact ? 'Image' : isPdfArtifact ? 'PDF Document' : isPptArtifact ? 'Presentation' : `${files.length} ${files.length === 1 ? 'file' : 'files'}`}
                     </span>
                   </div>
                   <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
@@ -438,7 +488,9 @@ const Artifact = () => {
                       ? `${Math.round(zoom * 100)}% zoom • Interactive Viewer`
                       : isPdfArtifact
                         ? 'Custom Vector DB • Indexed Document'
-                        : `${currentArtifact.type || 'Web Application'} • Live Artifact`}
+                        : isPptArtifact
+                          ? `${pptSlides.length ? `${pptSlides.length} Slides • ` : ''}PowerPoint Deck`
+                          : `${currentArtifact.type || 'Web Application'} • Live Artifact`}
                   </span>
                 </div>
               </div>
@@ -520,7 +572,25 @@ const Artifact = () => {
                   </>
                 )}
 
-                {!isImageArtifact && !isPdfArtifact && activeTab === 'preview' && (
+                {isPptArtifact && (
+                  <>
+                    <motion.button
+                      type="button"
+                      whileHover={{ scale: 1.08 }}
+                      whileTap={{ scale: 0.92 }}
+                      onClick={() => {
+                        const url = activePptUrl || currentArtifact?.pptUrl || currentArtifact?.url
+                        if (url) window.open(url, '_blank')
+                      }}
+                      className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 bg-slate-200/60 dark:bg-white/[0.03] hover:bg-slate-200 dark:hover:bg-white/[0.08] border border-slate-200 dark:border-white/[0.06] transition-colors cursor-pointer"
+                      title="Open Presentation in new tab"
+                    >
+                      <ExternalLink size={14} />
+                    </motion.button>
+                  </>
+                )}
+
+                {!isImageArtifact && !isPdfArtifact && !isPptArtifact && activeTab === 'preview' && (
                   <>
                     <motion.button
                       type="button"
@@ -545,7 +615,7 @@ const Artifact = () => {
                   </>
                 )}
 
-                {!isImageArtifact && !isPdfArtifact && activeTab !== 'preview' && (
+                {!isImageArtifact && !isPdfArtifact && !isPptArtifact && activeTab !== 'preview' && (
                   <>
                     {isCurrentFileEdited && (
                       <motion.button
@@ -633,7 +703,49 @@ const Artifact = () => {
               </div>
             )}
 
-            {!isImageArtifact && !isPdfArtifact && files.length > 0 && (
+            {isPptArtifact && (
+              <div className="flex items-center justify-between px-4 py-2 bg-slate-100 dark:bg-[#0e1017] border-b border-slate-200 dark:border-white/[0.06] text-xs text-slate-500 dark:text-slate-400">
+                <div className="flex items-center gap-2 min-w-0 truncate">
+                  <Presentation size={13} className="text-amber-500 shrink-0" />
+                  <span className="font-mono text-[11px] truncate max-w-md">
+                    {resolvedTitle}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {pptSlides.length > 0 && (
+                    <div className="flex items-center rounded-md bg-white dark:bg-white/[0.05] p-0.5 border border-slate-200 dark:border-white/[0.08]">
+                      <button
+                        type="button"
+                        onClick={() => setPptViewMode('slides')}
+                        className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors cursor-pointer ${
+                          pptViewMode === 'slides'
+                            ? 'bg-amber-500/20 text-amber-600 dark:text-amber-300 font-semibold'
+                            : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                        }`}
+                      >
+                        Slide Deck
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPptViewMode('outline')}
+                        className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors cursor-pointer ${
+                          pptViewMode === 'outline'
+                            ? 'bg-amber-500/20 text-amber-600 dark:text-amber-300 font-semibold'
+                            : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                        }`}
+                      >
+                        Outline
+                      </button>
+                    </div>
+                  )}
+                  <span className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider shrink-0">
+                    {pptSlides.length ? `${pptSlides.length} Slides` : 'PowerPoint'}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {!isImageArtifact && !isPdfArtifact && !isPptArtifact && files.length > 0 && (
               <div className="flex items-center justify-between gap-1 px-3 py-2 bg-slate-100 dark:bg-[#0e1017] border-b border-slate-200 dark:border-white/[0.06] overflow-x-auto [scrollbar-width:none]">
                 <div className="flex items-center gap-1 min-w-0">
                   {hasHtml && (
@@ -705,13 +817,37 @@ const Artifact = () => {
                   )}
                 </div>
               ) : isPdfArtifact ? (
-                <div className="w-full h-full bg-slate-900 relative">
+                <div className="w-full h-full bg-slate-900 relative flex flex-col">
                   {activePdfUrl ? (
-                    <iframe
-                      src={activePdfUrl}
-                      title={resolvedTitle || "PDF Document Viewer"}
-                      className="w-full h-full border-none"
-                    />
+                    <>
+                      <div className="flex items-center justify-between px-3.5 py-2 bg-slate-800/90 border-b border-slate-700/60 text-xs text-slate-300 shrink-0">
+                        <span className="truncate max-w-xs font-mono text-[11px] text-slate-300">{resolvedTitle}</span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => window.open(activePdfUrl, '_blank')}
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-700 hover:bg-slate-600 text-slate-200 text-[11px] font-medium transition-colors cursor-pointer"
+                            title="Open PDF in new window"
+                          >
+                            <ExternalLink size={12} />
+                            <span>New Tab</span>
+                          </button>
+                          <a
+                            href={activePdfUrl}
+                            download={resolvedTitle || 'document.pdf'}
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-medium transition-colors no-underline cursor-pointer"
+                          >
+                            <Download size={12} />
+                            <span>Download</span>
+                          </a>
+                        </div>
+                      </div>
+                      <iframe
+                        src={activePdfUrl.includes("/download-pdf/") ? activePdfUrl.replace(/\/download-pdf\//, "/pdfs/") : activePdfUrl}
+                        title={resolvedTitle || "PDF Document Viewer"}
+                        className="w-full flex-1 border-none bg-white"
+                      />
+                    </>
                   ) : (
                     <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-3 p-6 text-center">
                       <FileText size={48} className="text-rose-400 animate-pulse" />
@@ -719,6 +855,147 @@ const Artifact = () => {
                       <p className="text-xs text-slate-500 max-w-sm">
                         PDF document indexed into custom in-memory vector database.
                       </p>
+                    </div>
+                  )}
+                </div>
+              ) : isPptArtifact ? (
+                <div className="w-full h-full bg-slate-900/90 dark:bg-[#07090e] flex flex-col overflow-auto p-4 sm:p-6 select-none">
+                  {pptSlides.length > 0 ? (
+                    pptViewMode === 'slides' ? (
+                      <div className="flex flex-col h-full max-w-3xl mx-auto w-full justify-between gap-4">
+                        <div className="flex-1 rounded-2xl border border-amber-300/40 dark:border-amber-500/30 bg-white dark:bg-[#0f121d] p-5 sm:p-7 flex flex-col justify-between shadow-2xl relative overflow-hidden min-h-[320px]">
+                          <div className="h-1.5 absolute top-0 inset-x-0 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500" />
+                          <div>
+                            <div className="flex items-center justify-between gap-2 pb-3 mb-4 border-b border-slate-200 dark:border-white/[0.08]">
+                              <div className="flex items-center gap-2">
+                                <span className="w-1.5 h-4 rounded-full bg-amber-500" />
+                                <span className="text-xs font-bold uppercase tracking-wider text-amber-500">
+                                  {pptSlides[activeSlideIdx]?.category || "KEY TOPIC"}
+                                </span>
+                              </div>
+                              <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/[0.08]">
+                                Slide {activeSlideIdx + 1} of {pptSlides.length}
+                              </span>
+                            </div>
+                            <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight mb-4">
+                              {pptSlides[activeSlideIdx]?.title}
+                            </h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              {(pptSlides[activeSlideIdx]?.points || []).map((pt, pIdx) => {
+                                const ptTitle = typeof pt === 'object' && pt ? (pt.title || `Point ${pIdx + 1}`) : `Point ${pIdx + 1}`;
+                                const ptDesc = typeof pt === 'object' && pt ? (pt.desc || pt.text || JSON.stringify(pt)) : String(pt);
+                                return (
+                                  <div key={pIdx} className="p-3.5 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.06] flex flex-col gap-1">
+                                    <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">{ptTitle}</span>
+                                    <span className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{ptDesc}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-4 mt-4 border-t border-slate-200 dark:border-white/[0.08]">
+                            <button
+                              type="button"
+                              disabled={activeSlideIdx === 0}
+                              onClick={() => setActiveSlideIdx((i) => Math.max(0, i - 1))}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-white/[0.06] hover:bg-slate-200 dark:hover:bg-white/[0.1] disabled:opacity-30 disabled:pointer-events-none cursor-pointer transition-all border border-slate-200 dark:border-white/[0.08]"
+                            >
+                              <ChevronLeft size={14} />
+                              <span>Previous</span>
+                            </button>
+
+                            <div className="flex items-center gap-1.5 overflow-x-auto max-w-[200px] sm:max-w-xs px-2">
+                              {pptSlides.map((_, sIdx) => (
+                                <button
+                                  key={sIdx}
+                                  type="button"
+                                  onClick={() => setActiveSlideIdx(sIdx)}
+                                  className={`h-2 rounded-full transition-all cursor-pointer ${
+                                    activeSlideIdx === sIdx
+                                      ? "w-6 bg-amber-500"
+                                      : "w-2 bg-slate-300 dark:bg-white/20 hover:bg-slate-400 dark:hover:bg-white/40"
+                                  }`}
+                                  title={`Go to slide ${sIdx + 1}`}
+                                />
+                              ))}
+                            </div>
+
+                            <button
+                              type="button"
+                              disabled={activeSlideIdx === pptSlides.length - 1}
+                              onClick={() => setActiveSlideIdx((i) => Math.min(pptSlides.length - 1, i + 1))}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-white/[0.06] hover:bg-slate-200 dark:hover:bg-white/[0.1] disabled:opacity-30 disabled:pointer-events-none cursor-pointer transition-all border border-slate-200 dark:border-white/[0.08]"
+                            >
+                              <span>Next</span>
+                              <ChevronRight size={14} />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-slate-100 dark:bg-[#121520] border border-slate-200 dark:border-white/[0.08]">
+                          <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300 min-w-0">
+                            <Presentation size={15} className="text-amber-500 shrink-0" />
+                            <span className="font-medium truncate">{resolvedTitle}</span>
+                          </div>
+                          {activePptUrl && (
+                            <a
+                              href={activePptUrl}
+                              download={resolvedTitle?.endsWith('.pptx') ? resolvedTitle : `${resolvedTitle || 'presentation'}.pptx`}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-semibold text-xs transition-colors no-underline cursor-pointer shrink-0"
+                            >
+                              <Download size={13} />
+                              <span>Download .PPTX</span>
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-3 max-w-3xl mx-auto w-full">
+                        {pptSlides.map((s, sIdx) => (
+                          <div key={sIdx} className="p-4 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#0f121d] flex flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-amber-500">Slide {sIdx + 1}</span>
+                              <span className="text-[11px] text-slate-400">{s.category || 'Topic'}</span>
+                            </div>
+                            <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-100">{s.title}</h4>
+                            <ul className="list-disc pl-5 text-xs text-slate-600 dark:text-slate-300 space-y-1">
+                              {(s.points || []).map((pt, pIdx) => (
+                                <li key={pIdx}>
+                                  <span className="font-medium">{typeof pt === 'object' ? pt.title : ''}: </span>
+                                  <span>{typeof pt === 'object' ? (pt.desc || pt.text) : String(pt)}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  ) : activePptUrl ? (
+                    <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-4 p-6 text-center max-w-md mx-auto">
+                      <div className="w-16 h-16 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500 shadow-xl">
+                        <Presentation size={32} />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <h3 className="font-bold text-slate-800 dark:text-slate-100 text-base">{resolvedTitle}</h3>
+                        <p className="text-xs text-slate-500">PowerPoint Presentation ready for download.</p>
+                      </div>
+                      <div className="flex items-center gap-2 mt-2">
+                        <a
+                          href={activePptUrl}
+                          download={resolvedTitle?.endsWith('.pptx') ? resolvedTitle : `${resolvedTitle || 'presentation'}.pptx`}
+                          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-semibold text-xs shadow-md transition-all no-underline cursor-pointer"
+                        >
+                          <Download size={14} />
+                          <span>Download Presentation</span>
+                        </a>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-3 p-6 text-center">
+                      <Presentation size={48} className="text-amber-400 animate-pulse" />
+                      <p className="font-semibold text-slate-200 text-sm">{resolvedTitle}</p>
+                      <p className="text-xs text-slate-500 max-w-sm">Presentation document generated.</p>
                     </div>
                   )}
                 </div>

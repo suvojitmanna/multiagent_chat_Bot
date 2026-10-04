@@ -230,7 +230,7 @@ Topic: ${topic}
     const localFilePath = path.join(pdfsDir, filename);
     await fs.promises.writeFile(localFilePath, pdfBuffer);
 
-    const directDownloadUrl = `{process.env.SERVER_URL}/download-pdf/${filename}`;
+    const directDownloadUrl = `${process.env.SERVER_URL || ""}/download-pdf/${filename}`;
     let cloudinaryUrl = "";
     try {
       const cloudinaryResult = await uploadImageToCloudinary(pdfBuffer, {
@@ -265,10 +265,19 @@ ${
     : ""
 }`;
 
+    const pdfArtifact = {
+      id: `pdf_${Date.now()}`,
+      type: "pdf",
+      title: `${docData.title || topic}.pdf`,
+      pdfUrl: activeDownloadUrl,
+      url: activeDownloadUrl,
+    };
+
     return {
       ...state,
       aiResponse: markdownSummary,
       pdfUrl: activeDownloadUrl,
+      artifacts: [pdfArtifact],
     };
   } catch (error) {
     console.error("[PDF Agent] Error generating PDF:", error);

@@ -5,7 +5,7 @@ import { setActiveArtifact, setVisibleArtifact, clearVisibleArtifact, setArtifac
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Sparkles, Copy, Check, Brain, Loader2, Zap, Image as ImageIcon, ExternalLink, X, Play, FolderCode, FileCode, Code2, FileText, Presentation, ChevronLeft, ChevronRight, Download, Layers, List, AlertTriangle, Clock, AlertCircle, CornerDownLeft, Share2, Volume2, VolumeX } from "lucide-react";
+import { Sparkles, Copy, Check, Brain, Loader2, Zap, Image as ImageIcon, ExternalLink, X, Play, FolderCode, FileCode, Code2, FileText, Presentation, ChevronLeft, ChevronRight, Download, Layers, List, AlertTriangle, Clock, CornerDownLeft, Share2, Volume2, VolumeX } from "lucide-react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import oneDark from "react-syntax-highlighter/dist/esm/styles/prism/one-dark.js";
 import oneLight from "react-syntax-highlighter/dist/esm/styles/prism/one-light.js";
@@ -215,6 +215,42 @@ const NORMALIZE_LANG = {
   zsh: "bash",
   yml: "yaml",
   md: "markdown",
+};
+
+const MarkdownImage = ({ src, alt, onClick }) => {
+  const [hasError, setHasError] = useState(false);
+
+  if (hasError) {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 my-2 rounded-xl text-xs bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 transition-colors not-prose select-none align-middle">
+        <ImageIcon size={13} className="text-slate-400 shrink-0" />
+        <span className="truncate max-w-[220px] font-medium text-slate-500 dark:text-slate-400">{alt || "Visual content"}</span>
+        <a
+          href={src}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-indigo-600 dark:text-indigo-400 hover:underline inline-flex items-center gap-1 font-semibold ml-1"
+          title="Image was blocked by browser ad blocker or extension. Click to open in a new tab."
+        >
+          <span>Open link</span>
+          <ExternalLink size={11} className="opacity-70 shrink-0" />
+        </a>
+      </span>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt || "Image"}
+      loading="lazy"
+      referrerPolicy="no-referrer"
+      onError={() => setHasError(true)}
+      onClick={onClick}
+      className="max-h-72 rounded-xl object-contain my-2 cursor-pointer hover:opacity-90 transition-opacity border border-slate-200 dark:border-white/10"
+      title="Click to open image view"
+    />
+  );
 };
 
 const CodeBlock = ({ language, value }) => {
@@ -464,6 +500,7 @@ const DECK_ACCENTS = [
 ];
 
 const PresentationDeckCard = ({ data, originalContent }) => {
+  const dispatch = useDispatch();
   const [activeIdx, setActiveIdx] = useState(0);
   const [viewMode, setViewMode] = useState("deck");
   const [copied, setCopied] = useState(false);
@@ -555,6 +592,30 @@ const PresentationDeckCard = ({ data, originalContent }) => {
               <span>Outline</span>
             </button>
           </div>
+
+          <motion.button
+            type="button"
+            onClick={() => {
+              dispatch(
+                setActiveArtifact({
+                  id: `ppt_${Date.now()}`,
+                  type: "ppt",
+                  title: downloadFilename,
+                  pptUrl: finalDownloadUrl || downloadUrl,
+                  url: finalDownloadUrl || downloadUrl,
+                  slides: slides,
+                  subtitle: subtitle,
+                })
+              );
+            }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-700 dark:text-amber-300 font-semibold text-xs shadow-xs transition-all cursor-pointer"
+            title="Open in Artifact Panel"
+          >
+            <Sparkles size={13} className="text-amber-500 dark:text-amber-400" />
+            <span>Show Artifact</span>
+          </motion.button>
 
           {finalDownloadUrl && (
             <motion.a
@@ -1158,549 +1219,608 @@ const MessageBuble = ({ role, content, images = [], artifacts = [], isThinking =
               </div>
             )}
 
-          {detectedPdfName && (
-            <div
-              onClick={() => dispatch(setActiveArtifact({
-                type: 'pdf',
-                title: detectedPdfName,
-                pdfUrl: resolvedPdfUrl || undefined
-              }))}
-              className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 hover:border-white/40 cursor-pointer transition-all group"
-              title="Click to show PDF in Artifact panel"
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-rose-500/25 border border-rose-300/40 flex items-center justify-center text-rose-200 shrink-0">
-                  <FileText size={16} />
-                </div>
-                <div className="flex flex-col min-w-0 pr-1">
-                  <span className="text-xs font-semibold text-white truncate max-w-[200px]">
-                    {detectedPdfName}
-                  </span>
-                  <span className="text-[10px] text-indigo-100/80 group-hover:text-white transition-colors">
-                    Custom Vector DB • Indexed
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/20 group-hover:bg-white/30 text-white font-medium text-[11px] shrink-0 border border-white/25 transition-all">
-                <Sparkles size={11} className="text-amber-300" />
-                <span>Show Artifact</span>
-              </div>
-            </div>
-          )}
-
-          {cleanUserText && (
-            <div className="whitespace-pre-wrap">{cleanUserText}</div>
-          )}
-
-          <div className="flex items-center justify-end gap-2 mt-0.5 self-end select-none">
-            {formattedTime && (
-              <span
-                className="text-[10px] text-white/75 font-medium tracking-tight select-none"
-                title={fullDateTitle}
+            {detectedPdfName && (
+              <div
+                onClick={() => dispatch(setActiveArtifact({
+                  type: 'pdf',
+                  title: detectedPdfName,
+                  pdfUrl: resolvedPdfUrl || undefined
+                }))}
+                className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 hover:border-white/40 cursor-pointer transition-all group"
+                title="Click to show PDF in Artifact panel"
               >
-                {formattedTime}
-              </span>
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-rose-500/25 border border-rose-300/40 flex items-center justify-center text-rose-200 shrink-0">
+                    <FileText size={16} />
+                  </div>
+                  <div className="flex flex-col min-w-0 pr-1">
+                    <span className="text-xs font-semibold text-white truncate max-w-[200px]">
+                      {detectedPdfName}
+                    </span>
+                    <span className="text-[10px] text-indigo-100/80 group-hover:text-white transition-colors">
+                      Custom Vector DB • Indexed
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/20 group-hover:bg-white/30 text-white font-medium text-[11px] shrink-0 border border-white/25 transition-all">
+                  <Sparkles size={11} className="text-amber-300" />
+                  <span>Show Artifact</span>
+                </div>
+              </div>
             )}
-            {(cleanUserText || displayText) && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => handleUserCopy(cleanUserText || displayText)}
-                  className="flex items-center gap-1 text-white/75 hover:text-white transition-colors cursor-pointer text-[10px] py-0.5 px-1.5 rounded-md hover:bg-white/15"
-                  title="Copy message"
-                >
-                  {userCopied ? (
-                    <>
-                      <Check size={11} className="text-emerald-300" />
-                      <span className="text-emerald-300 font-medium">Copied</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={11} />
-                      <span>Copy</span>
-                    </>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    window.dispatchEvent(
-                      new CustomEvent("insert-prompt", {
-                        detail: cleanUserText || displayText,
-                      })
-                    );
-                  }}
-                  className="flex items-center gap-1 text-white/75 hover:text-white transition-colors cursor-pointer text-[10px] py-0.5 px-1.5 rounded-md hover:bg-white/15"
-                  title="Copy prompt into chat input"
-                >
-                  <CornerDownLeft size={11} />
-                  <span>To Input</span>
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      </motion.div>
-      {renderLightBox()}
-    </>
-  );
-}
 
-return (
-  <>
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, ease: "easeOut" }}
-      className="flex items-start gap-2.5 sm:gap-3 my-2 w-full justify-start"
-    >
-      <div
-        className={`w-7 h-7 sm:w-7.5 sm:h-7.5 rounded-lg flex items-center justify-center shrink-0 mt-0.5 shadow-xs transition-all duration-300 ${
-          isErrorMsg
+            {cleanUserText && (
+              <div className="whitespace-pre-wrap">{cleanUserText}</div>
+            )}
+
+            <div className="flex items-center justify-end gap-2 mt-0.5 self-end select-none">
+              {formattedTime && (
+                <span
+                  className="text-[10px] text-white/75 font-medium tracking-tight select-none"
+                  title={fullDateTitle}
+                >
+                  {formattedTime}
+                </span>
+              )}
+              {(cleanUserText || displayText) && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => handleUserCopy(cleanUserText || displayText)}
+                    className="flex items-center gap-1 text-white/75 hover:text-white transition-colors cursor-pointer text-[10px] py-0.5 px-1.5 rounded-md hover:bg-white/15"
+                    title="Copy message"
+                  >
+                    {userCopied ? (
+                      <>
+                        <Check size={11} className="text-emerald-300" />
+                        <span className="text-emerald-300 font-medium">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={11} />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      window.dispatchEvent(
+                        new CustomEvent("insert-prompt", {
+                          detail: cleanUserText || displayText,
+                        })
+                      );
+                    }}
+                    className="flex items-center gap-1 text-white/75 hover:text-white transition-colors cursor-pointer text-[10px] py-0.5 px-1.5 rounded-md hover:bg-white/15"
+                    title="Copy prompt into chat input"
+                  >
+                    <CornerDownLeft size={11} />
+                    <span>To Input</span>
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </motion.div>
+        {renderLightBox()}
+      </>
+    );
+  }
+
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
+        className="flex items-start gap-2.5 sm:gap-3 my-2 w-full justify-start"
+      >
+        <div
+          className={`w-7 h-7 sm:w-7.5 sm:h-7.5 rounded-lg flex items-center justify-center shrink-0 mt-0.5 shadow-xs transition-all duration-300 ${isErrorMsg
             ? isRateLimit
               ? "bg-amber-500/10 border border-amber-500/30 text-amber-500 dark:text-amber-400"
               : "bg-rose-500/10 border border-rose-500/30 text-rose-500 dark:text-rose-400"
             : isThinking
               ? "bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 animate-pulse ring-1 ring-indigo-500/30"
               : "bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400"
-        }`}
-      >
-        {isErrorMsg ? (
-          isRateLimit ? (
-            <Clock size={14} className="text-amber-500 dark:text-amber-400" />
+            }`}
+        >
+          {isErrorMsg ? (
+            isRateLimit ? (
+              <Clock size={14} className="text-amber-500 dark:text-amber-400" />
+            ) : (
+              <AlertTriangle size={14} className="text-rose-500 dark:text-rose-400" />
+            )
+          ) : isThinking ? (
+            <Brain size={14} className="text-indigo-600 dark:text-indigo-400" />
           ) : (
-            <AlertTriangle size={14} className="text-rose-500 dark:text-rose-400" />
-          )
-        ) : isThinking ? (
-          <Brain size={14} className="text-indigo-600 dark:text-indigo-400" />
-        ) : (
-          <Sparkles size={13} className="sm:size-[14px]" />
-        )}
-      </div>
+            <Sparkles size={13} className="sm:size-[14px]" />
+          )}
+        </div>
 
-      <div className="flex-1 min-w-0 text-slate-800 dark:text-slate-200 text-[13.5px] sm:text-[14.5px] leading-relaxed break-words py-0.5">
-        {isThinking ? (
-          <ThinkingIndicator />
-        ) : isErrorMsg ? (
-          <div
-            className={`p-3.5 sm:p-4 rounded-xl border backdrop-blur-xs max-w-2xl transition-all shadow-sm ${
-              isRateLimit
+        <div className="flex-1 min-w-0 text-slate-800 dark:text-slate-200 text-[13.5px] sm:text-[14.5px] leading-relaxed break-words py-0.5">
+          {isThinking ? (
+            <ThinkingIndicator />
+          ) : isErrorMsg ? (
+            <div
+              className={`p-3.5 sm:p-4 rounded-xl border backdrop-blur-xs max-w-2xl transition-all shadow-sm ${isRateLimit
                 ? "bg-amber-500/[0.05] dark:bg-amber-500/[0.08] border-amber-300/80 dark:border-amber-500/30 text-slate-800 dark:text-slate-100 shadow-amber-500/5"
                 : "bg-rose-500/[0.05] dark:bg-rose-500/[0.08] border-rose-300/80 dark:border-rose-500/30 text-slate-800 dark:text-slate-100 shadow-rose-500/5"
-            }`}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              {isRateLimit ? (
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
-                  <Clock size={13} className="text-amber-500 animate-spin" style={{ animationDuration: '8s' }} />
-                  <span>Rate Limit Notice</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30">
-                  <AlertTriangle size={13} className="text-rose-500" />
-                  <span>Request Notice</span>
+                }`}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                {isRateLimit ? (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                    <Clock size={13} className="text-amber-500 animate-spin" style={{ animationDuration: '8s' }} />
+                    <span>Rate Limit Notice</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30">
+                    <AlertTriangle size={13} className="text-rose-500" />
+                    <span>Request Notice</span>
+                  </div>
+                )}
+              </div>
+              <div className="prose dark:prose-invert max-w-none text-[13px] sm:text-[14px] leading-relaxed">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {displayText}
+                </ReactMarkdown>
+              </div>
+            </div>
+          ) : (
+            <div className="prose dark:prose-invert max-w-none text-[13.5px] sm:text-[14.5px] leading-relaxed text-slate-800 dark:text-slate-200">
+              {Array.isArray(images) && images.length > 0 && (
+                <div className="mb-3.5 not-prose">
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium mb-2">
+                    <ImageIcon size={13} className="text-indigo-500 dark:text-indigo-400" />
+                    <span>Images ({images.length})</span>
+                  </div>
+                  <div className="flex items-center gap-2.5 overflow-x-auto pb-1.5 hide-scrollbar">
+                    {images.map((imgUrl, idx) => (
+                      <motion.div
+                        key={idx}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setLightBox(imgUrl)}
+                        className="shrink-0 w-32 h-24 sm:w-40 sm:h-28 rounded-xl overflow-hidden border border-slate-200 dark:border-white/[0.08] hover:border-indigo-400 dark:hover:border-indigo-500/50 transition-colors duration-200 group relative block bg-slate-100 dark:bg-[#161822] cursor-pointer"
+                        title="Click to open image view"
+                      >
+                        <img
+                          src={imgUrl}
+                          alt={`Search visual ${idx + 1}`}
+                          loading="lazy"
+                          referrerPolicy="no-referrer"
+                          onError={(e) => {
+                            e.currentTarget.parentElement.style.display = "none";
+                          }}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <ImageIcon size={18} className="text-white drop-shadow" />
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
                 </div>
               )}
-            </div>
-            <div className="prose dark:prose-invert max-w-none text-[13px] sm:text-[14px] leading-relaxed">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {displayText}
-              </ReactMarkdown>
-            </div>
-          </div>
-        ) : (
-          <div className="prose dark:prose-invert max-w-none text-[13.5px] sm:text-[14.5px] leading-relaxed text-slate-800 dark:text-slate-200">
-            {Array.isArray(images) && images.length > 0 && (
-              <div className="mb-3.5 not-prose">
-                <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium mb-2">
-                  <ImageIcon size={13} className="text-indigo-500 dark:text-indigo-400" />
-                  <span>Images ({images.length})</span>
-                </div>
-                <div className="flex items-center gap-2.5 overflow-x-auto pb-1.5 hide-scrollbar">
-                  {images.map((imgUrl, idx) => (
-                    <motion.div
-                      key={idx}
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setLightBox(imgUrl)}
-                      className="shrink-0 w-32 h-24 sm:w-40 sm:h-28 rounded-xl overflow-hidden border border-slate-200 dark:border-white/[0.08] hover:border-indigo-400 dark:hover:border-indigo-500/50 transition-colors duration-200 group relative block bg-slate-100 dark:bg-[#161822] cursor-pointer"
-                      title="Click to open image view"
-                    >
-                      <img
-                        src={imgUrl}
-                        alt={`Search visual ${idx + 1}`}
-                        loading="lazy"
-                        onError={(e) => {
-                          e.currentTarget.parentElement.style.display = "none";
-                        }}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <ImageIcon size={18} className="text-white drop-shadow" />
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            )}
-            {(() => {
-              const codeArtifacts = (Array.isArray(artifacts) ? artifacts : []).filter(
-                (art) => Array.isArray(art?.files) && art.files.length > 0
-              );
-              if (codeArtifacts.length === 0) return null;
+              {(() => {
+                const allArtifacts = (Array.isArray(artifacts) ? artifacts : []).filter(
+                  (art) =>
+                    (Array.isArray(art?.files) && art.files.length > 0) ||
+                    art?.type === 'pdf' ||
+                    art?.type === 'ppt' ||
+                    art?.type === 'presentation' ||
+                    Boolean(art?.pdfUrl) ||
+                    Boolean(art?.pptUrl)
+                );
+                if (allArtifacts.length === 0) return null;
 
-              return (
-                <div ref={artifactCardRef} className="mb-4 flex flex-col gap-2.5 not-prose">
-                  {codeArtifacts.map((art, idx) => {
-                    const filesCount = art.files?.length || 0;
-                    const resolvedTitle = getArtifactTitle(art, content);
-                    return (
-                      <motion.div
-                        key={art.id || idx}
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        whileHover={{ y: -2 }}
-                        transition={{ duration: 0.2 }}
-                        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-linear-to-r from-indigo-50/80 via-white to-violet-50/80 dark:from-indigo-950/40 dark:via-[#111422] dark:to-violet-950/30 border border-indigo-200 hover:border-indigo-300 dark:border-indigo-500/25 dark:hover:border-indigo-500/40 shadow-xs dark:shadow-indigo-500/5 group transition-colors duration-200"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-500/15 to-violet-600/25 dark:from-indigo-500/20 dark:to-violet-600/30 border border-indigo-200 dark:border-indigo-500/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 shadow-xs">
-                            <FolderCode size={20} />
-                          </div>
-                          <div className="flex flex-col min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold text-slate-800 dark:text-slate-100 text-sm truncate">
-                                {resolvedTitle}
-                              </span>
-                              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-500/15 border border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-300 shrink-0">
-                                {filesCount} {filesCount === 1 ? "file" : "files"}
-                              </span>
+                return (
+                  <div ref={artifactCardRef} className="mb-4 flex flex-col gap-2.5 not-prose">
+                    {allArtifacts.map((art, idx) => {
+                      const isPdf = art.type === 'pdf' || Boolean(art.pdfUrl) || (typeof art.title === 'string' && art.title.toLowerCase().endsWith('.pdf'));
+                      const isPpt = art.type === 'ppt' || art.type === 'presentation' || Boolean(art.pptUrl) || (typeof art.title === 'string' && (art.title.toLowerCase().endsWith('.pptx') || art.title.toLowerCase().endsWith('.ppt')));
+                      const filesCount = art.files?.length || 0;
+                      const resolvedTitle = isPdf ? (art.title || "Generated Document.pdf") : isPpt ? (art.title || "Generated Presentation.pptx") : getArtifactTitle(art, content);
+
+                      return (
+                        <motion.div
+                          key={art.id || idx}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          whileHover={{ y: -2 }}
+                          transition={{ duration: 0.2 }}
+                          className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-2xl border shadow-xs transition-colors duration-200 ${isPpt
+                            ? "bg-linear-to-r from-amber-50/80 via-white to-orange-50/80 dark:from-amber-950/40 dark:via-[#13111c] dark:to-orange-950/30 border-amber-200 dark:border-amber-500/25"
+                            : isPdf
+                              ? "bg-linear-to-r from-rose-50/80 via-white to-red-50/80 dark:from-rose-950/40 dark:via-[#141017] dark:to-red-950/30 border-rose-200 dark:border-rose-500/25"
+                              : "bg-linear-to-r from-indigo-50/80 via-white to-violet-50/80 dark:from-indigo-950/40 dark:via-[#111422] dark:to-violet-950/30 border-indigo-200 hover:border-indigo-300 dark:border-indigo-500/25 dark:hover:border-indigo-500/40"
+                            }`}
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 shadow-xs ${isPpt
+                              ? "bg-amber-500/15 border-amber-300 text-amber-600 dark:text-amber-400"
+                              : isPdf
+                                ? "bg-rose-500/15 border-rose-300 text-rose-600 dark:text-rose-400"
+                                : "bg-linear-to-br from-indigo-500/15 to-violet-600/25 dark:from-indigo-500/20 dark:to-violet-600/30 border-indigo-200 dark:border-indigo-500/40 text-indigo-600 dark:text-indigo-400"
+                              }`}>
+                              {isPpt ? <Presentation size={20} /> : isPdf ? <FileText size={20} /> : <FolderCode size={20} />}
                             </div>
-                            <div className="flex items-center gap-1.5 mt-1 overflow-x-auto [scrollbar-width:none]">
-                              {(art.files || []).slice(0, 4).map((f, fi) => (
-                                <span
-                                  key={fi}
-                                  className="inline-flex items-center gap-1 text-[11px] font-mono text-slate-600 dark:text-slate-400 bg-white dark:bg-white/[0.04] px-2 py-0.5 rounded-md border border-slate-200 dark:border-white/[0.06]"
-                                >
-                                  <FileCode size={10} className="text-indigo-500 dark:text-indigo-400" />
-                                  {f.name}
+                            <div className="flex flex-col min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold text-slate-800 dark:text-slate-100 text-sm truncate">
+                                  {resolvedTitle}
                                 </span>
-                              ))}
-                              {(art.files?.length || 0) > 4 && (
-                                <span className="text-[10px] text-slate-400 dark:text-slate-500">
-                                  +{art.files.length - 4} more
+                                <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border shrink-0 ${isPpt
+                                  ? "bg-amber-50 dark:bg-amber-500/15 border-amber-200 text-amber-600 dark:text-amber-300"
+                                  : isPdf
+                                    ? "bg-rose-50 dark:bg-rose-500/15 border-rose-200 text-rose-600 dark:text-rose-300"
+                                    : "bg-indigo-50 dark:bg-indigo-500/15 border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-300"
+                                  }`}>
+                                  {isPpt ? (art.slides?.length ? `${art.slides.length} slides` : "PowerPoint") : isPdf ? "PDF Document" : `${filesCount} ${filesCount === 1 ? "file" : "files"}`}
                                 </span>
+                              </div>
+                              {isPdf || isPpt ? (
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                                  {isPpt ? "Presentation ready for preview & download" : "Document ready for vector indexing & viewer"}
+                                </span>
+                              ) : (
+                                <div className="flex items-center gap-1.5 mt-1 overflow-x-auto [scrollbar-width:none]">
+                                  {(art.files || []).slice(0, 4).map((f, fi) => (
+                                    <span
+                                      key={fi}
+                                      className="inline-flex items-center gap-1 text-[11px] font-mono text-slate-600 dark:text-slate-400 bg-white dark:bg-white/[0.04] px-2 py-0.5 rounded-md border border-slate-200 dark:border-white/[0.06]"
+                                    >
+                                      <FileCode size={10} className="text-indigo-500 dark:text-indigo-400" />
+                                      {f.name}
+                                    </span>
+                                  ))}
+                                  {(art.files?.length || 0) > 4 && (
+                                    <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                                      +{art.files.length - 4} more
+                                    </span>
+                                  )}
+                                </div>
                               )}
                             </div>
                           </div>
-                        </div>
 
-                        <motion.button
-                          type="button"
-                          whileHover={{ scale: 1.03 }}
-                          whileTap={{ scale: 0.96 }}
-                          onClick={() => dispatch(setActiveArtifact({ ...art, title: resolvedTitle }))}
-                          className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-white bg-linear-to-r from-indigo-500 to-violet-600 hover:from-indigo-400 hover:to-violet-500 border border-indigo-400/30 shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all duration-150 cursor-pointer shrink-0 self-stretch sm:self-auto justify-center"
+                          <motion.button
+                            type="button"
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.96 }}
+                            onClick={() => dispatch(setActiveArtifact({ ...art, title: resolvedTitle }))}
+                            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-white shadow-md transition-all duration-150 cursor-pointer shrink-0 self-stretch sm:self-auto justify-center ${isPpt
+                              ? "bg-linear-to-r from-amber-500 via-orange-500 to-rose-600 hover:from-amber-400 hover:to-rose-500 shadow-orange-500/20"
+                              : isPdf
+                                ? "bg-linear-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 shadow-rose-500/20"
+                                : "bg-linear-to-r from-indigo-500 to-violet-600 hover:from-indigo-400 hover:to-violet-500 shadow-indigo-500/20"
+                              }`}
+                          >
+                            {isPdf || isPpt ? <Sparkles size={13} className="text-amber-300 fill-amber-300" /> : <Play size={13} className="fill-white" />}
+                            <span>Show Artifact</span>
+                          </motion.button>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+              {pptData ? (
+                <PresentationDeckCard data={pptData} originalContent={displayText} />
+              ) : (
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    code({ node, inline, className, children, ...props }) {
+                      const match = /language-(\w+)/.exec(className || "");
+                      const codeString = String(children).replace(/\n$/, "");
+
+                      if (!inline && (match || codeString.includes("\n"))) {
+                        return <CodeBlock language={match ? match[1] : ""} value={codeString} />;
+                      }
+
+                      return (
+                        <code
+                          className="px-1.5 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30 font-mono text-[12.5px] font-medium"
+                          {...props}
                         >
-                          <Play size={13} className="fill-white" />
-                          <span>Open & Preview</span>
-                        </motion.button>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              );
-            })()}
-            {pptData ? (
-              <PresentationDeckCard data={pptData} originalContent={displayText} />
-            ) : (
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                components={{
-                  code({ node, inline, className, children, ...props }) {
-                    const match = /language-(\w+)/.exec(className || "");
-                    const codeString = String(children).replace(/\n$/, "");
-
-                    if (!inline && (match || codeString.includes("\n"))) {
-                      return <CodeBlock language={match ? match[1] : ""} value={codeString} />;
-                    }
-
-                    return (
-                      <code
-                        className="px-1.5 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30 font-mono text-[12.5px] font-medium"
-                        {...props}
-                      >
-                        {children}
-                      </code>
-                    );
-                  },
-                  p({ children }) {
-                    return <p className="mb-2.5 last:mb-0 leading-relaxed text-slate-800 dark:text-slate-200">{children}</p>;
-                  },
-                  img({ src, alt }) {
-                    return (
-                      <img
-                        src={src}
-                        alt={alt || "Image"}
-                        onClick={() => setLightBox(src)}
-                        className="max-h-72 rounded-xl object-contain my-2 cursor-pointer hover:opacity-90 transition-opacity border border-slate-200 dark:border-white/10"
-                        title="Click to open image view"
-                      />
-                    );
-                  },
-                  h1({ children }) {
-                    return <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 mt-3.5 mb-2 tracking-tight">{children}</h1>;
-                  },
-                  h2({ children }) {
-                    return <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100 mt-3 mb-1.5 tracking-tight">{children}</h2>;
-                  },
-                  h3({ children }) {
-                    return <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mt-2.5 mb-1">{children}</h3>;
-                  },
-                  ul({ children }) {
-                    return <ul className="list-disc pl-5 space-y-1 mb-2.5 text-slate-800 dark:text-slate-200">{children}</ul>;
-                  },
-                  ol({ children }) {
-                    return <ol className="list-decimal pl-5 space-y-1 mb-2.5 text-slate-800 dark:text-slate-200">{children}</ol>;
-                  },
-                  li({ children }) {
-                    return <li className="leading-relaxed">{children}</li>;
-                  },
-                  blockquote({ children }) {
-                    return (
-                      <blockquote className="border-l-2 border-indigo-400 dark:border-indigo-500/50 pl-3.5 py-1.5 my-2.5 italic text-slate-700 dark:text-slate-300 bg-indigo-50/60 dark:bg-indigo-500/5 rounded-r-lg">
-                        {children}
-                      </blockquote>
-                    );
-                  },
-                  table({ children }) {
-                    return (
-                      <div className="overflow-x-auto my-3 rounded-lg border border-slate-200 dark:border-white/[0.08]">
-                        <table className="min-w-full divide-y divide-slate-200 dark:divide-white/[0.08] text-xs text-left">
                           {children}
-                        </table>
-                      </div>
-                    );
-                  },
-                  th({ children }) {
-                    return (
-                      <th className="px-3 py-2 bg-slate-100 dark:bg-white/[0.04] font-semibold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                        {children}
-                      </th>
-                    );
-                  },
-                  td({ children }) {
-                    return (
-                      <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-t border-slate-200 dark:border-white/[0.05]">
-                        {children}
-                      </td>
-                    );
-                  },
-                  a({ href, children }) {
-                    const isPdf = href && (href.endsWith(".pdf") || href.includes("download-pdf"));
-                    const isPpt =
-                      href &&
-                      (href.endsWith(".pptx") ||
-                        href.endsWith(".ppt") ||
-                        href.includes("download-ppt") ||
-                        href.includes("download-pptx"));
-                    const isDownload =
-                      isPdf ||
-                      isPpt ||
-                      (href &&
-                        (href.includes("download") ||
-                          (typeof children === "string" &&
-                            children.toLowerCase().includes("download"))));
+                        </code>
+                      );
+                    },
+                    p({ children }) {
+                      return <div className="mb-2.5 last:mb-0 leading-relaxed text-slate-800 dark:text-slate-200">{children}</div>;
+                    },
+                    img({ src, alt }) {
+                      return (
+                        <MarkdownImage
+                          src={src}
+                          alt={alt}
+                          onClick={() => setLightBox(src)}
+                        />
+                      );
+                    },
+                    h1({ children }) {
+                      return <h1 className="text-lg font-bold text-slate-900 dark:text-slate-100 mt-3.5 mb-2 tracking-tight">{children}</h1>;
+                    },
+                    h2({ children }) {
+                      return <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100 mt-3 mb-1.5 tracking-tight">{children}</h2>;
+                    },
+                    h3({ children }) {
+                      return <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mt-2.5 mb-1">{children}</h3>;
+                    },
+                    ul({ children }) {
+                      return <ul className="list-disc pl-5 space-y-1 mb-2.5 text-slate-800 dark:text-slate-200">{children}</ul>;
+                    },
+                    ol({ children }) {
+                      return <ol className="list-decimal pl-5 space-y-1 mb-2.5 text-slate-800 dark:text-slate-200">{children}</ol>;
+                    },
+                    li({ children }) {
+                      return <li className="leading-relaxed">{children}</li>;
+                    },
+                    blockquote({ children }) {
+                      return (
+                        <blockquote className="border-l-2 border-indigo-400 dark:border-indigo-500/50 pl-3.5 py-1.5 my-2.5 italic text-slate-700 dark:text-slate-300 bg-indigo-50/60 dark:bg-indigo-500/5 rounded-r-lg">
+                          {children}
+                        </blockquote>
+                      );
+                    },
+                    table({ children }) {
+                      return (
+                        <div className="overflow-x-auto my-3 rounded-lg border border-slate-200 dark:border-white/[0.08]">
+                          <table className="min-w-full divide-y divide-slate-200 dark:divide-white/[0.08] text-xs text-left">
+                            {children}
+                          </table>
+                        </div>
+                      );
+                    },
+                    th({ children }) {
+                      return (
+                        <th className="px-3 py-2 bg-slate-100 dark:bg-white/[0.04] font-semibold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                          {children}
+                        </th>
+                      );
+                    },
+                    td({ children }) {
+                      return (
+                        <td className="px-3 py-2 text-slate-700 dark:text-slate-300 border-t border-slate-200 dark:border-white/[0.05]">
+                          {children}
+                        </td>
+                      );
+                    },
+                    a({ href, children }) {
+                      const isPdf = href && (href.endsWith(".pdf") || href.includes("download-pdf"));
+                      const isPpt =
+                        href &&
+                        (href.endsWith(".pptx") ||
+                          href.endsWith(".ppt") ||
+                          href.includes("download-ppt") ||
+                          href.includes("download-pptx"));
+                      const isDownload =
+                        isPdf ||
+                        isPpt ||
+                        (href &&
+                          (href.includes("download") ||
+                            (typeof children === "string" &&
+                              children.toLowerCase().includes("download"))));
 
-                    if (isDownload) {
-                      let finalUrl = href;
-                      let downloadFilename = isPpt ? "presentation.pptx" : "document.pdf";
-                      try {
-                        const parsed = new URL(href, window.location.origin);
-                        const queryFilename = parsed.searchParams.get("filename");
-                        if (queryFilename) {
-                          downloadFilename = queryFilename;
-                        } else {
-                          const pathEnd = parsed.pathname.split("/").pop();
+                      if (isDownload) {
+                        let finalUrl = href;
+                        let downloadFilename = isPpt ? "presentation.pptx" : "document.pdf";
+                        try {
+                          const parsed = new URL(href, window.location.origin);
+                          const queryFilename = parsed.searchParams.get("filename");
+                          if (queryFilename) {
+                            downloadFilename = queryFilename;
+                          } else {
+                            const pathEnd = parsed.pathname.split("/").pop();
+                            if (
+                              pathEnd &&
+                              (pathEnd.endsWith(".pdf") ||
+                                pathEnd.endsWith(".pptx") ||
+                                pathEnd.endsWith(".ppt"))
+                            ) {
+                              downloadFilename = decodeURIComponent(pathEnd);
+                            }
+                          }
+                        } catch (e) {
+                          const lastPart = href.split("/").pop()?.split("?")[0];
                           if (
-                            pathEnd &&
-                            (pathEnd.endsWith(".pdf") ||
-                              pathEnd.endsWith(".pptx") ||
-                              pathEnd.endsWith(".ppt"))
+                            lastPart &&
+                            (lastPart.endsWith(".pdf") ||
+                              lastPart.endsWith(".pptx") ||
+                              lastPart.endsWith(".ppt"))
                           ) {
-                            downloadFilename = decodeURIComponent(pathEnd);
+                            downloadFilename = decodeURIComponent(lastPart);
                           }
                         }
-                      } catch (e) {
-                        const lastPart = href.split("/").pop()?.split("?")[0];
-                        if (
-                          lastPart &&
-                          (lastPart.endsWith(".pdf") ||
-                            lastPart.endsWith(".pptx") ||
-                            lastPart.endsWith(".ppt"))
-                        ) {
-                          downloadFilename = decodeURIComponent(lastPart);
+
+                        if (href.includes("res.cloudinary.com") && href.includes("/raw/upload/")) {
+                          const proxyBase = import.meta.env.VITE_AGENT_URL || import.meta.env.VITE_SERVER_URL || "";
+                          finalUrl = `${proxyBase}/proxy-pdf?url=${encodeURIComponent(href)}&filename=${encodeURIComponent(downloadFilename)}`;
                         }
+
+                        return (
+                          <span className="inline-flex items-center gap-2.5 my-2 flex-wrap not-prose align-middle">
+                            <motion.a
+                              href={finalUrl}
+                              download={downloadFilename}
+                              target="_self"
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-white font-semibold text-xs shadow-lg transition-all no-underline cursor-pointer select-none ${isPpt
+                                ? "bg-linear-to-r from-amber-600 via-orange-600 to-rose-600 hover:from-amber-500 hover:to-rose-500 shadow-orange-500/25"
+                                : "bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-indigo-500/25"
+                                }`}
+                            >
+                              {isPpt ? <Presentation size={15} /> : <FileText size={15} />}
+                              <span>{children}</span>
+                            </motion.a>
+
+                            {(isPdf || isPpt) && (
+                              <motion.button
+                                type="button"
+                                onClick={() => {
+                                  dispatch(
+                                    setActiveArtifact({
+                                      id: `${isPpt ? "ppt" : "pdf"}_${Date.now()}`,
+                                      type: isPpt ? "ppt" : "pdf",
+                                      title: downloadFilename,
+                                      pdfUrl: isPdf ? (finalUrl || href) : undefined,
+                                      pptUrl: isPpt ? (finalUrl || href) : undefined,
+                                      url: finalUrl || href,
+                                      slides: isPpt && pptData?.slides ? pptData.slides : undefined,
+                                      subtitle: isPpt && pptData?.subtitle ? pptData.subtitle : undefined,
+                                    })
+                                  );
+                                }}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                className={`inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl font-semibold text-xs transition-all shadow-md cursor-pointer select-none border ${isPpt
+                                  ? "bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/30 hover:border-amber-500/50 shadow-amber-500/10"
+                                  : "bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border-indigo-500/30 hover:border-indigo-500/50 shadow-indigo-500/10"
+                                  }`}
+                                title="Click to view in Artifact panel"
+                              >
+                                <Sparkles size={14} className={isPpt ? "text-amber-500" : "text-indigo-500"} />
+                                <span>Show Artifact</span>
+                              </motion.button>
+                            )}
+                          </span>
+                        );
                       }
 
-                      if (href.includes("res.cloudinary.com") && href.includes("/raw/upload/")) {
-                        const proxyBase = import.meta.env.VITE_AGENT_URL || import.meta.env.VITE_SERVER_URL || "";
-                        finalUrl = `${proxyBase}/proxy-pdf?url=${encodeURIComponent(href)}&filename=${encodeURIComponent(downloadFilename)}`;
-                      }
+                      const isAppProtocol = href && /^(whatsapp|tg|discord|spotify|slack|zoommtg|mailto):/i.test(href);
+                      const linkText = typeof children === "string" ? children : (Array.isArray(children) ? children.join("") : "");
+                      const isActionButton = isAppProtocol || (linkText && /^(open|launch|visit|go to|view)\s+/i.test(linkText.trim()));
 
-                      return (
-                        <motion.a
-                          href={finalUrl}
-                          download={downloadFilename}
-                          target="_self"
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          className={`inline-flex items-center gap-2 px-4 py-2.5 my-2 rounded-xl text-white font-semibold text-xs shadow-lg transition-all not-prose no-underline cursor-pointer select-none ${isPpt
-                            ? "bg-linear-to-r from-amber-600 via-orange-600 to-rose-600 hover:from-amber-500 hover:to-rose-500 shadow-orange-500/25"
-                            : "bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-indigo-500/25"
-                            }`}
-                        >
-                          {isPpt ? <Presentation size={15} /> : <FileText size={15} />}
-                          <span>{children}</span>
-                        </motion.a>
-                      );
-                    }
+                      if (isActionButton) {
+                        const isWhatsApp = href && (href.includes("whatsapp") || href.startsWith("whatsapp:"));
+                        const isYouTube = href && href.includes("youtube");
+                        const isGitHub = href && href.includes("github");
 
-                    const isAppProtocol = href && /^(whatsapp|tg|discord|spotify|slack|zoommtg|mailto):/i.test(href);
-                    const linkText = typeof children === "string" ? children : (Array.isArray(children) ? children.join("") : "");
-                    const isActionButton = isAppProtocol || (linkText && /^(open|launch|visit|go to|view)\s+/i.test(linkText.trim()));
-
-                    if (isActionButton) {
-                      const isWhatsApp = href && (href.includes("whatsapp") || href.startsWith("whatsapp:"));
-                      const isYouTube = href && href.includes("youtube");
-                      const isGitHub = href && href.includes("github");
-
-                      return (
-                        <motion.a
-                          href={href}
-                          target={isAppProtocol ? "_self" : "_blank"}
-                          rel="noopener noreferrer"
-                          whileHover={{ scale: 1.03 }}
-                          whileTap={{ scale: 0.97 }}
-                          className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 my-1.5 rounded-xl font-semibold text-xs shadow-xs transition-all not-prose no-underline cursor-pointer select-none border ${
-                            isWhatsApp
+                        return (
+                          <motion.a
+                            href={href}
+                            target={isAppProtocol ? "_self" : "_blank"}
+                            rel="noopener noreferrer"
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.97 }}
+                            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 my-1.5 rounded-xl font-semibold text-xs shadow-xs transition-all not-prose no-underline cursor-pointer select-none border ${isWhatsApp
                               ? "bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-500 shadow-emerald-600/25"
                               : isYouTube
                                 ? "bg-rose-600 hover:bg-rose-500 text-white border-rose-500 shadow-rose-600/25"
                                 : isGitHub
                                   ? "bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 border-transparent shadow-xs"
                                   : "bg-indigo-600 hover:bg-indigo-500 text-white border-indigo-500 shadow-indigo-600/25"
-                          }`}
+                              }`}
+                          >
+                            <ExternalLink size={13} className="shrink-0" />
+                            <span>{children}</span>
+                          </motion.a>
+                        );
+                      }
+
+                      return (
+                        <a
+                          href={href}
+                          target={isAppProtocol ? "_self" : "_blank"}
+                          rel="noopener noreferrer"
+                          className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 underline underline-offset-2 transition-colors inline-flex items-center gap-1"
                         >
-                          <ExternalLink size={13} className="shrink-0" />
-                          <span>{children}</span>
-                        </motion.a>
+                          {children}
+                          <ExternalLink size={13} className="opacity-70" />
+                        </a>
                       );
-                    }
-
-                    return (
-                      <a
-                        href={href}
-                        target={isAppProtocol ? "_self" : "_blank"}
-                        rel="noopener noreferrer"
-                        className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 underline underline-offset-2 transition-colors inline-flex items-center gap-1"
-                      >
-                        {children}
-                        <ExternalLink size={13} className="opacity-70" />
-                      </a>
-                    );
-                  },
-                  hr() {
-                    return <hr className="border-slate-200 dark:border-white/[0.08] my-3" />;
-                  },
-                  img() {
-                    return null;
-                  },
-                }}
-              >
-                {displayText}
-              </ReactMarkdown>
-            )}
-          </div>
-        )}
-
-        {!isThinking && (
-          <div className="flex items-center gap-3 mt-2 text-[11px] text-slate-400 dark:text-slate-500 font-medium select-none">
-            {formattedTime && (
-              <span className="flex items-center gap-1 opacity-80 hover:opacity-100 transition-opacity" title={fullDateTitle}>
-                <Clock size={11} className="opacity-70" />
-                <span>{formattedTime}</span>
-              </span>
-            )}
-            {!isErrorMsg && displayText && (
-              <>
-                <button
-                  type="button"
-                  onClick={handleCopy}
-                  className="flex items-center gap-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
-                  title="Copy response"
+                    },
+                    hr() {
+                      return <hr className="border-slate-200 dark:border-white/[0.08] my-3" />;
+                    },
+                  }}
                 >
-                  {copied ? (
-                    <>
-                      <Check size={11} className="text-emerald-500" />
-                      <span className="text-emerald-500 font-medium">Copied</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={11} />
-                      <span>Copy</span>
-                    </>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleShare}
-                  className="flex items-center gap-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
-                  title="Share response"
-                >
-                  {shared ? (
-                    <>
-                      <Check size={11} className="text-emerald-500" />
-                      <span className="text-emerald-500 font-medium">Shared</span>
-                    </>
-                  ) : (
-                    <>
-                      <Share2 size={11} />
-                      <span>Share</span>
-                    </>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSpeak}
-                  className={`flex items-center gap-1 transition-colors cursor-pointer ${
-                    isSpeaking
+                  {displayText}
+                </ReactMarkdown>
+              )}
+            </div>
+          )}
+
+          {!isThinking && (
+            <div className="flex items-center gap-3 mt-2 text-[11px] text-slate-400 dark:text-slate-500 font-medium select-none">
+              {formattedTime && (
+                <span className="flex items-center gap-1 opacity-80 hover:opacity-100 transition-opacity" title={fullDateTitle}>
+                  <Clock size={11} className="opacity-70" />
+                  <span>{formattedTime}</span>
+                </span>
+              )}
+              {!isErrorMsg && displayText && (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleCopy}
+                    className="flex items-center gap-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
+                    title="Copy response"
+                  >
+                    {copied ? (
+                      <>
+                        <Check size={11} className="text-emerald-500" />
+                        <span className="text-emerald-500 font-medium">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={11} />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleShare}
+                    className="flex items-center gap-1 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
+                    title="Share response"
+                  >
+                    {shared ? (
+                      <>
+                        <Check size={11} className="text-emerald-500" />
+                        <span className="text-emerald-500 font-medium">Shared</span>
+                      </>
+                    ) : (
+                      <>
+                        <Share2 size={11} />
+                        <span>Share</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSpeak}
+                    className={`flex items-center gap-1 transition-colors cursor-pointer ${isSpeaking
                       ? "text-rose-500 font-medium"
                       : "text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"
-                  }`}
-                  title={isSpeaking ? "Stop speaking" : "Listen to response"}
-                >
-                  {isSpeaking ? (
-                    <>
-                      <VolumeX size={11} className="text-rose-500" />
-                      <span className="text-rose-500 font-medium">Stop</span>
-                    </>
-                  ) : (
-                    <>
-                      <Volume2 size={11} />
-                      <span>Listen</span>
-                    </>
-                  )}
-                </button>
-              </>
-            )}
-          </div>
-        )}
-      </div>
-    </motion.div>
-    {renderLightBox()}
-  </>
-);
+                      }`}
+                    title={isSpeaking ? "Stop speaking" : "Listen to response"}
+                  >
+                    {isSpeaking ? (
+                      <>
+                        <VolumeX size={11} className="text-rose-500" />
+                        <span className="text-rose-500 font-medium">Stop</span>
+                      </>
+                    ) : (
+                      <>
+                        <Volume2 size={11} />
+                        <span>Listen</span>
+                      </>
+                    )}
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      </motion.div>
+      {renderLightBox()}
+    </>
+  );
 };
 
 export default MessageBuble;
